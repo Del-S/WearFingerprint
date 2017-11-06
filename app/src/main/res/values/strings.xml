@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">WearNavigationSimple</string>
+    <string name="app_yes">Yes</string>
+    <string name="app_no">No</string>
+
+    <!-- Dialog -->
+    <string name="app_dialog_leaving_title">Leaving app</string>
+    <string name="app_dialog_leaving_message">Are you sure want to leave the app?</string>
+
+    <!-- Menu -->
+    <string name="app_menu_home">Home</string>
+    <string name="app_menu_show_devices">Show devices</string>
+
+    <!-- Main activity -->
+    <string name="am_bluetooth_not_enabled">This application does not work without bluetooth.\nShutting down.</string>
+    <string name="am_bluetooth_le_support">This app requires Bluetooth Low Energy to work.\nThis device does not support it.\nShutting down.</string>
+</resources>

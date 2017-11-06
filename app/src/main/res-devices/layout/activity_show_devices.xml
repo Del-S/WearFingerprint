@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="kikm.fim.uhk.cz.wearnavigationsimple.activities.devices.ShowDevicesActivity">
+
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/asd_tab_bar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_constraintLeft_creator="1"
+        tools:layout_constraintRight_creator="1"
+        tools:layout_constraintTop_creator="1">
+
+        <com.gigamole.navigationtabstrip.NavigationTabStrip
+            android:id="@+id/asd_tabs"
+            android:layout_width="match_parent"
+            android:layout_height="42dp"
+            android:layout_gravity="center"
+            app:nts_active_color="@color/colorTabTextActive"
+            app:nts_color="@color/colorTabProgress"
+            app:nts_corners_radius="2dp"
+            app:nts_factor="0.8"
+            app:nts_gravity="bottom"
+            app:nts_inactive_color="@color/colorTabText"
+            app:nts_titles="@array/asd_tabs_titles"
+            app:nts_type="line"
+            app:nts_weight="4dp" />
+
+    </android.support.design.widget.AppBarLayout>
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/asd_container"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:paddingTop="2dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/asd_tab_bar"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_menu"
+        app:layout_constraintVertical_bias="0.0"
+        tools:layout_constraintBottom_creator="1"
+        tools:layout_constraintLeft_creator="1"
+        tools:layout_constraintRight_creator="1"
+        tools:layout_constraintTop_creator="1" />
+
+    <include
+        layout="@layout/element_bottom_menu"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
+
+</android.support.constraint.ConstraintLayout>

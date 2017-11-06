@@ -1,0 +1,4 @@
+<resources>
+    <string name="fdb_title_bl_bonded">Bonded devices</string>
+    <string name="fdb_title_bl">Available devices</string>
+</resources>

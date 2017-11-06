@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.BottomNavigationView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/bottom_menu"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/colorMenuBackground"
+    app:itemIconTint="@drawable/menu_main_button"
+    app:itemTextColor="@drawable/menu_main_button"
+    app:elevation="16dp"
+    app:menu="@menu/menu_main" />
