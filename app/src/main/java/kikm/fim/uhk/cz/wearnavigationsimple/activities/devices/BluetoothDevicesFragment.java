@@ -20,7 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import kikm.fim.uhk.cz.wearnavigationsimple.R;
+import kikm.fim.uhk.cz.wearnavigationsimple.WearApplication;
 import kikm.fim.uhk.cz.wearnavigationsimple.model.adapters.BlDevicesAdapter;
+import kikm.fim.uhk.cz.wearnavigationsimple.model.configuration.Configuration;
 
 public class BluetoothDevicesFragment extends Fragment {
 
@@ -66,12 +68,14 @@ public class BluetoothDevicesFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_devices_bluetooth, container, false);
 
-        mBlDeviceAdapterBonded = new BlDevicesAdapter(getActivity(), bondedDevices);
+        Configuration configuration = ((WearApplication) getActivity().getApplicationContext()).getConfiguration();
+
+        mBlDeviceAdapterBonded = new BlDevicesAdapter(getActivity(), configuration.getAppUUID(), bondedDevices);
         RecyclerView recyclerViewBonded = rootView.findViewById(R.id.fdb_bluetooth_list_bonded);
         recyclerViewBonded.setLayoutManager(new LinearLayoutManager(getActivity()));
         recyclerViewBonded.setAdapter(mBlDeviceAdapterBonded);
 
-        mBlDeviceAdapter = new BlDevicesAdapter(getActivity(), null);
+        mBlDeviceAdapter = new BlDevicesAdapter(getActivity(), configuration.getAppUUID(), null);
         RecyclerView recyclerView = rootView.findViewById(R.id.fdb_bluetooth_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         recyclerView.setAdapter(mBlDeviceAdapter);

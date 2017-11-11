@@ -1,10 +1,14 @@
 package kikm.fim.uhk.cz.wearnavigationsimple.activities.devices;
 
 import android.Manifest;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -14,10 +18,11 @@ import android.support.v4.view.ViewPager;
 
 import com.gigamole.navigationtabstrip.NavigationTabStrip;
 
-import java.util.Set;
+import java.lang.reflect.Method;
 
 import kikm.fim.uhk.cz.wearnavigationsimple.BaseActivity;
 import kikm.fim.uhk.cz.wearnavigationsimple.R;
+import kikm.fim.uhk.cz.wearnavigationsimple.model.BluetoothConnectionService;
 
 public class ShowDevicesActivity extends BaseActivity implements BluetoothDevicesFragment.ActivityConnection {
 
@@ -120,4 +125,36 @@ public class ShowDevicesActivity extends BaseActivity implements BluetoothDevice
         }
     }
 
+    public void connectDevice(BluetoothDevice device) {
+
+        // Bind devices
+        try {
+            Method method = device.getClass().getMethod("createBond", (Class[]) null);
+            method.invoke(device, (Object[]) null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Create communication between both devices
+        BluetoothConnectionService mConnectionService = new BluetoothConnectionService(this,
+                mHandler,
+                mConfiguration.getServiceName(),
+                mConfiguration.getAppUUID());
+        mConnectionService.connect(device, true);
+        String str = "sdvsvsv";
+        mConnectionService.write(str.getBytes());
+    }
+
+    /**
+     * The Handler that gets information back from the BluetoothChatService
+     */
+    private static final Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                default:
+                    break;
+            }
+        }
+    };
 }

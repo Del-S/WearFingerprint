@@ -18,6 +18,7 @@ import android.widget.Toast;
 import java.lang.reflect.Field;
 
 import kikm.fim.uhk.cz.wearnavigationsimple.activities.devices.ShowDevicesActivity;
+import kikm.fim.uhk.cz.wearnavigationsimple.model.configuration.Configuration;
 import kikm.fim.uhk.cz.wearnavigationsimple.utils.SimpleDialogHelper;
 
 public abstract class BaseActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener {
@@ -28,6 +29,7 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
     private final int REQUEST_ENABLE_BT = 1000;
     // Global reference for bluetooth adapter.
     protected BluetoothAdapter mBluetoothAdapter;
+    protected Configuration mConfiguration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +42,8 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
         navigationView.setOnNavigationItemSelectedListener(this);
 
         invalidateOptionsMenu();
+
+        mConfiguration = ((WearApplication) getApplicationContext()).getConfiguration();
     }
 
     @Override
