@@ -3,6 +3,8 @@ package kikm.fim.uhk.cz.wearnavigationsimple.model.adapters;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
+import android.support.constraint.ConstraintLayout;
+import android.support.constraint.ConstraintSet;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,6 +24,7 @@ import java.util.UUID;
 
 import kikm.fim.uhk.cz.wearnavigationsimple.R;
 import kikm.fim.uhk.cz.wearnavigationsimple.WearApplication;
+import kikm.fim.uhk.cz.wearnavigationsimple.activities.devices.BluetoothDevicesFragment;
 import kikm.fim.uhk.cz.wearnavigationsimple.activities.devices.ShowDevicesActivity;
 
 import static android.support.v7.widget.RecyclerView.*;
@@ -29,15 +32,17 @@ import static android.support.v7.widget.RecyclerView.*;
 public class BlDevicesAdapter extends Adapter {
 
     // Layout variables
-    LayoutInflater mInflater;
+    private LayoutInflater mInflater;
     // List of devices
     private List<BluetoothDevice> mDevices = new ArrayList<>();
-    private UUID appUUID;
-    private Context context;
+    // Interface to communicate with fragment
+    private BlDevicesInterface mInterface;
+    // Information if this list shows bonded devices
+    private boolean mBonded = false;
 
-    public BlDevicesAdapter(Context context, UUID appUUID, List<BluetoothDevice> devices) {
-        this.appUUID = appUUID;
-        this.context = context;
+    public BlDevicesAdapter(Context context, BlDevicesInterface mInterface, boolean bonded, List<BluetoothDevice> devices) {
+        this.mInterface = mInterface;
+        mBonded = bonded;
         mInflater = LayoutInflater.from(context);
         if(devices != null) {
             mDevices.addAll(devices);
@@ -46,22 +51,36 @@ public class BlDevicesAdapter extends Adapter {
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view;
-        view = mInflater.inflate(R.layout.item_device, parent, false);
+        View view = mInflater.inflate(R.layout.item_device, parent, false);
         return new DeviceViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         final BluetoothDevice device = mDevices.get(position);
-        DeviceViewHolder deviceViewHolder = (DeviceViewHolder) holder;
+        final DeviceViewHolder deviceViewHolder = (DeviceViewHolder) holder;
         // Insert data into view holder
         deviceViewHolder.name.setText(device.getName());
-        deviceViewHolder.address.setText(device.getAddress());
-        deviceViewHolder.connect.setOnClickListener(new OnClickListener() {
+        deviceViewHolder.status.setText(device.getAddress());
+        deviceViewHolder.action.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((ShowDevicesActivity) context).connectDevice(device);
+                deviceViewHolder.action.setEnabled(false);
+
+                ConstraintSet constraintSet = new ConstraintSet();
+                constraintSet.clone(deviceViewHolder.content);
+                constraintSet.clear(R.id.id_name, ConstraintSet.BOTTOM);
+                constraintSet.applyTo(deviceViewHolder.content);
+
+                deviceViewHolder.status.setVisibility(VISIBLE);
+
+                if(mBonded) {
+                    deviceViewHolder.status.setText(R.string.id_action_connecting);
+                } else {
+                    deviceViewHolder.status.setText(R.string.id_action_pairing);
+                }
+
+                mInterface.connectDevice(device);
             }
         });
     }
@@ -72,7 +91,17 @@ public class BlDevicesAdapter extends Adapter {
     }
 
     public void addDevice(BluetoothDevice device) {
-        mDevices.add(device);
+        if(!mDevices.contains(device)) {
+            mDevices.add(device);
+            notifyDataSetChanged();
+        }
+    }
+
+    public void removeDevice(BluetoothDevice device) {
+        if(mDevices.contains(device)) {
+            mDevices.remove(device);
+            notifyDataSetChanged();
+        }
     }
 
     /**
@@ -80,16 +109,22 @@ public class BlDevicesAdapter extends Adapter {
      * - Its same for both my orders and trading
      */
     class DeviceViewHolder extends RecyclerView.ViewHolder  {
-        TextView name, address;
-        Button connect;
+        ConstraintLayout content;
+        TextView name, status;
+        Button action;
 
         DeviceViewHolder(View itemView) {
             super(itemView);
 
+            content = (ConstraintLayout) itemView.findViewById(R.id.id_content);
             name = (TextView) itemView.findViewById(R.id.id_name);
-            address = (TextView) itemView.findViewById(R.id.id_address);
-            connect = (Button) itemView.findViewById(R.id.id_connect);
+            status = (TextView) itemView.findViewById(R.id.id_status);
+            action = (Button) itemView.findViewById(R.id.id_action);
         }
+    }
+
+    public interface BlDevicesInterface {
+        void connectDevice(BluetoothDevice device);
     }
 
 }

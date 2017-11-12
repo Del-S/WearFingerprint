@@ -1,14 +1,14 @@
 package kikm.fim.uhk.cz.wearnavigationsimple.activities.devices;
 
 import android.Manifest;
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.NonNull;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -18,20 +18,23 @@ import android.support.v4.view.ViewPager;
 
 import com.gigamole.navigationtabstrip.NavigationTabStrip;
 
-import java.lang.reflect.Method;
-
 import kikm.fim.uhk.cz.wearnavigationsimple.BaseActivity;
 import kikm.fim.uhk.cz.wearnavigationsimple.R;
-import kikm.fim.uhk.cz.wearnavigationsimple.model.BluetoothConnectionService;
+import kikm.fim.uhk.cz.wearnavigationsimple.WearApplication;
+import kikm.fim.uhk.cz.wearnavigationsimple.model.configuration.Configuration;
 
 public class ShowDevicesActivity extends BaseActivity implements BluetoothDevicesFragment.ActivityConnection {
 
     // Bluetooth check request code
     private final int REQUEST_LOCATION_PERMISSION = 1;
+    // Configuration instance
+    private Configuration mConfiguration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mConfiguration = ((WearApplication) getApplicationContext()).getConfiguration();
 
         // Bluetooth check
         checkBluetooth();
@@ -96,6 +99,11 @@ public class ShowDevicesActivity extends BaseActivity implements BluetoothDevice
         return mBluetoothAdapter;
     }
 
+    @Override
+    public Configuration getConfiguration() {
+        return mConfiguration;
+    }
+
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
@@ -125,29 +133,9 @@ public class ShowDevicesActivity extends BaseActivity implements BluetoothDevice
         }
     }
 
-    public void connectDevice(BluetoothDevice device) {
-
-        // Bind devices
-        try {
-            Method method = device.getClass().getMethod("createBond", (Class[]) null);
-            method.invoke(device, (Object[]) null);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // Create communication between both devices
-        BluetoothConnectionService mConnectionService = new BluetoothConnectionService(this,
-                mHandler,
-                mConfiguration.getServiceName(),
-                mConfiguration.getAppUUID());
-        mConnectionService.connect(device, true);
-        String str = "sdvsvsv";
-        mConnectionService.write(str.getBytes());
-    }
-
     /**
      * The Handler that gets information back from the BluetoothChatService
-     */
+     *\/
     private static final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -156,5 +144,5 @@ public class ShowDevicesActivity extends BaseActivity implements BluetoothDevice
                     break;
             }
         }
-    };
+    };*/
 }

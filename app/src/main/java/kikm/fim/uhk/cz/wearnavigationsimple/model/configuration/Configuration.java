@@ -16,6 +16,7 @@ public class Configuration {
 
     private UUID appUUID;
     private final String serviceName = "WearBluetoothService";
+    private String bondedDeviceMac;
 
     private Configuration() {
         // Create app UUID if it does not exist just yet
@@ -54,5 +55,13 @@ public class Configuration {
 
     public String getServiceName() {
         return serviceName;
+    }
+
+    public String getBondedDeviceMac() {
+        return bondedDeviceMac;
+    }
+
+    public void setBondedDeviceMac(String bondedDeviceMac) {
+        this.bondedDeviceMac = bondedDeviceMac;
     }
 }

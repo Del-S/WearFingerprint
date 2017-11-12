@@ -3,39 +3,45 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/id_content"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:background="@color/colorBackgroundWhite">
 
     <TextView
         android:id="@+id/id_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginStart="15dp"
         android:layout_marginTop="8dp"
-        android:text="Name"
+        android:text="@string/id_name"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textColor="@color/colorTextBlack"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/id_address"
+        android:id="@+id/id_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
-        android:text="Address"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:text="@string/id_status"
+        android:visibility="gone"
+        app:layout_constraintVertical_bias="0"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="@+id/id_name"
         app:layout_constraintTop_toBottomOf="@+id/id_name" />
 
     <Button
-        android:id="@+id/id_connect"
+        android:id="@+id/id_action"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
+        android:layout_marginEnd="15dp"
         android:layout_marginTop="8dp"
-        android:text="Button"
+        android:text="@string/id_action_connect"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

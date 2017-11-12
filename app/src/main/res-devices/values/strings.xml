@@ -1,4 +1,12 @@
 <resources>
     <string name="fdb_title_bl_bonded">Bonded devices</string>
     <string name="fdb_title_bl">Available devices</string>
+
+    <!-- Item device -->
+    <string name="id_name">Device name</string>
+    <string name="id_status">Status</string>
+    <string name="id_action_connect">Connect</string>
+    <string name="id_action_pairing">Pairing…</string>
+    <string name="id_action_connecting">Connecting…</string>
+    <string name="id_action_connected">Connected</string>
 </resources>
