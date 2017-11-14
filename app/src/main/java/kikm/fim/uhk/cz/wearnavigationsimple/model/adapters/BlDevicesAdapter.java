@@ -1,31 +1,18 @@
 package kikm.fim.uhk.cz.wearnavigationsimple.model.adapters;
 
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
 import android.content.Context;
-import android.support.constraint.ConstraintLayout;
-import android.support.constraint.ConstraintSet;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import kikm.fim.uhk.cz.wearnavigationsimple.R;
-import kikm.fim.uhk.cz.wearnavigationsimple.WearApplication;
-import kikm.fim.uhk.cz.wearnavigationsimple.activities.devices.BluetoothDevicesFragment;
-import kikm.fim.uhk.cz.wearnavigationsimple.activities.devices.ShowDevicesActivity;
 
 import static android.support.v7.widget.RecyclerView.*;
 
@@ -39,6 +26,10 @@ public class BlDevicesAdapter extends Adapter {
     private BlDevicesInterface mInterface;
     // Information if this list shows bonded devices
     private boolean mBonded = false;
+    // Position of item that was last activated
+    private BluetoothDevice activeDevice;
+    // Position to reset view
+    private int positionToReset = -1;
 
     public BlDevicesAdapter(Context context, BlDevicesInterface mInterface, boolean bonded, List<BluetoothDevice> devices) {
         this.mInterface = mInterface;
@@ -56,30 +47,51 @@ public class BlDevicesAdapter extends Adapter {
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(ViewHolder holder, final int position) {
         final BluetoothDevice device = mDevices.get(position);
         final DeviceViewHolder deviceViewHolder = (DeviceViewHolder) holder;
+
+        // Reset design and active device on current position
+        if(positionToReset == position) {
+            // Disable button to prevent multiple clicks
+            deviceViewHolder.action.setEnabled(true);
+            // Make status information visible
+            deviceViewHolder.status.setVisibility(GONE);
+            // Position was reset so we can reset identification
+            positionToReset = -1;
+            // Also reset active device if this device was reset
+            if(activeDevice == device) {
+                activeDevice = null;
+            }
+        }
+
         // Insert data into view holder
         deviceViewHolder.name.setText(device.getName());
-        deviceViewHolder.status.setText(device.getAddress());
         deviceViewHolder.action.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Cancel bonding request when other device is clicked
+                if( (activeDevice != null) && (activeDevice.getBondState() != BluetoothDevice.BOND_BONDED) ) {
+                    mInterface.cancelBonding(activeDevice);
+                    resetDevice(device);
+                }
+
+                // Set device position that is active
+                activeDevice = device;
+
+                // Disable button to prevent multiple clicks
                 deviceViewHolder.action.setEnabled(false);
-
-                ConstraintSet constraintSet = new ConstraintSet();
-                constraintSet.clone(deviceViewHolder.content);
-                constraintSet.clear(R.id.id_name, ConstraintSet.BOTTOM);
-                constraintSet.applyTo(deviceViewHolder.content);
-
+                // Make status information visible
                 deviceViewHolder.status.setVisibility(VISIBLE);
 
-                if(mBonded) {
+                // Change status test based on bond state
+                if (mBonded) {
                     deviceViewHolder.status.setText(R.string.id_action_connecting);
                 } else {
                     deviceViewHolder.status.setText(R.string.id_action_pairing);
                 }
 
+                // Call connect to device
                 mInterface.connectDevice(device);
             }
         });
@@ -90,6 +102,11 @@ public class BlDevicesAdapter extends Adapter {
         return mDevices.size();
     }
 
+    /**
+     * Add device to the list if it does not exist already
+     *
+     * @param device to add to the list
+     */
     public void addDevice(BluetoothDevice device) {
         if(!mDevices.contains(device)) {
             mDevices.add(device);
@@ -97,9 +114,26 @@ public class BlDevicesAdapter extends Adapter {
         }
     }
 
+    /**
+     * Add device to the list if it does not exist already
+     *
+     * @param device to add to the list
+     */
     public void removeDevice(BluetoothDevice device) {
         if(mDevices.contains(device)) {
             mDevices.remove(device);
+            notifyDataSetChanged();
+        }
+    }
+
+    /**
+     * Reset specific device view
+     *
+     * @param device to reset view
+     */
+    public void resetDevice(BluetoothDevice device) {
+        if(mDevices.contains(device)) {
+            positionToReset = mDevices.indexOf(device);
             notifyDataSetChanged();
         }
     }
@@ -109,22 +143,24 @@ public class BlDevicesAdapter extends Adapter {
      * - Its same for both my orders and trading
      */
     class DeviceViewHolder extends RecyclerView.ViewHolder  {
-        ConstraintLayout content;
         TextView name, status;
         Button action;
 
         DeviceViewHolder(View itemView) {
             super(itemView);
 
-            content = (ConstraintLayout) itemView.findViewById(R.id.id_content);
-            name = (TextView) itemView.findViewById(R.id.id_name);
-            status = (TextView) itemView.findViewById(R.id.id_status);
-            action = (Button) itemView.findViewById(R.id.id_action);
+            name = itemView.findViewById(R.id.id_name);
+            status = itemView.findViewById(R.id.id_status);
+            action = itemView.findViewById(R.id.id_action);
         }
     }
 
+    /**
+     * Interface for communication with Fragment
+     */
     public interface BlDevicesInterface {
         void connectDevice(BluetoothDevice device);
+        void cancelBonding(BluetoothDevice device);
     }
 
 }

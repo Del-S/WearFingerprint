@@ -1,6 +1,11 @@
 <resources>
     <string name="fdb_title_bl_bonded">Bonded devices</string>
     <string name="fdb_title_bl">Available devices</string>
+    <string name="fdb_title_bl_search">Search</string>
+    <string name="fdb_title_bl_searching">Searching…</string>
+
+    <!-- Error -->
+    <string name="fdb_cannot_pair">Cannot pair to the device.</string>
 
     <!-- Item device -->
     <string name="id_name">Device name</string>
