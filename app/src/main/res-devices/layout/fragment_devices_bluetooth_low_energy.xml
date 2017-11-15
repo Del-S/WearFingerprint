@@ -3,50 +3,28 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/fdb_title_bl_bonded"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/fdb_title_bl_bonded"
-        android:textAllCaps="true"
-        android:background="@drawable/row_with_two_dividers"
-        android:padding="6dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/fdb_bluetooth_list_bonded"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintVertical_bias="0"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/fdb_title_bl_bonded" />
-
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/row_with_two_dividers"
         android:padding="6dp"
-        android:layout_marginTop="10dp"
-        android:id="@+id/fdb_title_bl_content"
+        android:id="@+id/fdble_title_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/fdb_bluetooth_list_bonded">
+        app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:id="@+id/fdb_title_bl"
+            android:id="@+id/fdble_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/fdb_title_bl"
+            android:text="@string/fdble_title"
             android:textAllCaps="true"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/fdb_title_bl_search"
+            android:id="@+id/fdble_title_search"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/fdb_title_bl_searching"
@@ -59,13 +37,13 @@
     </android.support.constraint.ConstraintLayout>
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/fdb_bluetooth_list"
+        android:id="@+id/fdble_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/fdb_title_bl_content"
+        app:layout_constraintTop_toBottomOf="@+id/fdble_title_content"
         app:layout_constraintVertical_bias="0" />
 
 </android.support.constraint.ConstraintLayout>

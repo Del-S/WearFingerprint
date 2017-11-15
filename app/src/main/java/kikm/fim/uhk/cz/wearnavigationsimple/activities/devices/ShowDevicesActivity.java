@@ -117,11 +117,11 @@ public class ShowDevicesActivity extends BaseActivity implements BluetoothDevice
         public Fragment getItem(int position) {
             switch (position) {
                 case 0:
-                    // Buy fragment
+                    // Bluetooth fragment
                     return BluetoothDevicesFragment.newInstance();
                 case 1:
-                    // Sell fragment
-                    return BluetoothDevicesFragment.newInstance();
+                    // Bluetooth LE fragment
+                    return BluetoothLEDevicesFragment.newInstance();
             }
             return null;
         }
@@ -132,17 +132,4 @@ public class ShowDevicesActivity extends BaseActivity implements BluetoothDevice
             return 2;
         }
     }
-
-    /**
-     * The Handler that gets information back from the BluetoothChatService
-     *\/
-    private static final Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                default:
-                    break;
-            }
-        }
-    };*/
 }

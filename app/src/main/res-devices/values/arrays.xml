@@ -3,7 +3,7 @@
 
     <string-array name="asd_tabs_titles">
         <item>Bluetooth</item>
-        <item>BLE</item>
+        <item>Bluetooth LE</item>
     </string-array>
 
 </resources>

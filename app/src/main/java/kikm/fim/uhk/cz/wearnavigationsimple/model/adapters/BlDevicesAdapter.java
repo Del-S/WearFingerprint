@@ -16,7 +16,7 @@ import kikm.fim.uhk.cz.wearnavigationsimple.R;
 
 import static android.support.v7.widget.RecyclerView.*;
 
-public class BlDevicesAdapter extends Adapter {
+public class BlDevicesAdapter extends RecyclerView.Adapter {
 
     // Layout variables
     private LayoutInflater mInflater;
@@ -65,8 +65,15 @@ public class BlDevicesAdapter extends Adapter {
             }
         }
 
-        // Insert data into view holder
-        deviceViewHolder.name.setText(device.getName());
+        // Set name or mas address to display
+        String name = device.getName();
+        if(name.equals("") || name.isEmpty()) {
+            name = device.getAddress();
+        }
+        // Insert name into view holder
+        deviceViewHolder.name.setText(name);
+
+        // Set connection button action
         deviceViewHolder.action.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {

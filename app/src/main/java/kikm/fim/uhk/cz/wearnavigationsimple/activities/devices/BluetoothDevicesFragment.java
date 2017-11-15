@@ -45,7 +45,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
     // App configuration
     private Configuration mConfiguration;
 
-    // Textview informing about discovering devices
+    // TextView informing about discovering devices
     private TextView mDiscoverDevices;
 
     /**
@@ -156,8 +156,10 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         }
     }
 
+    /**
+     * Cancel bluetooth discovery and change button to enable next search
+     */
     private void cancelDiscovery() {
-        Log.d(TAG, "Is discovering? " + mBluetoothAdapter.isDiscovering());
         if( mBluetoothAdapter.isDiscovering() ) {
             mBluetoothAdapter.cancelDiscovery();
         }
