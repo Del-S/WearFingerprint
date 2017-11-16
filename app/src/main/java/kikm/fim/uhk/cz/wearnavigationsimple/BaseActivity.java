@@ -29,26 +29,35 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
     private final int REQUEST_ENABLE_BT = 1000;
     // Global reference for bluetooth adapter.
     protected BluetoothAdapter mBluetoothAdapter;
+    // App wide configuration class
     protected Configuration mConfiguration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Remove title from the app
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        // Sets view based on child activity
         setContentView(getContentViewId());
 
+        // Load bottom navigation
         navigationView = findViewById(R.id.bottom_menu);
         disableShiftMode(navigationView);
         navigationView.setOnNavigationItemSelectedListener(this);
 
+        // Notify that menu has changed
         invalidateOptionsMenu();
 
+        // Load configuration from the application
         mConfiguration = ((WearApplication) getApplicationContext()).getConfiguration();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        // Update bottom menu buttons to which one is active
         updateNavigationBarState();
     }
 
@@ -83,8 +92,8 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
                         showActivity(ShowDevicesActivity.class);
                         break;
                     default:
-                        //isMyOrders = false;
-                        //showActivity(TradingActivity.class);
+                        // Shows main activity
+                        showActivity(MainActivity.class);
                         break;
                 }
             }
@@ -195,6 +204,7 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
 
     /**
      * Checking to determine whether BLE is supported on the device.
+     * - If it is not then display message and quit
      */
     protected void checkBle() {
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {

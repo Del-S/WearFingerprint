@@ -29,6 +29,8 @@ public class ShowDevicesActivity extends BaseActivity implements BluetoothDevice
     private final int REQUEST_LOCATION_PERMISSION = 1;
     // Configuration instance
     private Configuration mConfiguration;
+    // View pager for tab sections
+    private ViewPager mViewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +50,7 @@ public class ShowDevicesActivity extends BaseActivity implements BluetoothDevice
         SectionsPagerAdapter mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
-        ViewPager mViewPager = findViewById(R.id.asd_container);
+        mViewPager = findViewById(R.id.asd_container);
         //mViewPager.setPageTransformer(false, new AnimationsHelper.FadeTransformer(isMyOrders));
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
@@ -64,9 +66,11 @@ public class ShowDevicesActivity extends BaseActivity implements BluetoothDevice
                     String permission = permissions[i];
                     int grantResult = grantResults[i];
 
+                    // Checks if the permissions were granted
                     if (permission.equals(Manifest.permission.ACCESS_COARSE_LOCATION)) {
                         if (grantResult != PackageManager.PERMISSION_GRANTED) {
                             if (Build.VERSION.SDK_INT >= 23) {
+                                // If they were not ask for them again.
                                 requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_LOCATION_PERMISSION);
                             }
                         }
@@ -103,6 +107,18 @@ public class ShowDevicesActivity extends BaseActivity implements BluetoothDevice
     public Configuration getConfiguration() {
         return mConfiguration;
     }
+
+    /**
+     * Compose fragment identification name
+     *
+     * @param viewPagerId id of the view pager
+     * @param index current fragment index
+     * @return String name of the fragment
+     */
+    private String makeFragmentName(int viewPagerId, int index) {
+        return "android:switcher:" + viewPagerId + ":" + index;
+    }
+
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to

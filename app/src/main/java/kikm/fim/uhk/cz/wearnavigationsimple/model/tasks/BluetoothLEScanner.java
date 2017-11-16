@@ -37,6 +37,7 @@ public class BluetoothLEScanner implements BeaconConsumer {
         beaconManager = BeaconManager.getInstanceForApplication(mApplicationContext);
 
         // Bind consumer to beacon manager
+        Log.d(TAG, "Bind customer");
         beaconManager.bind(this);
     }
 
@@ -99,13 +100,8 @@ public class BluetoothLEScanner implements BeaconConsumer {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                // Start ranging
-                try {
-                    beaconManager.stopRangingBeaconsInRegion(region);
-                    mIsScanning = false;
-                } catch (RemoteException e) {
-                    Log.e(TAG, "Cannot stop beacon ranging.", e);
-                }
+                // Stop ranging
+                cancelScan();
             }
         }, duration);
 
@@ -136,5 +132,27 @@ public class BluetoothLEScanner implements BeaconConsumer {
      */
     public boolean isScanning() {
         return mIsScanning;
+    }
+
+    /**
+     * Handles activity destroy function
+     */
+    public void handleDestroy() {
+        beaconManager.unbind(this);
+    }
+
+    /**
+     * Handles activity pause function
+     */
+    public void handlePause() {
+        if (beaconManager.isBound(this)) beaconManager.setBackgroundMode(true);
+    }
+
+    /**
+     * Handles activity resume function
+     */
+    public void handleResume() {
+        if (beaconManager.isBound(this)) beaconManager.setBackgroundMode(false);
+        else beaconManager.bind(this);
     }
 }

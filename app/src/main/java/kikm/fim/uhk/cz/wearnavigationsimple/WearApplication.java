@@ -21,6 +21,7 @@ public class WearApplication extends Application {
         configuration = Configuration.getConfiguration(this);
         super.onCreate();
 
+        // TODO: remove this after completing all scanning features
         BeaconManager.setDebug(true);
 
         // Load beacon manager instance to enable settings change

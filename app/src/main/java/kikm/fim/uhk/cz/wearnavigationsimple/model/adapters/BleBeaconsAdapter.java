@@ -28,12 +28,14 @@ public class BleBeaconsAdapter extends RecyclerView.Adapter {
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        // Creating single item view
         View view = mInflater.inflate(R.layout.item_beacon, parent, false);
         return new BeaconViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        // Get beacon and view to input data into
         final Beacon beacon = mBeacons.get(position);
         final BeaconViewHolder beaconViewHolder = (BeaconViewHolder) holder;
 
@@ -57,10 +59,15 @@ public class BleBeaconsAdapter extends RecyclerView.Adapter {
      * @param beacon to add to the list
      */
     public void addBeacon(Beacon beacon) {
+        // Add or replace beacon to the list
         if(!mBeacons.contains(beacon)) {
             mBeacons.add(beacon);
-            notifyDataSetChanged();
+        } else {
+            replaceBeacon(beacon);
         }
+
+        // Inform adapter that list has changed
+        notifyDataSetChanged();
     }
 
     /**
@@ -70,6 +77,7 @@ public class BleBeaconsAdapter extends RecyclerView.Adapter {
      */
     public void addAllBeacons(Collection<Beacon> beacons) {
         if(beacons.size() > 0) {
+            // Add or replace beacon to the list
             for (Beacon beacon : beacons) {
                 if (!mBeacons.contains(beacon)) {
                     mBeacons.add(beacon);
@@ -77,17 +85,20 @@ public class BleBeaconsAdapter extends RecyclerView.Adapter {
                     replaceBeacon(beacon);
                 }
             }
+
+            // Inform adapter that list has changed
             notifyDataSetChanged();
         }
     }
 
     /**
-     * Replacec beacon on specific location
+     * Replace beacon on specific location
      *
      * @param beacon to replace
      */
     private void replaceBeacon(Beacon beacon) {
         if(mBeacons.contains(beacon)) {
+            // Get beacon position and replace it
             int position = mBeacons.indexOf(beacon);
             mBeacons.set(position, beacon);
         }
@@ -100,7 +111,9 @@ public class BleBeaconsAdapter extends RecyclerView.Adapter {
      */
     public void removeBeacon(Beacon beacon) {
         if(mBeacons.contains(beacon)) {
+            // Deletes a beacon from the list
             mBeacons.remove(beacon);
+            // Inform adapter that list has changed
             notifyDataSetChanged();
         }
     }
@@ -115,6 +128,7 @@ public class BleBeaconsAdapter extends RecyclerView.Adapter {
         BeaconViewHolder(View itemView) {
             super(itemView);
 
+            // Find item views
             name = itemView.findViewById(R.id.ib_name);
             mac = itemView.findViewById(R.id.ib_mac);
             rssi = itemView.findViewById(R.id.ib_rssi);

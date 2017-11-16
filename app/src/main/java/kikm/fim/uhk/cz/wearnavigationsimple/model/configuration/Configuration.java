@@ -10,9 +10,12 @@ import java.util.UUID;
 public class Configuration {
     // Preferences identification
     private static SharedPreferences sharedPref;
+    // Parses class to json
     private static Gson gson;
-    private static final String PREFERENCES_NAME = "Configuration";
-    private static final String PREFERENCES_KEY = "UserData";
+    // Preferences name file
+    private static final String PREFERENCES_NAME = "WearData";
+    // App configuration identification in the file
+    private static final String PREFERENCES_KEY = "Configuration";
 
     private UUID appUUID;
     private final String serviceName = "WearBluetoothService";
@@ -41,6 +44,7 @@ public class Configuration {
     }
 
     public synchronized static void saveConfiguration(Configuration config) {
+        // Load SharedPreferences editor
         SharedPreferences.Editor sharedPrefEditor = sharedPref.edit();
         String dataConfiguration = gson.toJson(config);
 
