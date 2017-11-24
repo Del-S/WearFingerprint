@@ -1,4 +1,4 @@
-package kikm.fim.uhk.cz.wearnavigationsimple.model.configuration;
+package cz.uhk.fim.kikm.wearnavigationsimple.model.configuration;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -17,16 +17,9 @@ public class Configuration {
     // App configuration identification in the file
     private static final String PREFERENCES_KEY = "Configuration";
 
-    private UUID appUUID;
-    private final String serviceName = "WearBluetoothService";
     private String bondedDeviceMac;
 
     private Configuration() {
-        // Create app UUID if it does not exist just yet
-        if(appUUID == null) {
-            appUUID = UUID.randomUUID();
-            saveConfiguration(this);
-        }
     }
 
     public synchronized static Configuration getConfiguration(Context context) {
@@ -51,14 +44,6 @@ public class Configuration {
         // Saves data into shared pref
         sharedPrefEditor.putString(PREFERENCES_KEY, dataConfiguration);
         sharedPrefEditor.apply();
-    }
-
-    public UUID getAppUUID() {
-        return appUUID;
-    }
-
-    public String getServiceName() {
-        return serviceName;
     }
 
     public String getBondedDeviceMac() {

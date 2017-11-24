@@ -1,6 +1,5 @@
-package kikm.fim.uhk.cz.wearnavigationsimple.model.adapters;
+package cz.uhk.fim.kikm.wearnavigationsimple.model.adapters;
 
-import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -10,12 +9,10 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
-import org.altbeacon.beacon.Beacon;
-
 import java.util.ArrayList;
 import java.util.List;
 
-import kikm.fim.uhk.cz.wearnavigationsimple.R;
+import cz.uhk.fim.kikm.wearnavigationsimple.R;
 
 import static android.support.v7.widget.RecyclerView.*;
 
@@ -31,6 +28,8 @@ public class BlDevicesAdapter extends RecyclerView.Adapter {
     private boolean mBonded = false;
     // Position of item that was last activated
     private BluetoothDevice activeDevice;
+    // Connected device
+    private BluetoothDevice connectedDevice;
     // Position to reset view
     private int positionToReset = -1;
 
@@ -60,10 +59,22 @@ public class BlDevicesAdapter extends RecyclerView.Adapter {
         final BluetoothDevice device = mDevices.get(position);
         final DeviceViewHolder deviceViewHolder = (DeviceViewHolder) holder;
 
+        // Display pairing/connecting
+        if(activeDevice == device) {
+            displayStatus(device, deviceViewHolder);
+        }
+
+        // Set device as connected
+        if(connectedDevice == device) {
+            displayConnected(deviceViewHolder);
+        }
+
         // Reset design and active device on current position
         if(positionToReset == position) {
             // Disable button to prevent multiple clicks
             deviceViewHolder.action.setEnabled(true);
+            // Reset action test
+            deviceViewHolder.action.setText(R.string.id_action_connect);
             // Make status information visible
             deviceViewHolder.status.setVisibility(GONE);
             // Position was reset so we can reset identification
@@ -71,6 +82,10 @@ public class BlDevicesAdapter extends RecyclerView.Adapter {
             // Also reset active device if this device was reset
             if(activeDevice == device) {
                 activeDevice = null;
+            }
+            // Also reset connected device if this device was reset
+            if(connectedDevice == device) {
+                connectedDevice = null;
             }
         }
 
@@ -92,20 +107,13 @@ public class BlDevicesAdapter extends RecyclerView.Adapter {
                     resetDevice(device);
                 }
 
-                // Set device position that is active
-                activeDevice = device;
-
-                // Disable button to prevent multiple clicks
-                deviceViewHolder.action.setEnabled(false);
-                // Make status information visible
-                deviceViewHolder.status.setVisibility(VISIBLE);
-
-                // Change status test based on bond state
-                if (mBonded) {
-                    deviceViewHolder.status.setText(R.string.id_action_connecting);
-                } else {
-                    deviceViewHolder.status.setText(R.string.id_action_pairing);
+                // Reset connected device view
+                if(connectedDevice != null) {
+                    resetDevice(connectedDevice);
                 }
+
+                // Displays status information for this view holder
+                displayStatus(device, deviceViewHolder);
 
                 // Call connect to device
                 mInterface.connectDevice(device);
@@ -118,17 +126,49 @@ public class BlDevicesAdapter extends RecyclerView.Adapter {
         return mDevices.size();
     }
 
+    private void displayStatus(BluetoothDevice device, DeviceViewHolder deviceViewHolder) {
+        // Set device position that is active
+        activeDevice = device;
+
+        // Disable button to prevent multiple clicks
+        deviceViewHolder.action.setEnabled(false);
+        // Make status information visible
+        deviceViewHolder.status.setVisibility(VISIBLE);
+
+        // Change status test based on bond state
+        if (mBonded) {
+            deviceViewHolder.status.setText(R.string.id_action_connecting);
+        } else {
+            deviceViewHolder.status.setText(R.string.id_action_pairing);
+        }
+    }
+
+    private void displayConnected(DeviceViewHolder deviceViewHolder) {
+        // Disable button to prevent multiple clicks
+        deviceViewHolder.action.setEnabled(false);
+        // Change test
+        deviceViewHolder.action.setText(R.string.id_action_connected);
+        // Make status information visible
+        deviceViewHolder.status.setVisibility(GONE);
+    }
+
     /**
      * Add device to the list if it does not exist already
      *
      * @param device to add to the list
+     * @param active is this device view active
      */
-    public void addDevice(BluetoothDevice device) {
-        // Add or replace beacon to the list
+    public void addDevice(BluetoothDevice device, boolean active) {
+        // Add or replace device to/in the list
         if(!mDevices.contains(device)) {
             mDevices.add(device);
         } else {
             replaceDevice(device);
+        }
+
+        // If this device is active mark it as such
+        if(active) {
+            activeDevice = device;
         }
 
         // Inform adapter that list has changed
@@ -142,7 +182,13 @@ public class BlDevicesAdapter extends RecyclerView.Adapter {
      */
     public void removeDevice(BluetoothDevice device) {
         if(mDevices.contains(device)) {
-            // Deletes a beacon from the list
+
+            // If removed device was active we reset the view
+            if(device.equals(activeDevice) || device.equals(connectedDevice)) {
+                positionToReset = mDevices.indexOf(device);
+            }
+
+            // Deletes device from the list
             mDevices.remove(device);
             // Inform adapter that list has changed
             notifyDataSetChanged();
@@ -170,9 +216,35 @@ public class BlDevicesAdapter extends RecyclerView.Adapter {
      */
     private void replaceDevice(BluetoothDevice device) {
         if(mDevices.contains(device)) {
-            // Get beacon position and replace it
+            // Get device position and replace it
             int position = mDevices.indexOf(device);
             mDevices.set(position, device);
+        }
+    }
+
+    /**
+     * Marks device as connected for display (to change layout).
+     *
+     * @param device to mark as connected
+     */
+    public void markConnectedDevice(BluetoothDevice device) {
+        if(mDevices.contains(device)) {
+            // Marks device as connected
+            connectedDevice = device;
+            notifyDataSetChanged();
+        }
+    }
+
+    /**
+     * Marks device as found. Meaning that bound device is in range.
+     * If it is in range it can be connected to.
+     *
+     * @param device to mark as found
+     */
+    public void markFoundDevice(BluetoothDevice device) {
+        if(mDevices.contains(device)) {
+            // TODO: mark device as found
+            // - Reset devices in the lists after click on search button
         }
     }
 

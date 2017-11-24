@@ -1,12 +1,14 @@
-package kikm.fim.uhk.cz.wearnavigationsimple;
+package cz.uhk.fim.kikm.wearnavigationsimple;
 
-import android.bluetooth.BluetoothAdapter;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
+import android.content.ServiceConnection;
+import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.os.Bundle;
-import android.widget.Toast;
 
 public class MainActivity extends BaseActivity {
 

@@ -1,4 +1,4 @@
-package kikm.fim.uhk.cz.wearnavigationsimple.utils;
+package cz.uhk.fim.kikm.wearnavigationsimple.utils;
 
 import android.graphics.Canvas;
 import android.graphics.Rect;

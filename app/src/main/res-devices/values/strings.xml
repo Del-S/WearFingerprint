@@ -12,6 +12,10 @@
     <string name="fdb_title_bl_bonded">Bonded devices</string>
     <string name="fdb_title_bl">Available devices</string>
 
+    <!-- Toast messages -->
+    <string name="fdb_notice_connecting">Connecting to device: %1$s</string>
+    <string name="fdb_notice_connection_failed">Failed to connect device: %1$s</string>
+
     <!-- Error -->
     <string name="fdb_cannot_pair">Cannot pair to the device.</string>
 

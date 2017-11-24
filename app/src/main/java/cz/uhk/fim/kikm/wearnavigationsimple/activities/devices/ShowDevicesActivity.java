@@ -1,4 +1,4 @@
-package kikm.fim.uhk.cz.wearnavigationsimple.activities.devices;
+package cz.uhk.fim.kikm.wearnavigationsimple.activities.devices;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
@@ -18,10 +18,11 @@ import android.support.v4.view.ViewPager;
 
 import com.gigamole.navigationtabstrip.NavigationTabStrip;
 
-import kikm.fim.uhk.cz.wearnavigationsimple.BaseActivity;
-import kikm.fim.uhk.cz.wearnavigationsimple.R;
-import kikm.fim.uhk.cz.wearnavigationsimple.WearApplication;
-import kikm.fim.uhk.cz.wearnavigationsimple.model.configuration.Configuration;
+import cz.uhk.fim.kikm.wearnavigationsimple.BaseActivity;
+import cz.uhk.fim.kikm.wearnavigationsimple.R;
+import cz.uhk.fim.kikm.wearnavigationsimple.WearApplication;
+import cz.uhk.fim.kikm.wearnavigationsimple.model.BluetoothConnectionService;
+import cz.uhk.fim.kikm.wearnavigationsimple.model.configuration.Configuration;
 
 public class ShowDevicesActivity extends BaseActivity implements BluetoothDevicesFragment.ActivityConnection {
 
@@ -106,6 +107,11 @@ public class ShowDevicesActivity extends BaseActivity implements BluetoothDevice
     @Override
     public Configuration getConfiguration() {
         return mConfiguration;
+    }
+
+    @Override
+    public BluetoothConnectionService getConnectionService() {
+        return WearApplication.getConnectionService(this);
     }
 
     /**

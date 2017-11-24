@@ -1,36 +1,60 @@
-package kikm.fim.uhk.cz.wearnavigationsimple.model;
+package cz.uhk.fim.kikm.wearnavigationsimple.model;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
-import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.SyncStateContract;
 import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Method;
 import java.util.UUID;
 
+/**
+ * This class does all the work for setting up and managing Bluetooth
+ * connections with other devices. It has a thread that listens for
+ * incoming connections, a thread for connecting with a device, and a
+ * thread for performing data transmissions when connected.
+ */
 public class BluetoothConnectionService {
-    private final String TAG = "BluetoothConnectionS";
+
+    // Message types sent from the BluetoothChatService Handler
+    public static final int MESSAGE_READ = 1;
+    public static final int MESSAGE_WRITE = 2;
+    public static final int MESSAGE_DEVICE_CONNECTED = 3;
+    public static final int MESSAGE_DEVICE_CONNECTION_FAILED = 4;
+    public static final int MESSAGE_TOAST = 5;
+
+    // Key names received from the BluetoothChatService Handler
+    public static final String DEVICE = "device";
+    public static final String TOAST = "toast";
+
+    // Debugging
+    private static final String TAG = "BluetoothChatService";
+
+    // Name for the SDP record when creating server socket
+    private static final String NAME_SECURE = "BluetoothChatSecure";
+    private static final String NAME_INSECURE = "BluetoothChatInsecure";
+
+    // Unique UUID for this application
+    private static final UUID MY_UUID_SECURE =
+            UUID.fromString("fa87c0d0-afac-11de-8a39-0800200c9a66");
+    private static final UUID MY_UUID_INSECURE =
+            UUID.fromString("8ce255c0-200a-11e0-ac64-0800200c9a66");
 
     // Member fields
     private final BluetoothAdapter mAdapter;
-    private final Handler mHandler;
+    private Handler mHandler;
     private AcceptThread mSecureAcceptThread;
     private AcceptThread mInsecureAcceptThread;
     private ConnectThread mConnectThread;
     private ConnectedThread mConnectedThread;
     private int mState;
     private int mNewState;
-    private UUID mAppUUID;
-    private String mBlName;
 
     // Constants that indicate the current connection state
     public static final int STATE_NONE = 0;       // we're doing nothing
@@ -38,35 +62,17 @@ public class BluetoothConnectionService {
     public static final int STATE_CONNECTING = 2; // now initiating an outgoing connection
     public static final int STATE_CONNECTED = 3;  // now connected to a remote device
 
-    // Message types sent from the BluetoothChatService Handler
-    public static final int MESSAGE_STATE_CHANGE = 1;
-    public static final int MESSAGE_READ = 2;
-    public static final int MESSAGE_WRITE = 3;
-    public static final int MESSAGE_DEVICE_NAME = 4;
-    public static final int MESSAGE_TOAST = 5;
-
-    public static final String DEVICE_NAME = "device_name";
-    public static final String TOAST = "toast";
-
-    public BluetoothConnectionService(Context context, Handler handler, String blName, UUID appUUID) {
+    /**
+     * Constructor. Prepares a new BluetoothChat session.
+     */
+    public BluetoothConnectionService() {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mState = STATE_NONE;
         mNewState = mState;
-        mHandler = handler;
-        mAppUUID = appUUID;
-        mBlName = blName;
     }
 
-    /**
-     * Update UI title according to the current state of the chat connection
-     */
-    private synchronized void updateUserInterfaceTitle() {
-        mState = getState();
-        Log.d(TAG, "updateUserInterfaceTitle() " + mNewState + " -> " + mState);
-        mNewState = mState;
-
-        // Give the new state to the Handler so the UI Activity can update
-        mHandler.obtainMessage(MESSAGE_STATE_CHANGE, mNewState, -1).sendToTarget();
+    public void setHandler(Handler handler) {
+        mHandler = handler;
     }
 
     /**
@@ -104,8 +110,6 @@ public class BluetoothConnectionService {
             mInsecureAcceptThread = new AcceptThread(false);
             mInsecureAcceptThread.start();
         }
-        // Update UI title
-        updateUserInterfaceTitle();
     }
 
     /**
@@ -134,8 +138,6 @@ public class BluetoothConnectionService {
         // Start the thread to connect with the given device
         mConnectThread = new ConnectThread(device, secure);
         mConnectThread.start();
-        // Update UI title
-        updateUserInterfaceTitle();
     }
 
     /**
@@ -175,13 +177,11 @@ public class BluetoothConnectionService {
         mConnectedThread.start();
 
         // Send the name of the connected device back to the UI Activity
-        Message msg = mHandler.obtainMessage(MESSAGE_DEVICE_NAME);
+        Message msg = mHandler.obtainMessage(MESSAGE_DEVICE_CONNECTED);
         Bundle bundle = new Bundle();
-        bundle.putString(DEVICE_NAME, device.getName());
+        bundle.putParcelable(DEVICE, device);
         msg.setData(bundle);
         mHandler.sendMessage(msg);
-        // Update UI title
-        updateUserInterfaceTitle();
     }
 
     /**
@@ -210,8 +210,6 @@ public class BluetoothConnectionService {
             mInsecureAcceptThread = null;
         }
         mState = STATE_NONE;
-        // Update UI title
-        updateUserInterfaceTitle();
     }
 
     /**
@@ -235,17 +233,15 @@ public class BluetoothConnectionService {
     /**
      * Indicate that the connection attempt failed and notify the UI Activity.
      */
-    private void connectionFailed() {
+    private void connectionFailed(BluetoothDevice device) {
         // Send a failure message back to the Activity
-        Message msg = mHandler.obtainMessage(MESSAGE_TOAST);
+        Message msg = mHandler.obtainMessage(MESSAGE_DEVICE_CONNECTION_FAILED);
         Bundle bundle = new Bundle();
-        bundle.putString(TOAST, "Unable to connect device");
+        bundle.putParcelable(DEVICE, device);
         msg.setData(bundle);
         mHandler.sendMessage(msg);
 
         mState = STATE_NONE;
-        // Update UI title
-        updateUserInterfaceTitle();
 
         // Start the service over to restart listening mode
         BluetoothConnectionService.this.start();
@@ -263,8 +259,6 @@ public class BluetoothConnectionService {
         mHandler.sendMessage(msg);
 
         mState = STATE_NONE;
-        // Update UI title
-        updateUserInterfaceTitle();
 
         // Start the service over to restart listening mode
         BluetoothConnectionService.this.start();
@@ -286,8 +280,13 @@ public class BluetoothConnectionService {
 
             // Create a new listening server socket
             try {
-                tmp = mAdapter.listenUsingRfcommWithServiceRecord(mBlName,
-                        mAppUUID);
+                if (secure) {
+                    tmp = mAdapter.listenUsingRfcommWithServiceRecord(NAME_SECURE,
+                            MY_UUID_SECURE);
+                } else {
+                    tmp = mAdapter.listenUsingInsecureRfcommWithServiceRecord(
+                            NAME_INSECURE, MY_UUID_INSECURE);
+                }
             } catch (IOException e) {
                 Log.e(TAG, "Socket Type: " + mSocketType + "listen() failed", e);
             }
@@ -369,8 +368,13 @@ public class BluetoothConnectionService {
             // Get a BluetoothSocket for a connection with the
             // given BluetoothDevice
             try {
-                tmp = device.createRfcommSocketToServiceRecord(
-                        mAppUUID);
+                if (secure) {
+                    tmp = device.createRfcommSocketToServiceRecord(
+                            MY_UUID_SECURE);
+                } else {
+                    tmp = device.createInsecureRfcommSocketToServiceRecord(
+                            MY_UUID_INSECURE);
+                }
             } catch (IOException e) {
                 Log.e(TAG, "Socket Type: " + mSocketType + "create() failed", e);
             }
@@ -398,7 +402,7 @@ public class BluetoothConnectionService {
                     Log.e(TAG, "unable to close() " + mSocketType +
                             " socket during connection failure", e2);
                 }
-                connectionFailed();
+                connectionFailed(mmDevice);
                 return;
             }
 

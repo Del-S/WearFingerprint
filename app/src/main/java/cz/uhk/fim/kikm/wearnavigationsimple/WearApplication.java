@@ -1,17 +1,22 @@
-package kikm.fim.uhk.cz.wearnavigationsimple;
+package cz.uhk.fim.kikm.wearnavigationsimple;
 
 import android.app.Application;
+import android.content.Context;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 
-import kikm.fim.uhk.cz.wearnavigationsimple.model.configuration.Configuration;
+import cz.uhk.fim.kikm.wearnavigationsimple.model.BluetoothConnectionService;
+import cz.uhk.fim.kikm.wearnavigationsimple.model.configuration.Configuration;
 
 public class WearApplication extends Application {
 
     // Configuration for the whole app
     private Configuration configuration;
+
+    // Bluetooth communication service
+    private static BluetoothConnectionService sService;
 
     // Power saver for BeaconLibrary
     private BackgroundPowerSaver backgroundPowerSaver;
@@ -22,7 +27,7 @@ public class WearApplication extends Application {
         super.onCreate();
 
         // TODO: remove this after completing all scanning features
-        BeaconManager.setDebug(true);
+        //BeaconManager.setDebug(true);
 
         // Load beacon manager instance to enable settings change
         BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);
@@ -51,5 +56,14 @@ public class WearApplication extends Application {
     public void setConfiguration(Configuration configuration) {
         this.configuration = configuration;
         Configuration.saveConfiguration(configuration);
+    }
+
+    public static BluetoothConnectionService getConnectionService(Context context) {
+        if(sService == null) {
+            // Construct communication service
+            Configuration config = Configuration.getConfiguration(context);
+            sService = new BluetoothConnectionService();
+        }
+        return sService;
     }
 }

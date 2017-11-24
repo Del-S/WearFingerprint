@@ -1,4 +1,4 @@
-package kikm.fim.uhk.cz.wearnavigationsimple;
+package cz.uhk.fim.kikm.wearnavigationsimple;
 
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
@@ -17,9 +17,9 @@ import android.widget.Toast;
 
 import java.lang.reflect.Field;
 
-import kikm.fim.uhk.cz.wearnavigationsimple.activities.devices.ShowDevicesActivity;
-import kikm.fim.uhk.cz.wearnavigationsimple.model.configuration.Configuration;
-import kikm.fim.uhk.cz.wearnavigationsimple.utils.SimpleDialogHelper;
+import cz.uhk.fim.kikm.wearnavigationsimple.activities.devices.ShowDevicesActivity;
+import cz.uhk.fim.kikm.wearnavigationsimple.model.configuration.Configuration;
+import cz.uhk.fim.kikm.wearnavigationsimple.utils.SimpleDialogHelper;
 
 public abstract class BaseActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener {
 

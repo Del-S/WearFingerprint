@@ -1,10 +1,10 @@
-package kikm.fim.uhk.cz.wearnavigationsimple.utils;
+package cz.uhk.fim.kikm.wearnavigationsimple.utils;
 
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
 
-import kikm.fim.uhk.cz.wearnavigationsimple.R;
+import cz.uhk.fim.kikm.wearnavigationsimple.R;
 
 public class SimpleDialogHelper {
 

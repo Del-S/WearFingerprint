@@ -1,4 +1,4 @@
-package kikm.fim.uhk.cz.wearnavigationsimple.model.tasks;
+package cz.uhk.fim.kikm.wearnavigationsimple.model.tasks;
 
 import android.content.Context;
 import android.content.Intent;
@@ -37,7 +37,6 @@ public class BluetoothLEScanner implements BeaconConsumer {
         beaconManager = BeaconManager.getInstanceForApplication(mApplicationContext);
 
         // Bind consumer to beacon manager
-        Log.d(TAG, "Bind customer");
         beaconManager.bind(this);
     }
 

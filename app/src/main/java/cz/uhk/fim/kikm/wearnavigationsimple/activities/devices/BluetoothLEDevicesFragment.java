@@ -1,4 +1,4 @@
-package kikm.fim.uhk.cz.wearnavigationsimple.activities.devices;
+package cz.uhk.fim.kikm.wearnavigationsimple.activities.devices;
 
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -19,12 +19,12 @@ import org.altbeacon.beacon.Beacon;
 
 import java.util.Collection;
 
-import kikm.fim.uhk.cz.wearnavigationsimple.R;
-import kikm.fim.uhk.cz.wearnavigationsimple.WearApplication;
-import kikm.fim.uhk.cz.wearnavigationsimple.model.adapters.BleBeaconsAdapter;
-import kikm.fim.uhk.cz.wearnavigationsimple.model.tasks.BluetoothLEScanner;
-import kikm.fim.uhk.cz.wearnavigationsimple.model.tasks.BluetoothLEScannerInterface;
-import kikm.fim.uhk.cz.wearnavigationsimple.utils.SimpleDividerItemDecoration;
+import cz.uhk.fim.kikm.wearnavigationsimple.R;
+import cz.uhk.fim.kikm.wearnavigationsimple.WearApplication;
+import cz.uhk.fim.kikm.wearnavigationsimple.model.adapters.BleBeaconsAdapter;
+import cz.uhk.fim.kikm.wearnavigationsimple.model.tasks.BluetoothLEScanner;
+import cz.uhk.fim.kikm.wearnavigationsimple.model.tasks.BluetoothLEScannerInterface;
+import cz.uhk.fim.kikm.wearnavigationsimple.utils.SimpleDividerItemDecoration;
 
 public class BluetoothLEDevicesFragment extends Fragment implements BluetoothLEScannerInterface {
 

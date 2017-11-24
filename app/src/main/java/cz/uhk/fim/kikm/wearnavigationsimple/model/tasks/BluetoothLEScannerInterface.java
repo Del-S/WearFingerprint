@@ -1,4 +1,4 @@
-package kikm.fim.uhk.cz.wearnavigationsimple.model.tasks;
+package cz.uhk.fim.kikm.wearnavigationsimple.model.tasks;
 
 import org.altbeacon.beacon.Beacon;
 

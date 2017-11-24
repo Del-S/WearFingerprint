@@ -1,7 +1,8 @@
-package kikm.fim.uhk.cz.wearnavigationsimple.model.adapters;
+package cz.uhk.fim.kikm.wearnavigationsimple.model.adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import kikm.fim.uhk.cz.wearnavigationsimple.R;
+import cz.uhk.fim.kikm.wearnavigationsimple.R;
 
 public class BleBeaconsAdapter extends RecyclerView.Adapter {
 
@@ -41,7 +42,7 @@ public class BleBeaconsAdapter extends RecyclerView.Adapter {
 
         // Set view holder data to display
         String name = beacon.getBluetoothName();
-        if(!name.equals("") && !name.isEmpty()) {
+        if(name != null && !name.equals("") && !name.isEmpty()) {
             beaconViewHolder.name.setText(beacon.getBluetoothName());
         }
         beaconViewHolder.mac.setText(beacon.getBluetoothAddress());
@@ -122,7 +123,7 @@ public class BleBeaconsAdapter extends RecyclerView.Adapter {
      * Header view holder shows time and time type for my orders and trading orders
      * - Its same for both my orders and trading
      */
-    class BeaconViewHolder extends RecyclerView.ViewHolder  {
+    public static class BeaconViewHolder extends RecyclerView.ViewHolder  {
         TextView name, mac, rssi;
 
         BeaconViewHolder(View itemView) {
