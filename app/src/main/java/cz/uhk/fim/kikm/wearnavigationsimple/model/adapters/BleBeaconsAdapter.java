@@ -2,7 +2,6 @@ package cz.uhk.fim.kikm.wearnavigationsimple.model.adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -102,20 +101,6 @@ public class BleBeaconsAdapter extends RecyclerView.Adapter {
             // Get beacon position and replace it
             int position = mBeacons.indexOf(beacon);
             mBeacons.set(position, beacon);
-        }
-    }
-
-    /**
-     * Add beacon to the list if it does not exist already
-     *
-     * @param beacon to add to the list
-     */
-    public void removeBeacon(Beacon beacon) {
-        if(mBeacons.contains(beacon)) {
-            // Deletes a beacon from the list
-            mBeacons.remove(beacon);
-            // Inform adapter that list has changed
-            notifyDataSetChanged();
         }
     }
 

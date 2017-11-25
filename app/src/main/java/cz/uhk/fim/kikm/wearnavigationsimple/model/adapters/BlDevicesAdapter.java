@@ -3,6 +3,7 @@ package cz.uhk.fim.kikm.wearnavigationsimple.model.adapters;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +23,8 @@ public class BlDevicesAdapter extends RecyclerView.Adapter {
     private LayoutInflater mInflater;
     // List of devices
     private List<BluetoothDevice> mDevices = new ArrayList<>();
+    // List of found devices that will be enabled to connect (used for bonded list)
+    private List<BluetoothDevice> mDevicesFound = new ArrayList<>();
     // Interface to communicate with fragment
     private BlDevicesInterface mInterface;
     // Information if this list shows bonded devices
@@ -32,10 +35,18 @@ public class BlDevicesAdapter extends RecyclerView.Adapter {
     private BluetoothDevice connectedDevice;
     // Position to reset view
     private int positionToReset = -1;
+    // Active text color
+    private int textColorActive;
+    // Inactive text color
+    private int textColorInactive;
 
     public BlDevicesAdapter(Context context, BlDevicesInterface mInterface, boolean bonded, List<BluetoothDevice> devices) {
         // Set interface to communicate through
         this.mInterface = mInterface;
+        // Set text color for active devices
+        textColorActive = context.getResources().getColor(R.color.colorTextBlack);
+        // Set text color for inactive devices
+        textColorInactive = context.getResources().getColor(R.color.colorTextGray);
         // Check if this adapter handles Bonded devices or not
         mBonded = bonded;
         // Load inflater to create layout
@@ -59,37 +70,29 @@ public class BlDevicesAdapter extends RecyclerView.Adapter {
         final BluetoothDevice device = mDevices.get(position);
         final DeviceViewHolder deviceViewHolder = (DeviceViewHolder) holder;
 
-        // Display pairing/connecting
-        if(activeDevice == device) {
+        // Found device is enabled for user to be able to connect to it
+        if(!mBonded || mDevicesFound.contains(device)) {
+            enableDevice(deviceViewHolder);
+        } else {
+            disableDevice(deviceViewHolder);
+        }
+
+        // Display pairing/connecting status information
+        if(device.equals(activeDevice)) {
             displayStatus(device, deviceViewHolder);
         }
 
-        // Set device as connected
-        if(connectedDevice == device) {
+        // Change layout for connected button
+        if(device.equals(connectedDevice)) {
             displayConnected(deviceViewHolder);
         }
 
         // Reset design and active device on current position
         if(positionToReset == position) {
-            // Disable button to prevent multiple clicks
-            deviceViewHolder.action.setEnabled(true);
-            // Reset action test
-            deviceViewHolder.action.setText(R.string.id_action_connect);
-            // Make status information visible
-            deviceViewHolder.status.setVisibility(GONE);
-            // Position was reset so we can reset identification
-            positionToReset = -1;
-            // Also reset active device if this device was reset
-            if(activeDevice == device) {
-                activeDevice = null;
-            }
-            // Also reset connected device if this device was reset
-            if(connectedDevice == device) {
-                connectedDevice = null;
-            }
+            resetDeviceDisplay(device, deviceViewHolder);
         }
 
-        // Set name or mas address to display
+        // Set name or mac address to display
         String name = device.getName();
         if(name.equals("") || name.isEmpty()) {
             name = device.getAddress();
@@ -126,29 +129,104 @@ public class BlDevicesAdapter extends RecyclerView.Adapter {
         return mDevices.size();
     }
 
+    /**
+     * Displays status information text so user sees what is happening (pairing/connecting).
+     * Sets device as active.
+     *
+     * @param device to set as active
+     * @param deviceViewHolder to display status in
+     */
     private void displayStatus(BluetoothDevice device, DeviceViewHolder deviceViewHolder) {
         // Set device position that is active
         activeDevice = device;
 
+        // Change text color to active
+        deviceViewHolder.name.setTextColor(textColorActive);
         // Disable button to prevent multiple clicks
         deviceViewHolder.action.setEnabled(false);
         // Make status information visible
+        Log.d("svs", "Visible for: " + device.getName());
         deviceViewHolder.status.setVisibility(VISIBLE);
 
         // Change status test based on bond state
         if (mBonded) {
             deviceViewHolder.status.setText(R.string.id_action_connecting);
+            activeDevice = null;
         } else {
             deviceViewHolder.status.setText(R.string.id_action_pairing);
         }
     }
 
+    /**
+     * Change layout to mark device as connected.
+     *
+     * @param deviceViewHolder to change layout
+     */
     private void displayConnected(DeviceViewHolder deviceViewHolder) {
+        // Change text color to active
+        deviceViewHolder.name.setTextColor(textColorActive);
         // Disable button to prevent multiple clicks
         deviceViewHolder.action.setEnabled(false);
         // Change test
         deviceViewHolder.action.setText(R.string.id_action_connected);
         // Make status information visible
+        deviceViewHolder.status.setVisibility(GONE);
+    }
+
+    /**
+     * Resets device display to default (active) and resets active/connected
+     * devices.
+     *
+     * @param device to reset
+     * @param deviceViewHolder to reset
+     */
+    private void resetDeviceDisplay(BluetoothDevice device, DeviceViewHolder deviceViewHolder) {
+        // To prevent crashes
+        if(device == null) return;
+
+        // Name change text to active
+        deviceViewHolder.name.setTextColor(textColorActive);
+        // Disable button to prevent multiple clicks
+        deviceViewHolder.action.setEnabled(true);
+        // Reset action test
+        deviceViewHolder.action.setText(R.string.id_action_connect);
+        // Make status information visible
+        deviceViewHolder.status.setVisibility(GONE);
+        // Position was reset so we can reset identification
+        positionToReset = -1;
+        // Also reset active device if this device was reset
+        if(device.equals(activeDevice)) {
+            activeDevice = null;
+        }
+        // Also reset connected device if this device was reset
+        if(device.equals(connectedDevice)) {
+            connectedDevice = null;
+        }
+    }
+
+    /**
+     * Enables device so user is able to connect to it (only for bonded).
+     *
+     * @param deviceViewHolder ro enable
+     */
+    private void enableDevice(DeviceViewHolder deviceViewHolder) {
+        // Enable button to connect the device
+        deviceViewHolder.action.setEnabled(true);
+        // Sets name to black color to distinguish from not found device
+        deviceViewHolder.name.setTextColor(textColorActive);
+    }
+
+    /**
+     * Disables device so user is not able to connect to it (only for bonded).
+     *
+     * @param deviceViewHolder ro enable
+     */
+    private void disableDevice(DeviceViewHolder deviceViewHolder) {
+        // Enable button to connect the device
+        deviceViewHolder.action.setEnabled(false);
+        // Sets name to black color to distinguish from not found device
+        deviceViewHolder.name.setTextColor(textColorInactive);
+        // Hide status just to be sure
         deviceViewHolder.status.setVisibility(GONE);
     }
 
@@ -205,8 +283,31 @@ public class BlDevicesAdapter extends RecyclerView.Adapter {
             // Get reset position of the device
             positionToReset = mDevices.indexOf(device);
             // Inform adapter that list has changed
-            notifyDataSetChanged();
+            notifyItemChanged(positionToReset);
         }
+    }
+
+    /**
+     * Clears the list of all devices.
+     */
+    public void clearDeviceList() {
+        // Sets all device states to null
+        activeDevice = null;
+        connectedDevice = null;
+        mDevicesFound.clear();
+
+        // Clears all the devices
+        mDevices.clear();
+        // Inform adapter that list has changed
+        notifyDataSetChanged();
+    }
+
+    /**
+     * Clears list of found devices.
+     */
+    public void clearFoundDeviceList() {
+        mDevicesFound.clear();
+        notifyDataSetChanged();
     }
 
     /**
@@ -219,6 +320,7 @@ public class BlDevicesAdapter extends RecyclerView.Adapter {
             // Get device position and replace it
             int position = mDevices.indexOf(device);
             mDevices.set(position, device);
+            notifyItemChanged(position);
         }
     }
 
@@ -236,15 +338,28 @@ public class BlDevicesAdapter extends RecyclerView.Adapter {
     }
 
     /**
+     * Marks device as active to show status message.
+     *
+     * @param device to mark as active
+     */
+    public void markActiveDevice(BluetoothDevice device) {
+        if(mDevices.contains(device)) {
+            // Marks device as connected
+            activeDevice = device;
+            notifyDataSetChanged();
+        }
+    }
+
+    /**
      * Marks device as found. Meaning that bound device is in range.
      * If it is in range it can be connected to.
      *
      * @param device to mark as found
      */
     public void markFoundDevice(BluetoothDevice device) {
-        if(mDevices.contains(device)) {
-            // TODO: mark device as found
-            // - Reset devices in the lists after click on search button
+        if(!mDevicesFound.contains(device)) {
+            mDevicesFound.add(device);
+            notifyDataSetChanged();
         }
     }
 

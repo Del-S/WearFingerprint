@@ -27,9 +27,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cz.uhk.fim.kikm.wearnavigationsimple.R;
-import cz.uhk.fim.kikm.wearnavigationsimple.model.BluetoothConnectionHandler;
-import cz.uhk.fim.kikm.wearnavigationsimple.model.BluetoothConnectionInterface;
-import cz.uhk.fim.kikm.wearnavigationsimple.model.BluetoothConnectionService;
+import cz.uhk.fim.kikm.wearnavigationsimple.model.tasks.BluetoothConnection.BluetoothConnectionHandler;
+import cz.uhk.fim.kikm.wearnavigationsimple.model.tasks.BluetoothConnection.BluetoothConnectionInterface;
+import cz.uhk.fim.kikm.wearnavigationsimple.model.tasks.BluetoothConnection.BluetoothConnectionService;
 import cz.uhk.fim.kikm.wearnavigationsimple.model.adapters.BlDevicesAdapter;
 import cz.uhk.fim.kikm.wearnavigationsimple.model.configuration.Configuration;
 import cz.uhk.fim.kikm.wearnavigationsimple.utils.SimpleDividerItemDecoration;
@@ -82,7 +82,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         }
 
         // Load data from Activity using interface
-        mBluetoothAdapter = mInterface.getBluetoothAdapter();
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         mConfiguration = mInterface.getConfiguration();
         mConnectionService = mInterface.getConnectionService();
         mConnectionService.setHandler(mHandler);
@@ -150,6 +150,9 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
                     // Try to connect to the device
                     mConnectionService.connect(device, true);
 
+                    // Set connecting display for this device
+                    mBlDeviceAdapterBonded.markActiveDevice(device);
+
                     // Getting display name or address for the device
                     String displayName = device.getName();
                     if(displayName == null || displayName.isEmpty()) {
@@ -157,9 +160,12 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
                     }
 
                     // Display connecting message to inform user
-                    Toast.makeText(getActivity(),
-                            String.format(getResources().getString(R.string.fdb_notice_connecting), displayName),
-                            Toast.LENGTH_SHORT).show();
+                    FragmentActivity activity = getActivity();
+                    if(activity != null) {
+                        Toast.makeText(activity,
+                                String.format(getResources().getString(R.string.fdb_notice_connecting), displayName),
+                                Toast.LENGTH_SHORT).show();
+                    }
                     break;
                 }
             }
@@ -260,6 +266,8 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         mDiscoverDevices.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mBlDeviceAdapter.clearDeviceList();
+                mBlDeviceAdapterBonded.clearFoundDeviceList();
                 startDiscovery();
             }
         });
@@ -287,7 +295,10 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
             // Try to create bond with a specific device
             if(!device.createBond()) {
                 // Show error when binding and reset the device view
-                Toast.makeText(getActivity(), R.string.fdb_cannot_pair, Toast.LENGTH_SHORT).show();
+                FragmentActivity activity = getActivity();
+                if(activity != null) {
+                    Toast.makeText(activity, R.string.fdb_cannot_pair, Toast.LENGTH_SHORT).show();
+                }
                 mBlDeviceAdapter.resetDevice(device);
             }
         } else {
@@ -315,7 +326,11 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         }
     }
 
-
+    /**
+     * Sets device as connected to change the display.
+     *
+     * @param device that was connected
+     */
     @Override
     public void deviceConnected(BluetoothDevice device) {
         // Tell adapters to inform which device is connected
@@ -327,6 +342,11 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         Configuration.saveConfiguration(mConfiguration);
     }
 
+    /**
+     * Connection to the device failed. Change layout to enable new connection.
+     *
+     * @param device that was not connected
+     */
     @Override
     public void connectionFailed(BluetoothDevice device) {
         // Getting display name or address for the device
@@ -336,9 +356,12 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         }
 
         // Display connection error message to inform user
-        Toast.makeText(getActivity(),
-                String.format(getResources().getString(R.string.fdb_notice_connection_failed), displayName),
-                Toast.LENGTH_SHORT).show();
+        FragmentActivity activity = getActivity();
+        if(activity != null) {
+            Toast.makeText(activity,
+                    String.format(getResources().getString(R.string.fdb_notice_connection_failed), displayName),
+                    Toast.LENGTH_SHORT).show();
+        }
 
         // Reset device view to enable connection
         mBlDeviceAdapterBonded.resetDevice(device);
@@ -378,10 +401,8 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            Log.d(TAG, action);
             if (BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(action)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                Log.d(TAG, "State: " + device.getBondState() );
                 if (device.getBondState() == BluetoothDevice.BOND_BONDED) {
                     // Save bound device and move it to bounded list
                     mBlDeviceAdapter.removeDevice(device);
@@ -398,7 +419,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 if(device.getBondState() != BluetoothDevice.BOND_BONDED) {
                     mBlDeviceAdapter.addDevice(device, false);
-                } else {
+                } else if(device.getBondState() == BluetoothDevice.BOND_BONDED) {
                     mBlDeviceAdapterBonded.markFoundDevice(device);
                 }
             }
@@ -409,12 +430,6 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
      * Interface to handle connection between Fragment and Activity
      */
     public interface ActivityConnection {
-        /**
-         * Get bluetooth adapter from context Activity to enable scanning.
-         *
-         * @return BluetoothAdapter
-         */
-        BluetoothAdapter getBluetoothAdapter();
 
         /**
          * Returns an instance of app wide Configuration class.

@@ -9,7 +9,6 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,7 +19,6 @@ import org.altbeacon.beacon.Beacon;
 import java.util.Collection;
 
 import cz.uhk.fim.kikm.wearnavigationsimple.R;
-import cz.uhk.fim.kikm.wearnavigationsimple.WearApplication;
 import cz.uhk.fim.kikm.wearnavigationsimple.model.adapters.BleBeaconsAdapter;
 import cz.uhk.fim.kikm.wearnavigationsimple.model.tasks.BluetoothLEScanner;
 import cz.uhk.fim.kikm.wearnavigationsimple.model.tasks.BluetoothLEScannerInterface;
@@ -55,7 +53,7 @@ public class BluetoothLEDevicesFragment extends Fragment implements BluetoothLES
         super.onCreate(savedInstanceState);
 
         // Initiate scanner
-        mBluetoothLEScanner = new BluetoothLEScanner((WearApplication) getActivity().getApplicationContext(), this);
+        mBluetoothLEScanner = new BluetoothLEScanner(getActivity().getApplicationContext(), this);
     }
 
     @Nullable

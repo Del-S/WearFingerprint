@@ -1,14 +1,8 @@
 package cz.uhk.fim.kikm.wearnavigationsimple;
 
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.os.IBinder;
-import android.os.Message;
-import android.os.Messenger;
-import android.os.RemoteException;
 import android.os.Bundle;
+
+import cz.uhk.fim.kikm.wearnavigationsimple.activities.devices.ShowDevicesActivity;
 
 public class MainActivity extends BaseActivity {
 
@@ -18,6 +12,9 @@ public class MainActivity extends BaseActivity {
 
         // Bluetooth check
         checkBluetooth();
+
+        // Test
+        showActivity(ShowDevicesActivity.class);
     }
 
     @Override

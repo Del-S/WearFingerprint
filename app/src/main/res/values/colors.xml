@@ -10,8 +10,13 @@
 
     <color name="colorDivider">#ccc</color>
 
+    <!-- Button styles -->
+    <color name="colorButton">#d6d7d7</color>
+    <color name="colorButtonActive">@color/colorPrimary</color>
+
     <!-- Text -->
     <color name="colorTextBlack">#000</color>
+    <color name="colorTextGray">#80000000</color>
     <color name="colorTextAccent">#bef67a</color>
     <color name="colorTextWhite">@color/colorBackground</color>
 

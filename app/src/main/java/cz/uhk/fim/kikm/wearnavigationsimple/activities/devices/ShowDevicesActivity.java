@@ -1,12 +1,6 @@
 package cz.uhk.fim.kikm.wearnavigationsimple.activities.devices;
 
 import android.Manifest;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.annotation.NonNull;
@@ -21,7 +15,7 @@ import com.gigamole.navigationtabstrip.NavigationTabStrip;
 import cz.uhk.fim.kikm.wearnavigationsimple.BaseActivity;
 import cz.uhk.fim.kikm.wearnavigationsimple.R;
 import cz.uhk.fim.kikm.wearnavigationsimple.WearApplication;
-import cz.uhk.fim.kikm.wearnavigationsimple.model.BluetoothConnectionService;
+import cz.uhk.fim.kikm.wearnavigationsimple.model.tasks.BluetoothConnection.BluetoothConnectionService;
 import cz.uhk.fim.kikm.wearnavigationsimple.model.configuration.Configuration;
 
 public class ShowDevicesActivity extends BaseActivity implements BluetoothDevicesFragment.ActivityConnection {
@@ -30,8 +24,6 @@ public class ShowDevicesActivity extends BaseActivity implements BluetoothDevice
     private final int REQUEST_LOCATION_PERMISSION = 1;
     // Configuration instance
     private Configuration mConfiguration;
-    // View pager for tab sections
-    private ViewPager mViewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +43,7 @@ public class ShowDevicesActivity extends BaseActivity implements BluetoothDevice
         SectionsPagerAdapter mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
-        mViewPager = findViewById(R.id.asd_container);
+        ViewPager mViewPager = findViewById(R.id.asd_container);
         //mViewPager.setPageTransformer(false, new AnimationsHelper.FadeTransformer(isMyOrders));
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
@@ -100,11 +92,6 @@ public class ShowDevicesActivity extends BaseActivity implements BluetoothDevice
     }
 
     @Override
-    public BluetoothAdapter getBluetoothAdapter() {
-        return mBluetoothAdapter;
-    }
-
-    @Override
     public Configuration getConfiguration() {
         return mConfiguration;
     }
@@ -113,18 +100,6 @@ public class ShowDevicesActivity extends BaseActivity implements BluetoothDevice
     public BluetoothConnectionService getConnectionService() {
         return WearApplication.getConnectionService(this);
     }
-
-    /**
-     * Compose fragment identification name
-     *
-     * @param viewPagerId id of the view pager
-     * @param index current fragment index
-     * @return String name of the fragment
-     */
-    private String makeFragmentName(int viewPagerId, int index) {
-        return "android:switcher:" + viewPagerId + ":" + index;
-    }
-
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to

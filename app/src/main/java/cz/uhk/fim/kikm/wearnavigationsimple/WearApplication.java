@@ -7,7 +7,7 @@ import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 
-import cz.uhk.fim.kikm.wearnavigationsimple.model.BluetoothConnectionService;
+import cz.uhk.fim.kikm.wearnavigationsimple.model.tasks.BluetoothConnection.BluetoothConnectionService;
 import cz.uhk.fim.kikm.wearnavigationsimple.model.configuration.Configuration;
 
 public class WearApplication extends Application {
@@ -26,7 +26,7 @@ public class WearApplication extends Application {
         configuration = Configuration.getConfiguration(this);
         super.onCreate();
 
-        // TODO: remove this after completing all scanning features
+        // Remove this after completing all scanning features
         //BeaconManager.setDebug(true);
 
         // Load beacon manager instance to enable settings change

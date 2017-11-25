@@ -27,8 +27,6 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
     protected BottomNavigationView navigationView;
     // Bluetooth check request code
     private final int REQUEST_ENABLE_BT = 1000;
-    // Global reference for bluetooth adapter.
-    protected BluetoothAdapter mBluetoothAdapter;
     // App wide configuration class
     protected Configuration mConfiguration;
 
@@ -187,18 +185,20 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
      */
     protected void checkBluetooth() {
         // Loading bluetooth adapter to figure out if the device has bluetooth
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mBluetoothAdapter == null) {
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (bluetoothAdapter == null) {
             Toast.makeText(this, R.string.am_bluetooth_not_enabled, Toast.LENGTH_SHORT).show();
             finish();
         }
 
         // Check if the Bluetooth is enabled
-        if (!mBluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        } else {
-            checkBle();
+        if(bluetoothAdapter != null) {
+            if (!bluetoothAdapter.isEnabled()) {
+                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+            } else {
+                checkBle();
+            }
         }
     }
 
