@@ -17,8 +17,23 @@ public interface BluetoothConnectionInterface {
 
     /**
      * Failed connection to a specific device.
+     * Inform context that connection failed.
      *
      * @param device that was not connected
      */
     void connectionFailed(BluetoothDevice device);
+
+    /**
+     * Pass received message to handle or display.
+     *
+     * @param message that was received
+     */
+    void messageReceived(String message);
+
+    /**
+     * Informs that message was send. Just to confirm.
+     *
+     * @param message that was send
+     */
+    void messageSend(String message);
 }

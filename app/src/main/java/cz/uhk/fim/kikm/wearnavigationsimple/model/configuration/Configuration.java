@@ -1,5 +1,6 @@
 package cz.uhk.fim.kikm.wearnavigationsimple.model.configuration;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -15,7 +16,7 @@ public class Configuration {
     // App configuration identification in the file
     private static final String PREFERENCES_KEY = "Configuration";
 
-    private String bondedDeviceMac;
+    private BluetoothDevice bondedDevice;
 
     private Configuration() {
     }
@@ -44,11 +45,11 @@ public class Configuration {
         sharedPrefEditor.apply();
     }
 
-    public String getBondedDeviceMac() {
-        return bondedDeviceMac;
+    public BluetoothDevice getBondedDevice() {
+        return bondedDevice;
     }
 
-    public void setBondedDeviceMac(String bondedDeviceMac) {
-        this.bondedDeviceMac = bondedDeviceMac;
+    public void setBondedDevice(BluetoothDevice bondedDevice) {
+        this.bondedDevice = bondedDevice;
     }
 }

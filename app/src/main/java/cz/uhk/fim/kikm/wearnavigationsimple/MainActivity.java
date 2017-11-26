@@ -2,6 +2,7 @@ package cz.uhk.fim.kikm.wearnavigationsimple;
 
 import android.os.Bundle;
 
+import cz.uhk.fim.kikm.wearnavigationsimple.activities.bluetoothTest.BluetoothTest;
 import cz.uhk.fim.kikm.wearnavigationsimple.activities.devices.ShowDevicesActivity;
 
 public class MainActivity extends BaseActivity {
@@ -9,12 +10,6 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Bluetooth check
-        checkBluetooth();
-
-        // Test
-        showActivity(ShowDevicesActivity.class);
     }
 
     @Override

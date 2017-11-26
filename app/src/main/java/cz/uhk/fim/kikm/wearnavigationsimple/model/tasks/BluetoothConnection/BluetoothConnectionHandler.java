@@ -3,7 +3,6 @@ package cz.uhk.fim.kikm.wearnavigationsimple.model.tasks.BluetoothConnection;
 import android.bluetooth.BluetoothDevice;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 
 public class BluetoothConnectionHandler extends Handler {
     private BluetoothConnectionInterface mInterface;
@@ -21,13 +20,13 @@ public class BluetoothConnectionHandler extends Handler {
                 byte[] writeBuf = (byte[]) msg.obj;
                 // construct a string from the buffer
                 String writeMessage = new String(writeBuf);
-                Log.d(TAG, "Message write: " + writeMessage);
+                mInterface.messageSend(writeMessage);
                 break;
             case BluetoothConnectionService.MESSAGE_READ:
                 byte[] readBuf = (byte[]) msg.obj;
                 // construct a string from the valid bytes in the buffer
                 String readMessage = new String(readBuf, 0, msg.arg1);
-                Log.d(TAG, "Message read: " + readMessage);
+                mInterface.messageReceived(readMessage);
                 break;
             case BluetoothConnectionService.MESSAGE_DEVICE_CONNECTED:
                 // Call device connected via Interface

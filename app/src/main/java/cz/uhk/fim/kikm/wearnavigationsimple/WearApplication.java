@@ -61,7 +61,6 @@ public class WearApplication extends Application {
     public static BluetoothConnectionService getConnectionService(Context context) {
         if(sService == null) {
             // Construct communication service
-            Configuration config = Configuration.getConfiguration(context);
             sService = new BluetoothConnectionService();
         }
         return sService;

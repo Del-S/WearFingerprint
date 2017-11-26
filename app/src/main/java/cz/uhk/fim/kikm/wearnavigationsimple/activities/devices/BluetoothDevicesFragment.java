@@ -138,36 +138,27 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         recyclerView.addItemDecoration(new SimpleDividerItemDecoration(divider));
 
         // Try to connect to the device
-        String connectedDevice = mConfiguration.getBondedDeviceMac();
-        if(connectedDevice != null && !connectedDevice.isEmpty()) {
-            // Looping through all bonded devices to check if there is a connected device
-            for ( BluetoothDevice device : bondedDevices) {
-                String deviceAddress = device.getAddress();
-                // Checking the address of the bonded device with connected
-                if(deviceAddress != null
-                        && !deviceAddress.isEmpty()
-                        && deviceAddress.equals(connectedDevice)) {
-                    // Try to connect to the device
-                    mConnectionService.connect(device, true);
+        BluetoothDevice connectedDevice = mConfiguration.getBondedDevice();
+        if(connectedDevice != null && !connectedDevice.getAddress().isEmpty()) {
+            // Try to connect to the device
+            mConnectionService.connect(connectedDevice, true);
 
-                    // Set connecting display for this device
-                    mBlDeviceAdapterBonded.markActiveDevice(device);
+            // Set connecting display for this device
+            mBlDeviceAdapter.markActiveDevice(connectedDevice);
+            mBlDeviceAdapterBonded.markActiveDevice(connectedDevice);
 
-                    // Getting display name or address for the device
-                    String displayName = device.getName();
-                    if(displayName == null || displayName.isEmpty()) {
-                        displayName = connectedDevice;
-                    }
+            // Getting display name or address for the device
+            String displayName = connectedDevice.getName();
+            if(displayName == null || displayName.isEmpty()) {
+                displayName = connectedDevice.getAddress();
+            }
 
-                    // Display connecting message to inform user
-                    FragmentActivity activity = getActivity();
-                    if(activity != null) {
-                        Toast.makeText(activity,
-                                String.format(getResources().getString(R.string.fdb_notice_connecting), displayName),
-                                Toast.LENGTH_SHORT).show();
-                    }
-                    break;
-                }
+            // Display connecting message to inform user
+            FragmentActivity activity = getActivity();
+            if(activity != null) {
+                Toast.makeText(activity,
+                        String.format(getResources().getString(R.string.fdb_notice_connecting), displayName),
+                        Toast.LENGTH_SHORT).show();
             }
         }
 
@@ -338,7 +329,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         mBlDeviceAdapterBonded.markConnectedDevice(device);
 
         // Save connected device to the configuration
-        mConfiguration.setBondedDeviceMac(device.getAddress());
+        mConfiguration.setBondedDevice(device);
         Configuration.saveConfiguration(mConfiguration);
     }
 
@@ -366,6 +357,28 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         // Reset device view to enable connection
         mBlDeviceAdapterBonded.resetDevice(device);
         mBlDeviceAdapter.resetDevice(device);
+    }
+
+    /**
+     * Handles received message from the other device.
+     * Not used in here.
+     *
+     * @param message that was received
+     */
+    @Override
+    public void messageReceived(String message) {
+        // Not used
+    }
+
+    /**
+     * Handles send message from current device.
+     * Used to confirm that message was sent.
+     *
+     * @param message that was send
+     */
+    @Override
+    public void messageSend(String message) {
+        // Not used
     }
 
     /**

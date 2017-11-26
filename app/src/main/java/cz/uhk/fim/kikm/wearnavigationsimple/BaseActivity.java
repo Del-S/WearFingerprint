@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import java.lang.reflect.Field;
 
+import cz.uhk.fim.kikm.wearnavigationsimple.activities.bluetoothTest.BluetoothTest;
 import cz.uhk.fim.kikm.wearnavigationsimple.activities.devices.ShowDevicesActivity;
 import cz.uhk.fim.kikm.wearnavigationsimple.model.configuration.Configuration;
 import cz.uhk.fim.kikm.wearnavigationsimple.utils.SimpleDialogHelper;
@@ -50,6 +51,9 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
 
         // Load configuration from the application
         mConfiguration = ((WearApplication) getApplicationContext()).getConfiguration();
+
+        // Bluetooth check
+        checkBluetooth();
     }
 
     @Override
@@ -88,6 +92,10 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
                     case R.id.action_show_devices:
                         // Shows devices activity
                         showActivity(ShowDevicesActivity.class);
+                        break;
+                    case R.id.action_show_bluetooth_test:
+                        // Show bl test activity
+                        showActivity(BluetoothTest.class);
                         break;
                     default:
                         // Shows main activity
