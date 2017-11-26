@@ -27,7 +27,10 @@
             </intent-filter>
         </activity>
         <activity android:name=".activities.devices.ShowDevicesActivity" />
-        <activity android:name=".activities.bluetoothTest.BluetoothTest"></activity>
+        <activity android:name=".activities.bluetoothTest.BluetoothTest" />
+
+        <service android:name=".model.tasks.BluetoothConnection.BluetoothConnectionService"
+            android:exported="false" />
     </application>
 
 </manifest>

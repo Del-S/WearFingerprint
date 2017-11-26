@@ -96,11 +96,6 @@ public class ShowDevicesActivity extends BaseActivity implements BluetoothDevice
         return mConfiguration;
     }
 
-    @Override
-    public BluetoothConnectionService getConnectionService() {
-        return WearApplication.getConnectionService(this);
-    }
-
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.

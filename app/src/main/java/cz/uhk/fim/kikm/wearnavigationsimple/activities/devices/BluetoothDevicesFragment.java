@@ -3,12 +3,15 @@ package cz.uhk.fim.kikm.wearnavigationsimple.activities.devices;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -41,10 +44,9 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
 
     // App configuration
     private Configuration mConfiguration;
-    // Bluetooth connection service
-    private BluetoothConnectionService mConnectionService;
     // Handler for Bluetooth connection service using this as interface
     private final Handler mHandler = new BluetoothConnectionHandler(this);
+    private BluetoothConnectionService mService = null;
 
     // Adapter to get devices from
     private BluetoothAdapter mBluetoothAdapter;
@@ -84,20 +86,9 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         // Load data from Activity using interface
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         mConfiguration = mInterface.getConfiguration();
-        mConnectionService = mInterface.getConnectionService();
-        mConnectionService.setHandler(mHandler);
 
         // Load bluetooth bound devices
         bondedDevices.addAll(mBluetoothAdapter.getBondedDevices());
-
-        // Start Bluetooth connection service
-        if (mConnectionService != null) {
-            // Only if the state is STATE_NONE, do we know that we haven't started already
-            if (mConnectionService.getState() == BluetoothConnectionService.STATE_NONE) {
-                // Start the Bluetooth chat services
-                mConnectionService.start();
-            }
-        }
 
         registerReceiver();
     }
@@ -137,36 +128,53 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         recyclerView.setAdapter(mBlDeviceAdapter);
         recyclerView.addItemDecoration(new SimpleDividerItemDecoration(divider));
 
-        // Try to connect to the device
-        BluetoothDevice connectedDevice = mConfiguration.getBondedDevice();
-        if(connectedDevice != null && !connectedDevice.getAddress().isEmpty()) {
-            // Try to connect to the device
-            mConnectionService.connect(connectedDevice, true);
-
-            // Set connecting display for this device
-            mBlDeviceAdapter.markActiveDevice(connectedDevice);
-            mBlDeviceAdapterBonded.markActiveDevice(connectedDevice);
-
-            // Getting display name or address for the device
-            String displayName = connectedDevice.getName();
-            if(displayName == null || displayName.isEmpty()) {
-                displayName = connectedDevice.getAddress();
-            }
-
-            // Display connecting message to inform user
-            FragmentActivity activity = getActivity();
-            if(activity != null) {
-                Toast.makeText(activity,
-                        String.format(getResources().getString(R.string.fdb_notice_connecting), displayName),
-                        Toast.LENGTH_SHORT).show();
-            }
-        }
-
-        // Start bluetooth discovery
-        startDiscovery();
-
         return rootView;
     }
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            // Load service instance
+            mService = ((BluetoothConnectionService.LocalBinder)iBinder).getInstance();
+            // Set handler to communicate with service
+            mService.setHandler(mHandler);
+            // Start the service
+            mService.start();
+
+            // Try to connect to the device
+            BluetoothDevice connectedDevice = mConfiguration.getBondedDevice();
+            if(connectedDevice != null && !connectedDevice.getAddress().isEmpty()) {
+                // Try to connect to the device
+                mService.connect(connectedDevice, true);
+
+                // Set connecting display for this device
+                mBlDeviceAdapter.markActiveDevice(connectedDevice);
+                mBlDeviceAdapterBonded.markActiveDevice(connectedDevice);
+
+                // Getting display name or address for the device
+                String displayName = connectedDevice.getName();
+                if(displayName == null || displayName.isEmpty()) {
+                    displayName = connectedDevice.getAddress();
+                }
+
+                // Display connecting message to inform user
+                FragmentActivity activity = getActivity();
+                if(activity != null) {
+                    Toast.makeText(activity,
+                            String.format(getResources().getString(R.string.fdb_notice_connecting), displayName),
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            // Start bluetooth discovery
+            startDiscovery();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            mService = null;
+        }
+    };
 
     /**
      * Handles Fragment pause function to prevent crashes
@@ -179,18 +187,14 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         unRegisterReceiver();
         // Cancel discovery of devices
         cancelDiscovery();
-    }
-
-
-    /**
-     * Handles Fragment destroy function to disable services
-     */
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        // Cancel Bluetooth communication service
-        if (mConnectionService != null) {
-            mConnectionService.stop();
+        // Stop Bluetooth connection service
+        if(mService != null) {
+            mService.stop();
+        }
+        // Unbind bluetooth service
+        FragmentActivity activity = getActivity();
+        if(activity != null) {
+            activity.unbindService(mConnection);
         }
     }
 
@@ -206,13 +210,12 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         // Start discovery on resume
         startDiscovery();
 
-        // Start Bluetooth connection service
-        if (mConnectionService != null) {
-            // Only if the state is STATE_NONE, do we know that we haven't started already
-            if (mConnectionService.getState() == BluetoothConnectionService.STATE_NONE) {
-                // Start the Bluetooth chat services
-                mConnectionService.start();
-            }
+        // Bind bluetooth service
+        FragmentActivity activity = getActivity();
+        if(activity != null) {
+            // Bind to BluetoothConnectionService
+            Intent intent = new Intent(activity, BluetoothConnectionService.class);
+            activity.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
         }
     }
 
@@ -294,7 +297,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
             }
         } else {
             // Create communication between both devices
-            mConnectionService.connect(device, true);
+            mService.connect(device, true);
         }
     }
 
@@ -357,6 +360,11 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         // Reset device view to enable connection
         mBlDeviceAdapterBonded.resetDevice(device);
         mBlDeviceAdapter.resetDevice(device);
+    }
+
+    @Override
+    public void connectionFailed() {
+
     }
 
     /**
@@ -422,7 +430,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
                     mBlDeviceAdapterBonded.addDevice(device, true);
 
                     // After the device is bonded we try to connect to it
-                    mConnectionService.connect(device, true);
+                    mService.connect(device, true);
                 } else if(device.getBondState() == BluetoothDevice.BOND_NONE) {
                     // Bond was canceled so we need to reset device and start discovery again
                     mBlDeviceAdapter.resetDevice(device);
@@ -452,14 +460,5 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
          * @return Configuration instance
          */
         Configuration getConfiguration();
-
-        /**
-         * Returns Bluetooth connection service that will connect the devices.
-         * Device is saved into the configuration and used in another activity to
-         * connect and gather fingerprints.
-         *
-         * @return BluetoothConnectionService
-         */
-        BluetoothConnectionService getConnectionService();
     }
 }

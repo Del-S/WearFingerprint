@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothDevice;
  * context that started the BluetoothCommunication
  */
 public interface BluetoothConnectionInterface {
+
     /**
      * Runs when specific device was connected.
      * Only single device can be connected to.
@@ -22,6 +23,12 @@ public interface BluetoothConnectionInterface {
      * @param device that was not connected
      */
     void connectionFailed(BluetoothDevice device);
+
+    /**
+     * Connection failed but cannot identify device.
+     * Inform context that connection failed.
+     */
+    void connectionFailed();
 
     /**
      * Pass received message to handle or display.

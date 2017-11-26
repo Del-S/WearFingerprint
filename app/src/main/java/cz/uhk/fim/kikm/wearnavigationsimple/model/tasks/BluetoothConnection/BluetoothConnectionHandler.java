@@ -16,6 +16,8 @@ public class BluetoothConnectionHandler extends Handler {
     @Override
     public void handleMessage(Message msg) {
         switch (msg.what) {
+            case BluetoothConnectionService.MESSAGE_STATE_CHANGE:
+                break;
             case BluetoothConnectionService.MESSAGE_WRITE:
                 byte[] writeBuf = (byte[]) msg.obj;
                 // construct a string from the buffer
@@ -41,8 +43,8 @@ public class BluetoothConnectionHandler extends Handler {
                     mInterface.connectionFailed(mFailedDevice);
                 }
                 break;
-            case BluetoothConnectionService.MESSAGE_TOAST:
-
+            case BluetoothConnectionService.MESSAGE_CONNECTION_FAILED:
+                mInterface.connectionFailed();
                 break;
         }
     }

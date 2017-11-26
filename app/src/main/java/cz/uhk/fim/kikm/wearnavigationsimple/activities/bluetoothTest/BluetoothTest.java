@@ -1,13 +1,17 @@
 package cz.uhk.fim.kikm.wearnavigationsimple.activities.bluetoothTest;
 
 import android.bluetooth.BluetoothDevice;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -15,7 +19,6 @@ import android.widget.Toast;
 
 import cz.uhk.fim.kikm.wearnavigationsimple.BaseActivity;
 import cz.uhk.fim.kikm.wearnavigationsimple.R;
-import cz.uhk.fim.kikm.wearnavigationsimple.WearApplication;
 import cz.uhk.fim.kikm.wearnavigationsimple.model.tasks.BluetoothConnection.BluetoothConnectionHandler;
 import cz.uhk.fim.kikm.wearnavigationsimple.model.tasks.BluetoothConnection.BluetoothConnectionInterface;
 import cz.uhk.fim.kikm.wearnavigationsimple.model.tasks.BluetoothConnection.BluetoothConnectionService;
@@ -23,8 +26,6 @@ import cz.uhk.fim.kikm.wearnavigationsimple.utils.SimpleDividerItemDecoration;
 
 public class BluetoothTest extends BaseActivity implements BluetoothConnectionInterface {
 
-    // Bluetooth connection service
-    private BluetoothConnectionService mConnectionService;
     // Handler for Bluetooth connection service using this as interface
     private final Handler mHandler = new BluetoothConnectionHandler(this);
     // Messages adapter
@@ -34,21 +35,11 @@ public class BluetoothTest extends BaseActivity implements BluetoothConnectionIn
     // Button to send message
     private Button sendMessage;
 
+    private BluetoothConnectionService mService = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Load connection service
-        mConnectionService = WearApplication.getConnectionService(this);
-        mConnectionService.setHandler(mHandler);
-
-        // Try to connect to the device
-        BluetoothDevice device = mConfiguration.getBondedDevice();
-        Log.d("BTTest", "Connect device: " + device.getName());
-        Log.d("BTTest", "Connect device: " + device.getAddress());
-        if(device != null) {
-            mConnectionService.connect(device, true);
-        }
 
         // Divider for row items
         Drawable divider = ContextCompat.getDrawable(this, R.drawable.row_with_divider);
@@ -67,39 +58,45 @@ public class BluetoothTest extends BaseActivity implements BluetoothConnectionIn
             public void onClick(View v) {
                 byte[] writeMessage = message.getText().toString().getBytes();
                 message.setText("");
-                mConnectionService.write(writeMessage);
+                mService.write(writeMessage);
             }
         });
     }
 
-    /**
-     * Handles Fragment destroy function to disable services
-     */
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        // Cancel Bluetooth communication service
-        if (mConnectionService != null) {
-            mConnectionService.stop();
-        }
+    protected void onStart() {
+        super.onStart();
+        // Bind to BluetoothConnectionService
+        Intent intent = new Intent(this, BluetoothConnectionService.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
-    /**
-     * Handles Fragment resume function to bind all functions back
-     */
     @Override
-    public void onResume() {
-        super.onResume();
+    protected void onStop() {
+        super.onStop();
+        mService.stop();
+        unbindService(mConnection);
+    }
 
-        // Start Bluetooth connection service
-        if (mConnectionService != null) {
-            // Only if the state is STATE_NONE, do we know that we haven't started already
-            if (mConnectionService.getState() == BluetoothConnectionService.STATE_NONE) {
-                // Start the Bluetooth chat services
-                mConnectionService.start();
+    private ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            mService = ((BluetoothConnectionService.LocalBinder)iBinder).getInstance();
+            mService.setHandler(mHandler);
+            mService.start();
+
+            // Connect to the device
+            BluetoothDevice device = mConfiguration.getBondedDevice();
+            if(device != null) {
+                mService.connect(device, true);
             }
         }
-    }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            mService = null;
+        }
+    };
 
     @Override
     protected void updateUI() {
@@ -138,6 +135,14 @@ public class BluetoothTest extends BaseActivity implements BluetoothConnectionIn
 
         // Disable message sending
         sendMessage.setEnabled(false);
+    }
+
+    @Override
+    public void connectionFailed() {
+        // Disable message sending
+        sendMessage.setEnabled(false);
+        // Toast connection error message
+        Toast.makeText(this, "Connection failed", Toast.LENGTH_SHORT).show();
     }
 
     @Override
