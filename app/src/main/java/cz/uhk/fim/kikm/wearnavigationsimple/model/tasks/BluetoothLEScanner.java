@@ -109,18 +109,17 @@ public class BluetoothLEScanner implements BeaconConsumer {
 
     /**
      * Cancels running scan
-     *
-     * @return true/false if scanning was canceled
      */
-    public boolean cancelScan() {
-        // Start ranging
-        try {
-            beaconManager.stopRangingBeaconsInRegion(region);
-            mIsScanning = false;
-            return true;
-        } catch (RemoteException e) {
-            Log.e(TAG, "Cannot stop beacon ranging.", e);
-            return false;
+    public void cancelScan() {
+        // Check if the beacon manager is bound
+        if( beaconManager.isBound(this) ) {
+            // If it is try to stop itt
+            try {
+                beaconManager.stopRangingBeaconsInRegion(region);
+                mIsScanning = false;
+            } catch (RemoteException e) {
+                Log.e(TAG, "Cannot stop beacon ranging.", e);
+            }
         }
     }
 

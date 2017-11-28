@@ -12,6 +12,7 @@ import android.os.IBinder;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -64,17 +65,16 @@ public class BluetoothTest extends BaseActivity implements BluetoothConnectionIn
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onResume() {
+        super.onResume();
         // Bind to BluetoothConnectionService
         Intent intent = new Intent(this, BluetoothConnectionService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        mService.stop();
+    protected void onPause() {
+        super.onPause();
         unbindService(mConnection);
     }
 
@@ -83,12 +83,13 @@ public class BluetoothTest extends BaseActivity implements BluetoothConnectionIn
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             mService = ((BluetoothConnectionService.LocalBinder)iBinder).getInstance();
             mService.setHandler(mHandler);
-            mService.start();
 
             // Connect to the device
             BluetoothDevice device = mConfiguration.getBondedDevice();
             if(device != null) {
-                mService.connect(device, true);
+                mService.connect(device);
+            } else {
+                mService.start();
             }
         }
 
@@ -147,8 +148,10 @@ public class BluetoothTest extends BaseActivity implements BluetoothConnectionIn
 
     @Override
     public void messageReceived(String message) {
+        Log.d("svdsvsv", "Activity: message received");
         if(message != null && !message.isEmpty()) {
             mAdapter.addMessage(message);
+            Log.d("svdsvsv", "Activity: message adapteres");
         }
     }
 

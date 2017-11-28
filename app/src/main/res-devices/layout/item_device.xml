@@ -22,6 +22,7 @@
             android:layout_height="wrap_content"
             android:text="@string/id_name"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textColor="@color/colorTextBlack"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -45,7 +46,6 @@
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="15dp"
         android:layout_marginTop="8dp"
-        android:enabled="false"
         android:text="@string/id_action_connect"
         android:theme="@style/DefaultButton"
         app:layout_constraintBottom_toBottomOf="parent"

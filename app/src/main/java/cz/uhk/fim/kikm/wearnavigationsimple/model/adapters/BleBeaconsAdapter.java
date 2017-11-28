@@ -59,6 +59,9 @@ public class BleBeaconsAdapter extends RecyclerView.Adapter {
      * @param beacon to add to the list
      */
     public void addBeacon(Beacon beacon) {
+        // Don't add null beacon
+        if(beacon == null) return;
+
         // Add or replace beacon to the list
         if(!mBeacons.contains(beacon)) {
             mBeacons.add(beacon);
@@ -80,6 +83,10 @@ public class BleBeaconsAdapter extends RecyclerView.Adapter {
             // Add or replace beacon to the list
             for (Beacon beacon : beacons) {
                 if (!mBeacons.contains(beacon)) {
+                    // Don't add null beacon
+                    if(beacon == null) continue;
+
+                    // Add beacon
                     mBeacons.add(beacon);
                 } else {
                     replaceBeacon(beacon);

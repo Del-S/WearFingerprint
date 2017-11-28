@@ -35,18 +35,10 @@ public class BlDevicesAdapter extends RecyclerView.Adapter {
     private BluetoothDevice connectedDevice;
     // Position to reset view
     private int positionToReset = -1;
-    // Active text color
-    private int textColorActive;
-    // Inactive text color
-    private int textColorInactive;
 
     public BlDevicesAdapter(Context context, BlDevicesInterface mInterface, boolean bonded, List<BluetoothDevice> devices) {
         // Set interface to communicate through
         this.mInterface = mInterface;
-        // Set text color for active devices
-        textColorActive = context.getResources().getColor(R.color.colorTextBlack);
-        // Set text color for inactive devices
-        textColorInactive = context.getResources().getColor(R.color.colorTextGray);
         // Check if this adapter handles Bonded devices or not
         mBonded = bonded;
         // Load inflater to create layout
@@ -69,13 +61,6 @@ public class BlDevicesAdapter extends RecyclerView.Adapter {
         // Get device and view to input data into
         final BluetoothDevice device = mDevices.get(position);
         final DeviceViewHolder deviceViewHolder = (DeviceViewHolder) holder;
-
-        // Found device is enabled for user to be able to connect to it
-        if(!mBonded || mDevicesFound.contains(device)) {
-            enableDevice(deviceViewHolder);
-        } else {
-            disableDevice(deviceViewHolder);
-        }
 
         // Display pairing/connecting status information
         if(device.equals(activeDevice)) {
@@ -140,8 +125,6 @@ public class BlDevicesAdapter extends RecyclerView.Adapter {
         // Set device position that is active
         activeDevice = device;
 
-        // Change text color to active
-        deviceViewHolder.name.setTextColor(textColorActive);
         // Disable button to prevent multiple clicks
         deviceViewHolder.action.setEnabled(false);
         // Make status information visible
@@ -163,8 +146,6 @@ public class BlDevicesAdapter extends RecyclerView.Adapter {
      * @param deviceViewHolder to change layout
      */
     private void displayConnected(DeviceViewHolder deviceViewHolder) {
-        // Change text color to active
-        deviceViewHolder.name.setTextColor(textColorActive);
         // Disable button to prevent multiple clicks
         deviceViewHolder.action.setEnabled(false);
         // Change test
@@ -184,8 +165,6 @@ public class BlDevicesAdapter extends RecyclerView.Adapter {
         // To prevent crashes
         if(device == null) return;
 
-        // Name change text to active
-        deviceViewHolder.name.setTextColor(textColorActive);
         // Disable button to prevent multiple clicks
         deviceViewHolder.action.setEnabled(true);
         // Reset action test
@@ -205,38 +184,15 @@ public class BlDevicesAdapter extends RecyclerView.Adapter {
     }
 
     /**
-     * Enables device so user is able to connect to it (only for bonded).
-     *
-     * @param deviceViewHolder ro enable
-     */
-    private void enableDevice(DeviceViewHolder deviceViewHolder) {
-        // Enable button to connect the device
-        deviceViewHolder.action.setEnabled(true);
-        // Sets name to black color to distinguish from not found device
-        deviceViewHolder.name.setTextColor(textColorActive);
-    }
-
-    /**
-     * Disables device so user is not able to connect to it (only for bonded).
-     *
-     * @param deviceViewHolder ro enable
-     */
-    private void disableDevice(DeviceViewHolder deviceViewHolder) {
-        // Enable button to connect the device
-        deviceViewHolder.action.setEnabled(false);
-        // Sets name to black color to distinguish from not found device
-        deviceViewHolder.name.setTextColor(textColorInactive);
-        // Hide status just to be sure
-        deviceViewHolder.status.setVisibility(GONE);
-    }
-
-    /**
      * Add device to the list if it does not exist already
      *
      * @param device to add to the list
      * @param active is this device view active
      */
     public void addDevice(BluetoothDevice device, boolean active) {
+        // Don't add null device
+        if(device == null) return;
+
         // Add or replace device to/in the list
         if(!mDevices.contains(device)) {
             mDevices.add(device);

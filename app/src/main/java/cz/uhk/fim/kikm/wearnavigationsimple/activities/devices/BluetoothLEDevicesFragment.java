@@ -140,6 +140,7 @@ public class BluetoothLEDevicesFragment extends Fragment implements BluetoothLES
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    mBleBeaconsAdapter.addBeacon(null);
                     mBleBeaconsAdapter.addBeacon(beacon);
                 }
             });

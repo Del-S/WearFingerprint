@@ -42,10 +42,13 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
     // Error and debug tag
     private static final String TAG = "BlDevicesFragment";
 
+    // Interface to communicate with context activity
+    private ActivityConnection mInterface;
     // App configuration
     private Configuration mConfiguration;
     // Handler for Bluetooth connection service using this as interface
     private final Handler mHandler = new BluetoothConnectionHandler(this);
+    // Bonded bluetooth connection service
     private BluetoothConnectionService mService = null;
 
     // Adapter to get devices from
@@ -73,8 +76,6 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        ActivityConnection mInterface;
-
         // Check if startup activity implements listener
         try {
             mInterface = (ActivityConnection) getActivity();
@@ -83,9 +84,8 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
                     + " must implement ActivityConnection");
         }
 
-        // Load data from Activity using interface
+        // Load bluetooth adapter
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        mConfiguration = mInterface.getConfiguration();
 
         // Load bluetooth bound devices
         bondedDevices.addAll(mBluetoothAdapter.getBondedDevices());
@@ -97,6 +97,9 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_devices_bluetooth, container, false);
+
+        // Load configuration
+        mConfiguration = mInterface.getConfiguration();
 
         // Find view for discovering devices
         mDiscoverDevices = rootView.findViewById(R.id.fdb_title_bl_search);
@@ -138,14 +141,12 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
             mService = ((BluetoothConnectionService.LocalBinder)iBinder).getInstance();
             // Set handler to communicate with service
             mService.setHandler(mHandler);
-            // Start the service
-            mService.start();
 
             // Try to connect to the device
             BluetoothDevice connectedDevice = mConfiguration.getBondedDevice();
             if(connectedDevice != null && !connectedDevice.getAddress().isEmpty()) {
                 // Try to connect to the device
-                mService.connect(connectedDevice, true);
+                mService.connect(connectedDevice);
 
                 // Set connecting display for this device
                 mBlDeviceAdapter.markActiveDevice(connectedDevice);
@@ -164,6 +165,8 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
                             String.format(getResources().getString(R.string.fdb_notice_connecting), displayName),
                             Toast.LENGTH_SHORT).show();
                 }
+            } else {
+                mService.start();
             }
 
             // Start bluetooth discovery
@@ -187,10 +190,6 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         unRegisterReceiver();
         // Cancel discovery of devices
         cancelDiscovery();
-        // Stop Bluetooth connection service
-        if(mService != null) {
-            mService.stop();
-        }
         // Unbind bluetooth service
         FragmentActivity activity = getActivity();
         if(activity != null) {
@@ -297,7 +296,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
             }
         } else {
             // Create communication between both devices
-            mService.connect(device, true);
+            mService.connect(device);
         }
     }
 
@@ -376,6 +375,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
     @Override
     public void messageReceived(String message) {
         // Not used
+        Log.d(TAG, "Message is: " + message);
     }
 
     /**
@@ -387,6 +387,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
     @Override
     public void messageSend(String message) {
         // Not used
+        Log.d(TAG, "Message is: " + message);
     }
 
     /**
@@ -430,7 +431,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
                     mBlDeviceAdapterBonded.addDevice(device, true);
 
                     // After the device is bonded we try to connect to it
-                    mService.connect(device, true);
+                    mService.connect(device);
                 } else if(device.getBondState() == BluetoothDevice.BOND_NONE) {
                     // Bond was canceled so we need to reset device and start discovery again
                     mBlDeviceAdapter.resetDevice(device);

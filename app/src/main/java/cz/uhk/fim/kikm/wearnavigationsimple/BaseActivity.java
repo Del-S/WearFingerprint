@@ -64,7 +64,7 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
     }
 
     @Override
-    public void onPause() {
+    protected void onPause() {
         super.onPause();
         // Disables transitions between activities (for bottom menu)
         overridePendingTransition(0, 0);
