@@ -1,0 +1,39 @@
+<resources>
+    <!-- ****** -->
+    <!-- Global -->
+    <!-- ****** -->
+    <string name="fdb_title_bl_search">Search</string>
+    <string name="fdb_title_bl_searching">Searching…</string>
+
+
+    <!-- ***************** -->
+    <!-- Bluetooth devices -->
+    <!-- ***************** -->
+    <string name="fdb_title_bl_bonded">Bonded devices</string>
+    <string name="fdb_title_bl">Available devices</string>
+
+    <!-- Toast messages -->
+    <string name="fdb_notice_connecting">Connecting to device: %1$s</string>
+    <string name="fdb_notice_connection_failed">Failed to connect device: %1$s</string>
+
+    <!-- Error -->
+    <string name="fdb_cannot_pair">Cannot pair to the device.</string>
+
+    <!-- Item device -->
+    <string name="id_name">Device name</string>
+    <string name="id_status">Status</string>
+    <string name="id_action_connect">Connect</string>
+    <string name="id_action_pairing">Pairing…</string>
+    <string name="id_action_connecting">Connecting…</string>
+    <string name="id_action_connected">Connected</string>
+
+    <!-- **************************** -->
+    <!-- Bluetooth Low Energy devices -->
+    <!-- **************************** -->
+    <string name="fdble_title">Found BLE devices</string>
+
+    <!-- Item beacon -->
+    <string name="ib_name">N/A</string>
+    <string name="ib_mac">Mac address</string>
+    <string name="ib_rssi">0 dBm</string>
+</resources>

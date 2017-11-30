@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Wear Navigation</string>
+    <!--
+    This string is used for square devices and overridden by hello_world in
+    values-round/strings.xml for round devices.
+    -->
+    <string name="hello_world">Hello Square World!</string>
+
+    <!-- Main activity -->
+    <string name="am_bluetooth_not_enabled">This application does not work without bluetooth.\nShutting down.</string>
+    <string name="am_bluetooth_le_support">This app requires Bluetooth Low Energy to work.\nThis device does not support it.\nShutting down.</string>
+</resources>

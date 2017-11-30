@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#64b5f6</color>
+    <color name="colorPrimaryDark">#0086c3</color>
+    <!--color name="colorAccent">#64b5f6</color-->
+    <color name="colorAccent">#ff0000</color>
+
+    <color name="colorBackground">#FFF9F5</color>
+    <color name="colorBackgroundWhite">#ffffff</color>
+
+    <color name="colorDivider">#ccc</color>
+
+    <!-- Button styles -->
+    <color name="colorButton">#d6d7d7</color>
+    <color name="colorButtonActive">@color/colorPrimary</color>
+
+    <!-- Text -->
+    <color name="colorTextBlack">#000</color>
+    <color name="colorTextGray">#80000000</color>
+    <color name="colorTextAccent">#bef67a</color>
+    <color name="colorTextWhite">@color/colorBackground</color>
+
+    <!-- Menu -->
+    <color name="colorMenuBackground">#4a5659</color>
+    <color name="colorMenuButton">@color/colorBackground</color>
+    <color name="colorMenuButtonActive">@color/colorPrimary</color>
+
+    <!-- Dialog -->
+    <color name="colorDialogBackground">@color/colorBackground</color>
+</resources>
