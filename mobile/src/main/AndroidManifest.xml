@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="cz.uhk.fim.kikm.wearnavigationsimple">
+    package="cz.uhk.fim.kikm.wearnavigation">
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED" />
@@ -30,8 +30,12 @@
         <activity android:name=".activities.devices.ShowDevicesActivity" />
         <activity android:name=".activities.bluetoothTest.BluetoothTest" />
 
-        <service android:name=".model.tasks.BluetoothConnection.BluetoothConnectionService"
+        <service
+            android:name=".model.tasks.BluetoothConnection.BluetoothConnectionService"
             android:exported="false" />
+
+        <activity android:name=".activities.databaseTest.SqlActivity" />
+        <activity android:name=".activities.databaseTest.CouchebaseActivity"></activity>
     </application>
 
 </manifest>

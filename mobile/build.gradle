@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 26
     defaultConfig {
-        applicationId "kikm.fim.uhk.cz.wearnavigationsimple"
+        applicationId "cz.uhk.fim.kikm.wearnavigation"
         minSdkVersion 19
         targetSdkVersion 26
         versionCode 1
@@ -37,6 +37,8 @@ dependencies {
     implementation 'com.github.devlight.navigationtabstrip:navigationtabstrip:1.0.4'
     implementation 'org.altbeacon:android-beacon-library:2.12.3'
     implementation 'com.google.code.gson:gson:2.8.2'
+    implementation 'com.couchbase.lite:couchbase-lite-android:1.4.1'
+    implementation 'com.couchbase.lite:couchbase-lite-android-sqlite-default:1.2.1'
     wearApp project(':wear')
     implementation 'com.google.android.gms:play-services-wearable:+'
     testImplementation 'junit:junit:4.12'
