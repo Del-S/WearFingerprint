@@ -17,9 +17,6 @@ import android.widget.Toast;
 
 import java.lang.reflect.Field;
 
-import cz.uhk.fim.kikm.wearnavigation.activities.bluetoothTest.BluetoothTest;
-import cz.uhk.fim.kikm.wearnavigation.activities.databaseTest.CouchebaseActivity;
-import cz.uhk.fim.kikm.wearnavigation.activities.databaseTest.SqlActivity;
 import cz.uhk.fim.kikm.wearnavigation.activities.devices.ShowDevicesActivity;
 import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
 import cz.uhk.fim.kikm.wearnavigation.utils.SimpleDialogHelper;
@@ -94,16 +91,6 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
                     case R.id.action_show_devices:
                         // Shows devices activity
                         showActivity(ShowDevicesActivity.class);
-                        break;
-                    case R.id.action_show_bluetooth_test:
-                        // Show bl test activity
-                        showActivity(BluetoothTest.class);
-                        break;
-                    case R.id.action_show_couche:
-                        showActivity(CouchebaseActivity.class);
-                        break;
-                    case R.id.action_show_sql:
-                        showActivity(SqlActivity.class);
                         break;
                     default:
                         // Shows main activity

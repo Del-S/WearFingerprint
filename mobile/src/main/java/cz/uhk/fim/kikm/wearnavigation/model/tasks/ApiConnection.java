@@ -65,6 +65,7 @@ public class ApiConnection extends AsyncTask<Void, Void, Void> {
                 @Override
                 public void changed(Replication.ChangeEvent changeEvent) {
                     if(replication.getStatus() != Replication.ReplicationStatus.REPLICATION_ACTIVE) {
+                        // TODO: changes count might not be ideal because if there was one change it will find only first document and not the changed one
                         int documentCount = replication.getChangesCount();
                         for (int i = 0; i < documentCount; i += limit) {
                             List<Fingerprint> fingerprints = queryDocuments(i);

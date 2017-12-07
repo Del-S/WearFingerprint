@@ -10,27 +10,6 @@
         android:visible="false"/>
 
     <item
-        android:id="@+id/action_show_bluetooth_test"
-        android:icon="@drawable/ic_bluetooth_24dp"
-        android:title="BL Test"
-        app:showAsAction="always"
-        android:visible="false"/>
-
-    <item
-        android:id="@+id/action_show_couche"
-        android:icon="@drawable/ic_bluetooth_24dp"
-        android:title="Couche test"
-        app:showAsAction="always"
-        android:visible="false"/>
-
-    <item
-        android:id="@+id/action_show_sql"
-        android:icon="@drawable/ic_bluetooth_24dp"
-        android:title="SQL test"
-        app:showAsAction="always"
-        android:visible="false"/>
-
-    <item
         android:id="@+id/action_show_devices"
         android:icon="@drawable/ic_devices_24dp"
         android:title="@string/app_menu_show_devices"
