@@ -18,7 +18,7 @@ public class LocationEntry {
 
     // Variables of this class
     @Expose(serialize = false)
-    private long id;                 // Database id (its inner id and it is not exported)
+    private int id;                 // Database id (its inner id and it is not exported)
     private String building;        // Name of the building
     private int floor;              // Floor number inside the building
 
@@ -47,11 +47,11 @@ public class LocationEntry {
         }
     }
 
-    public long getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(int id) {
         this.id = id;
     }
 

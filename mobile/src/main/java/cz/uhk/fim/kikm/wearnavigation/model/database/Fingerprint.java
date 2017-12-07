@@ -31,7 +31,7 @@ public class Fingerprint {
 
     // Variables of this class
     @Expose(serialize = false)
-    private int dbId;                               // Database id (its inner id and it is not exported)
+    private int dbId;                              // Database id (its inner id and it is not exported)
     @JsonProperty("_id")
     private UUID id;                                // UUID of this scan
     private UUID scanID;                            // UUID to enable fingerprint grouping
@@ -45,7 +45,9 @@ public class Fingerprint {
      * Use LocationEntry instead
      */
     private String level;
+    private long location_id;
     private LocationEntry locationEntry;            // Location of fingerprint to enable multiple buildings and floors
+    private long device_id;
     @JsonProperty("deviceRecord")
     private DeviceEntry deviceEntry;                // Device that created this fingerprint
     @JsonProperty("bluetoothRecords")
@@ -204,12 +206,28 @@ public class Fingerprint {
         this.level = level;
     }
 
+    public long getLocation_id() {
+        return location_id;
+    }
+
+    public void setLocation_id(long location_id) {
+        this.location_id = location_id;
+    }
+
     public LocationEntry getLocationEntry() {
         return locationEntry;
     }
 
     public void setLocationEntry(LocationEntry locationEntry) {
         this.locationEntry = locationEntry;
+    }
+
+    public long getDevice_id() {
+        return device_id;
+    }
+
+    public void setDevice_id(long device_id) {
+        this.device_id = device_id;
     }
 
     public DeviceEntry getDeviceEntry() {

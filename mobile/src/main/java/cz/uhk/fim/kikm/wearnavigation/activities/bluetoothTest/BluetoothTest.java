@@ -83,16 +83,8 @@ public class BluetoothTest extends BaseActivity implements BluetoothConnectionIn
             }
         });
 
-        try {
-            Database database = new Manager(new AndroidContext(this), Manager.DEFAULT_OPTIONS).getDatabase("fingerprint");
-            database.delete();
-        } catch (IOException | CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
-
-        // 31317
-        //ApiConnection apiConnection = new ApiConnection(this);
-        //apiConnection.execute();
+        ApiConnection apiConnection = new ApiConnection(this);
+        apiConnection.execute();
     }
 
     @Override

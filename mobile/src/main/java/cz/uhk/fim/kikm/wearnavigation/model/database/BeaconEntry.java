@@ -22,7 +22,7 @@ public class BeaconEntry {
 
     // Variables of this class
     @Expose(serialize = false)
-    private int id;             // Database id (its inner id and it is not exported)
+    private long id;             // Database id (its inner id and it is not exported)
     private int fingerprintId; // If of fingerprint that this entry belongs to
     private String bssid;       // Bssid (MAC) address of the beacon
     private float distance;     // Distance of the beacon from the device
@@ -51,11 +51,11 @@ public class BeaconEntry {
         this.scanDifference = Long.valueOf(bluetoothRecord.get("difference").toString());
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 

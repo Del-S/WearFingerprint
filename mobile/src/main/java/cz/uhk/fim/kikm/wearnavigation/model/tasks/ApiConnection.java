@@ -38,9 +38,8 @@ public class ApiConnection extends AsyncTask<Void, Void, Void> {
 
     private Database database;
     private Replication replication;
-    private long startTime, endTime;
     private ObjectMapper mapper;
-    private int limit = 30;
+    private int limit = 50;
     private DatabaseCRUD sqlDatabase;
 
     public ApiConnection(Context context) {
@@ -48,35 +47,9 @@ public class ApiConnection extends AsyncTask<Void, Void, Void> {
         mapper = new ObjectMapper().enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
         try {
             this.database = new Manager(new AndroidContext(context), Manager.DEFAULT_OPTIONS).getDatabase("fingerprint");
-            this.database.getView("fingerprint").setMap(new Mapper() {
-                @Override
-                public void map(Map<String, Object> document, Emitter emitter) {
-                    emitter.emit(document.get("timestamp"), document);
-                }
-            }, "1");
-
-            // Test delete
-            /*Query query = database.getView("fingerprint").createQuery();
-            query.setLimit(20);
-            Iterator<QueryRow> iterator = query.run();
-            while (iterator.hasNext()) {
-                QueryRow row = iterator.next();
-                Log.d("svdsvsdvsdv", "Deliting document: " + row.getDocumentId());
-                try {
-                    database.deleteLocalDocument(row.getDocumentId());
-                } catch (CouchbaseLiteException e) {
-
-                }
-            }*/
         } catch (IOException | CouchbaseLiteException e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
-        startTime = System.currentTimeMillis();
     }
 
     @Override
@@ -93,16 +66,10 @@ public class ApiConnection extends AsyncTask<Void, Void, Void> {
                 public void changed(Replication.ChangeEvent changeEvent) {
                     if(replication.getStatus() != Replication.ReplicationStatus.REPLICATION_ACTIVE) {
                         int documentCount = replication.getChangesCount();
-                        //int documentCount = database.getDocumentCount();
-                        Log.d("DocCount", "Document count: " + documentCount);
                         for (int i = 0; i < documentCount; i += limit) {
                             List<Fingerprint> fingerprints = queryDocuments(i);
                             sqlDatabase.saveMultipleFingerprints(fingerprints);
                         }
-
-                        endTime = System.currentTimeMillis();
-                        Log.d("Tasdvest", "Fingerprint count: " + sqlDatabase.getFingerprintCount());
-                        Log.d("TImeDiff", "Equals: " + (endTime - startTime));
                     }
                 }
             });
@@ -115,16 +82,14 @@ public class ApiConnection extends AsyncTask<Void, Void, Void> {
     private List<Fingerprint> queryDocuments(int skip) {
         List<Fingerprint> fingerprints = new ArrayList<>();
         try {
-            Query query = database.getView("fingerprint").createQuery();
+            Query query = database.createAllDocumentsQuery();
             query.setLimit(limit);
             query.setSkip(skip);
-            QueryEnumerator result = query.run();
             Iterator<QueryRow> iterator = query.run();
             while (iterator.hasNext()) {
-                Map<String, Object> propertires = iterator.next().getDocument().getProperties();
-                final Fingerprint pojo = mapper.convertValue(propertires, Fingerprint.class);
+                Map<String, Object> properties = iterator.next().getDocument().getProperties();
+                final Fingerprint pojo = mapper.convertValue(properties, Fingerprint.class);
                 fingerprints.add(pojo);
-                //fingerprints.add(new Fingerprint((LazyJsonObject) row.getValue());
             }
         } catch (CouchbaseLiteException e) {
             e.printStackTrace();

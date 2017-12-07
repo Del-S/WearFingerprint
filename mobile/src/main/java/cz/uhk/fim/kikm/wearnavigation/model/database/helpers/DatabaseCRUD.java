@@ -6,7 +6,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import cz.uhk.fim.kikm.wearnavigation.model.database.BeaconEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.CellularEntry;
@@ -24,29 +26,6 @@ public class DatabaseCRUD {
     public DatabaseCRUD(Context context) {
         this.c = context;
         dbHelper = new DatabaseHelper(context);
-    }
-
-    /**
-     * Gets fingerprint count from the database.
-     * Used mainly for testing
-     *
-     * @return count of fingerprints in database
-     */
-    public int getFingerprintCount() {
-        SQLiteDatabase db = dbHelper.getWritableDatabase(); // Load sql database via helper
-
-        String selectQuery = "SELECT COUNT(*) " +
-                " FROM " + Fingerprint.DB_TABLE;
-
-        Cursor cursor = db.rawQuery(selectQuery, null);
-        int count = 0;
-        if(cursor.moveToFirst()) {
-            count = cursor.getInt(0);
-        }
-        cursor.close();
-        db.close();
-
-        return count;
     }
 
     /**
@@ -187,7 +166,7 @@ public class DatabaseCRUD {
         Cursor cursor = db.rawQuery(selectQuery, null);
         if (cursor.moveToFirst()) {
             LocationEntry locationEntry = new LocationEntry();
-            locationEntry.setId( cursor.getLong(cursor.getColumnIndex(LocationEntry.DB_ID)) );
+            locationEntry.setId( cursor.getInt(cursor.getColumnIndex(LocationEntry.DB_ID)) );
             locationEntry.setBuilding( cursor.getString(cursor.getColumnIndex(LocationEntry.DB_BUILDING)) );
             locationEntry.setFloor( cursor.getInt(cursor.getColumnIndex(LocationEntry.DB_FLOOR)) );
             if( locationEntry.equals(location) ) {
@@ -369,6 +348,222 @@ public class DatabaseCRUD {
                 // Insert values into the database
                 db.insert(SensorEntry.DB_TABLE, null, values);
             }
+    }
+
+    public List<Fingerprint> getAllFingerprints() {
+        List<Fingerprint> fingerprints = new ArrayList<>();
+
+        //Open connection to read only
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        String[] fingerprintColumns = {Fingerprint.DB_ID, Fingerprint.DB_FINGERPRINT_ID, Fingerprint.DB_FINGERPRINT_SCAN_ID, Fingerprint.DB_X,
+                Fingerprint.DB_Y, Fingerprint.DB_SCAN_START, Fingerprint.DB_SCAN_END, Fingerprint.DB_LEVEL,
+                Fingerprint.DB_LOCATION_ID, Fingerprint.DB_DEVICE_ID };
+
+        Cursor cursor = db.query(Fingerprint.DB_TABLE, fingerprintColumns, null, null, null, null, null);
+        if (cursor.moveToFirst()) {
+            do {
+                Fingerprint fingerprint = new Fingerprint();
+                fingerprint.setDbId(cursor.getInt(cursor.getColumnIndex(Fingerprint.DB_ID)));
+                fingerprint.setId(UUID.fromString( cursor.getString(cursor.getColumnIndex(Fingerprint.DB_FINGERPRINT_ID))));
+                fingerprint.setScanID(UUID.fromString( cursor.getString(cursor.getColumnIndex(Fingerprint.DB_FINGERPRINT_SCAN_ID))));
+                fingerprint.setX(cursor.getInt(cursor.getColumnIndex(Fingerprint.DB_X)));
+                fingerprint.setY(cursor.getInt(cursor.getColumnIndex(Fingerprint.DB_Y)));
+                fingerprint.setScanStart(cursor.getLong(cursor.getColumnIndex(Fingerprint.DB_SCAN_START)));
+                fingerprint.setScanEnd(cursor.getLong(cursor.getColumnIndex(Fingerprint.DB_SCAN_END)));
+                fingerprint.setLevel(cursor.getString(cursor.getColumnIndex(Fingerprint.DB_LEVEL)));
+                fingerprint.setLocation_id(cursor.getLong(cursor.getColumnIndex(Fingerprint.DB_LOCATION_ID)));
+                fingerprint.setDevice_id(cursor.getLong(cursor.getColumnIndex(Fingerprint.DB_DEVICE_ID)));
+
+                fingerprints.add(fingerprint);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        for ( Fingerprint fingerprint : fingerprints ) {
+            fingerprint.setDeviceEntry(getDeviceById(db, fingerprint.getDevice_id()));
+            fingerprint.setLocationEntry(getLocationById(db, fingerprint.getLocation_id()));
+            fingerprint.setBeaconEntries(getBeaconsByFingerprintId(db, fingerprint.getDbId()));
+            fingerprint.setWirelessEntries(getWirelessByFingerprintId(db, fingerprint.getDbId()));
+            fingerprint.setCellularEntries(getCellularByFingerprintId(db, fingerprint.getDbId()));
+            fingerprint.setSensorEntries(getSensorByFingerprintId(db, fingerprint.getDbId()));
+        }
+
+        db.close();
+
+        return fingerprints;
+    }
+
+    public DeviceEntry getDeviceById(SQLiteDatabase db, long deviceId) {
+        String[] columns = {DeviceEntry.DB_ID, DeviceEntry.DB_TYPE, DeviceEntry.DB_DEVICE_ID, DeviceEntry.DB_DEVICE_NAME,
+                DeviceEntry.DB_MODEL, DeviceEntry.DB_BRAND, DeviceEntry.DB_MANUFACTURER, DeviceEntry.DB_DISPLAY,
+                DeviceEntry.DB_HARDWARE, DeviceEntry.DB_SERUAL_NUMBER, DeviceEntry.DB_DEVIDE_FINGERPRINT, DeviceEntry.DB_OS, DeviceEntry.DB_API };
+        String selection = DeviceEntry.DB_ID + " = ?";
+        String[] selectionArgs = new String[] {String.valueOf( deviceId )};
+        String limit = "1";
+
+        DeviceEntry deviceEntry = new DeviceEntry();
+        Cursor cursor = db.query(DeviceEntry.DB_TABLE, columns, selection, selectionArgs, null, null, limit);
+        if (cursor.moveToFirst()) {
+            deviceEntry.setDbId(cursor.getInt(cursor.getColumnIndex(DeviceEntry.DB_ID)));
+            deviceEntry.setType(cursor.getString(cursor.getColumnIndex(DeviceEntry.DB_TYPE)));
+            deviceEntry.setDeviceId(cursor.getString(cursor.getColumnIndex(DeviceEntry.DB_DEVICE_ID)));
+            deviceEntry.setDeviceName(cursor.getString(cursor.getColumnIndex(DeviceEntry.DB_DEVICE_NAME)));
+            deviceEntry.setModel(cursor.getString(cursor.getColumnIndex(DeviceEntry.DB_MODEL)));
+            deviceEntry.setBrand(cursor.getString(cursor.getColumnIndex(DeviceEntry.DB_BRAND)));
+            deviceEntry.setManufacturer(cursor.getString(cursor.getColumnIndex(DeviceEntry.DB_MANUFACTURER)));
+            deviceEntry.setDisplay(cursor.getString(cursor.getColumnIndex(DeviceEntry.DB_DISPLAY)));
+            deviceEntry.setHardware(cursor.getString(cursor.getColumnIndex(DeviceEntry.DB_HARDWARE)));
+            deviceEntry.setSerialNumber(cursor.getString(cursor.getColumnIndex(DeviceEntry.DB_SERUAL_NUMBER)));
+            deviceEntry.setDeviceFingerprint(cursor.getString(cursor.getColumnIndex(DeviceEntry.DB_DEVIDE_FINGERPRINT)));
+            deviceEntry.setOs(cursor.getString(cursor.getColumnIndex(DeviceEntry.DB_OS)));
+            deviceEntry.setApi(cursor.getInt(cursor.getColumnIndex(DeviceEntry.DB_API)));
+        }
+        cursor.close();
+
+        return deviceEntry;
+    }
+
+    public LocationEntry getLocationById(SQLiteDatabase db, long locationId) {
+        String[] columns = {LocationEntry.DB_ID, LocationEntry.DB_BUILDING, LocationEntry.DB_FLOOR};
+        String selection = LocationEntry.DB_ID + " = ?";
+        String[] selectionArgs = new String[] {String.valueOf( locationId )};
+        String limit = "1";
+
+        LocationEntry locationEntry = new LocationEntry();
+        Cursor cursor = db.query(LocationEntry.DB_TABLE, columns, selection, selectionArgs, null, null, limit);
+        if (cursor.moveToFirst()) {
+            locationEntry.setId(cursor.getInt(cursor.getColumnIndex(LocationEntry.DB_ID)));
+            locationEntry.setBuilding(cursor.getString(cursor.getColumnIndex(LocationEntry.DB_BUILDING)));
+            locationEntry.setFloor(cursor.getInt(cursor.getColumnIndex(LocationEntry.DB_FLOOR)));
+        }
+        cursor.close();
+
+        return locationEntry;
+    }
+
+    public List<BeaconEntry> getBeaconsByFingerprintId(SQLiteDatabase db, int fingerprintId) {
+        String[] columns = {BeaconEntry.DB_ID, BeaconEntry.DB_FINGERPRINT_DB_ID, BeaconEntry.DB_BSSID, BeaconEntry.DB_DISTANCE,
+                BeaconEntry.DB_RSSI, BeaconEntry.DB_TIMESTAMP, BeaconEntry.DB_SCAN_TIME, BeaconEntry.DB_SCAN_DIFFERENCE};
+        String selection = BeaconEntry.DB_FINGERPRINT_DB_ID + " = ?";
+        String[] selectionArgs = new String[] {String.valueOf( fingerprintId )};
+
+        List<BeaconEntry> beacons = new ArrayList<>();
+        Cursor cursor = db.query(BeaconEntry.DB_TABLE, columns, selection, selectionArgs, null, null, null);
+        if (cursor.moveToFirst()) {
+            do {
+                BeaconEntry beaconEntry = new BeaconEntry();
+
+                beaconEntry.setId(cursor.getLong(cursor.getColumnIndex(BeaconEntry.DB_ID)));
+                beaconEntry.setFingerprintId(cursor.getInt(cursor.getColumnIndex(BeaconEntry.DB_FINGERPRINT_DB_ID)));
+                beaconEntry.setBssid(cursor.getString(cursor.getColumnIndex(BeaconEntry.DB_BSSID)));
+                beaconEntry.setDistance(cursor.getFloat(cursor.getColumnIndex(BeaconEntry.DB_DISTANCE)));
+                beaconEntry.setRssi(cursor.getInt(cursor.getColumnIndex(BeaconEntry.DB_RSSI)));
+                beaconEntry.setTimestamp(cursor.getLong(cursor.getColumnIndex(BeaconEntry.DB_TIMESTAMP)));
+                beaconEntry.setScanTime(cursor.getLong(cursor.getColumnIndex(BeaconEntry.DB_SCAN_TIME)));
+                beaconEntry.setScanDifference(cursor.getLong(cursor.getColumnIndex(BeaconEntry.DB_SCAN_DIFFERENCE)));
+
+                beacons.add(beaconEntry);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        return beacons;
+    }
+
+    public List<WirelessEntry> getWirelessByFingerprintId(SQLiteDatabase db, int fingerprintId) {
+        String[] columns = {WirelessEntry.DB_ID, WirelessEntry.DB_FINGERPRINT_DB_ID, WirelessEntry.DB_SSID, WirelessEntry.DB_BSSID, WirelessEntry.DB_DISTANCE,
+                WirelessEntry.DB_RSSI, WirelessEntry.DB_FREQUENCY, WirelessEntry.DB_CHANNEL, WirelessEntry.DB_DISTANCE,
+                WirelessEntry.DB_TIMESTAMP, WirelessEntry.DB_SCAN_TIME, WirelessEntry.DB_SCAN_DIFFERENCE};
+        String selection = WirelessEntry.DB_FINGERPRINT_DB_ID + " = ?";
+        String[] selectionArgs = new String[] {String.valueOf( fingerprintId )};
+
+        List<WirelessEntry> wireless = new ArrayList<>();
+        Cursor cursor = db.query(WirelessEntry.DB_TABLE, columns, selection, selectionArgs, null, null, null);
+        if (cursor.moveToFirst()) {
+            do {
+                WirelessEntry wirelessEntry = new WirelessEntry();
+
+                wirelessEntry.setId(cursor.getInt(cursor.getColumnIndex(WirelessEntry.DB_ID)));
+                wirelessEntry.setFingerprintId(cursor.getInt(cursor.getColumnIndex(WirelessEntry.DB_FINGERPRINT_DB_ID)));
+                wirelessEntry.setSsid(cursor.getString(cursor.getColumnIndex(WirelessEntry.DB_SSID)));
+                wirelessEntry.setBssid(cursor.getString(cursor.getColumnIndex(WirelessEntry.DB_BSSID)));
+                wirelessEntry.setDistance(cursor.getFloat(cursor.getColumnIndex(WirelessEntry.DB_DISTANCE)));
+                wirelessEntry.setRssi(cursor.getInt(cursor.getColumnIndex(WirelessEntry.DB_RSSI)));
+                wirelessEntry.setFrequency(cursor.getInt(cursor.getColumnIndex(WirelessEntry.DB_FREQUENCY)));
+                wirelessEntry.setDistance(cursor.getFloat(cursor.getColumnIndex(WirelessEntry.DB_DISTANCE)));
+                wirelessEntry.setTimestamp(cursor.getLong(cursor.getColumnIndex(WirelessEntry.DB_TIMESTAMP)));
+                wirelessEntry.setScanTime(cursor.getLong(cursor.getColumnIndex(WirelessEntry.DB_SCAN_TIME)));
+                wirelessEntry.setScanDifference(cursor.getLong(cursor.getColumnIndex(WirelessEntry.DB_SCAN_DIFFERENCE)));
+
+                wireless.add(wirelessEntry);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        return wireless;
+    }
+
+    public List<CellularEntry> getCellularByFingerprintId(SQLiteDatabase db, int fingerprintId) {
+        String[] columns = {CellularEntry.DB_ID, CellularEntry.DB_FINGERPRINT_DB_ID, CellularEntry.DB_BSIC, CellularEntry.DB_CID, CellularEntry.DB_LAC,
+                CellularEntry.DB_RSSI, CellularEntry.DB_DISTANCE, CellularEntry.DB_TIMESTAMP, CellularEntry.DB_SCAN_TIME, CellularEntry.DB_SCAN_DIFFERENCE};
+        String selection = CellularEntry.DB_FINGERPRINT_DB_ID + " = ?";
+        String[] selectionArgs = new String[] {String.valueOf( fingerprintId )};
+
+        List<CellularEntry> cellular = new ArrayList<>();
+        Cursor cursor = db.query(CellularEntry.DB_TABLE, columns, selection, selectionArgs, null, null, null);
+        if (cursor.moveToFirst()) {
+            do {
+                CellularEntry cellularEntry = new CellularEntry();
+
+                cellularEntry.setId(cursor.getInt(cursor.getColumnIndex(CellularEntry.DB_ID)));
+                cellularEntry.setFingerprintId(cursor.getInt(cursor.getColumnIndex(CellularEntry.DB_FINGERPRINT_DB_ID)));
+                cellularEntry.setBsic(cursor.getInt(cursor.getColumnIndex(CellularEntry.DB_BSIC)));
+                cellularEntry.setCid(cursor.getInt(cursor.getColumnIndex(CellularEntry.DB_CID)));
+                cellularEntry.setLac(cursor.getInt(cursor.getColumnIndex(CellularEntry.DB_LAC)));
+                cellularEntry.setRssi(cursor.getInt(cursor.getColumnIndex(CellularEntry.DB_RSSI)));
+                cellularEntry.setDistance(cursor.getFloat(cursor.getColumnIndex(CellularEntry.DB_DISTANCE)));
+                cellularEntry.setTimestamp(cursor.getLong(cursor.getColumnIndex(CellularEntry.DB_TIMESTAMP)));
+                cellularEntry.setScanTime(cursor.getLong(cursor.getColumnIndex(CellularEntry.DB_SCAN_TIME)));
+                cellularEntry.setScanDifference(cursor.getLong(cursor.getColumnIndex(CellularEntry.DB_SCAN_DIFFERENCE)));
+
+                cellular.add(cellularEntry);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        return cellular;
+    }
+
+    public List<SensorEntry> getSensorByFingerprintId(SQLiteDatabase db, int fingerprintId) {
+        String[] columns = {SensorEntry.DB_ID, SensorEntry.DB_FINGERPRINT_DB_ID, SensorEntry.DB_TYPE, SensorEntry.DB_TYPE_STRING, SensorEntry.DB_X,
+                SensorEntry.DB_Y, SensorEntry.DB_Z, SensorEntry.DB_TIMESTAMP, SensorEntry.DB_SCAN_TIME, SensorEntry.DB_SCAN_DIFFERENCE};
+        String selection = SensorEntry.DB_FINGERPRINT_DB_ID + " = ?";
+        String[] selectionArgs = new String[] {String.valueOf( fingerprintId )};
+
+        List<SensorEntry> sensor = new ArrayList<>();
+        Cursor cursor = db.query(SensorEntry.DB_TABLE, columns, selection, selectionArgs, null, null, null);
+        if (cursor.moveToFirst()) {
+            do {
+                SensorEntry sensorEntry = new SensorEntry();
+
+                sensorEntry.setId(cursor.getInt(cursor.getColumnIndex(SensorEntry.DB_ID)));
+                sensorEntry.setFingerprintId(cursor.getInt(cursor.getColumnIndex(SensorEntry.DB_FINGERPRINT_DB_ID)));
+                sensorEntry.setType(cursor.getInt(cursor.getColumnIndex(SensorEntry.DB_TYPE)));
+                sensorEntry.setTypeString(cursor.getString(cursor.getColumnIndex(SensorEntry.DB_TYPE_STRING)));
+                sensorEntry.setX(cursor.getDouble(cursor.getColumnIndex(SensorEntry.DB_X)));
+                sensorEntry.setY(cursor.getDouble(cursor.getColumnIndex(SensorEntry.DB_Y)));
+                sensorEntry.setZ(cursor.getDouble(cursor.getColumnIndex(SensorEntry.DB_Z)));
+                sensorEntry.setTimestamp(cursor.getLong(cursor.getColumnIndex(SensorEntry.DB_TIMESTAMP)));
+                sensorEntry.setScanTime(cursor.getLong(cursor.getColumnIndex(SensorEntry.DB_SCAN_TIME)));
+                sensorEntry.setScanDifference(cursor.getLong(cursor.getColumnIndex(SensorEntry.DB_SCAN_DIFFERENCE)));
+
+                sensor.add(sensorEntry);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        return sensor;
     }
 
     /**
