@@ -18,6 +18,7 @@ import android.widget.Toast;
 import java.lang.reflect.Field;
 
 import cz.uhk.fim.kikm.wearnavigation.activities.devices.ShowDevicesActivity;
+import cz.uhk.fim.kikm.wearnavigation.activities.scan.ScanActivity;
 import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
 import cz.uhk.fim.kikm.wearnavigation.utils.SimpleDialogHelper;
 
@@ -42,8 +43,10 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
 
         // Load bottom navigation
         navigationView = findViewById(R.id.bottom_menu);
-        disableShiftMode(navigationView);
-        navigationView.setOnNavigationItemSelectedListener(this);
+        if(navigationView != null) {
+            disableShiftMode(navigationView);
+            navigationView.setOnNavigationItemSelectedListener(this);
+        }
 
         // Notify that menu has changed
         invalidateOptionsMenu();
@@ -87,6 +90,10 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
                     case R.id.action_show_main:
                         // Shows main activity
                         showActivity(MainActivity.class);
+                        break;
+                    case R.id.action_show_scan:
+                        // Shows scan activity
+                        showActivity(ScanActivity.class);
                         break;
                     case R.id.action_show_devices:
                         // Shows devices activity

@@ -23,11 +23,29 @@ android {
                     [
                             'src/main/res',
                             'src/main/res-devices',
+                            'src/main/res-scan',
                     ]
         }
     }
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES.txt'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/dependencies.txt'
+        exclude 'META-INF/LGPL2.1'
+    }
 }
-
+repositories {
+    jcenter()
+    maven {
+        url 'https://esri.bintray.com/arcgis'
+    }
+}
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:26.1.0'
@@ -38,7 +56,7 @@ dependencies {
     implementation 'org.altbeacon:android-beacon-library:2.12.3'
     implementation 'com.google.code.gson:gson:2.8.2'
     implementation 'com.couchbase.lite:couchbase-lite-android:1.4.1'
-    implementation 'com.couchbase.lite:couchbase-lite-android-sqlite-default:1.2.1'
+    implementation 'com.qozix:tileview:2.2.8'
     wearApp project(':wear')
     implementation 'com.google.android.gms:play-services-wearable:+'
     testImplementation 'junit:junit:4.12'

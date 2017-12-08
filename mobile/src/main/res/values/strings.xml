@@ -9,6 +9,7 @@
 
     <!-- Menu -->
     <string name="app_menu_home">Home</string>
+    <string name="app_menu_scan">Scanner</string>
     <string name="app_menu_show_devices">Show devices</string>
 
     <!-- Main activity -->

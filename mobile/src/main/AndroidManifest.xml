@@ -32,6 +32,8 @@
         <service
             android:name=".model.tasks.BluetoothConnection.BluetoothConnectionService"
             android:exported="false" />
+
+        <activity android:name=".activities.scan.ScanActivity"></activity>
     </application>
 
 </manifest>
