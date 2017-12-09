@@ -350,7 +350,7 @@ public class DatabaseCRUD {
             }
     }
 
-    public List<Fingerprint> getAllFingerprints() {
+    public List<Fingerprint> getAllFingerprints(boolean loadChildren) {
         List<Fingerprint> fingerprints = new ArrayList<>();
 
         //Open connection to read only
@@ -380,13 +380,16 @@ public class DatabaseCRUD {
         }
         cursor.close();
 
-        for ( Fingerprint fingerprint : fingerprints ) {
-            fingerprint.setDeviceEntry(getDeviceById(db, fingerprint.getDevice_id()));
-            fingerprint.setLocationEntry(getLocationById(db, fingerprint.getLocation_id()));
-            fingerprint.setBeaconEntries(getBeaconsByFingerprintId(db, fingerprint.getDbId()));
-            fingerprint.setWirelessEntries(getWirelessByFingerprintId(db, fingerprint.getDbId()));
-            fingerprint.setCellularEntries(getCellularByFingerprintId(db, fingerprint.getDbId()));
-            fingerprint.setSensorEntries(getSensorByFingerprintId(db, fingerprint.getDbId()));
+        // Loads all the sub-entries only if we want it to
+        if(loadChildren) {
+            for (Fingerprint fingerprint : fingerprints) {
+                fingerprint.setDeviceEntry(getDeviceById(db, fingerprint.getDevice_id()));
+                fingerprint.setLocationEntry(getLocationById(db, fingerprint.getLocation_id()));
+                fingerprint.setBeaconEntries(getBeaconsByFingerprintId(db, fingerprint.getDbId()));
+                fingerprint.setWirelessEntries(getWirelessByFingerprintId(db, fingerprint.getDbId()));
+                fingerprint.setCellularEntries(getCellularByFingerprintId(db, fingerprint.getDbId()));
+                fingerprint.setSensorEntries(getSensorByFingerprintId(db, fingerprint.getDbId()));
+            }
         }
 
         db.close();
