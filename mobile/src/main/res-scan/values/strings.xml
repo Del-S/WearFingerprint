@@ -1,3 +1,12 @@
 <resources>
-
+    <!-- Actions for Markers -->
+    <string name="am_title">Fingerprint actions</string>
+    <string name="am_show_info_description">Display fingerprint information</string>
+    <string name="am_delete_description">Delete fingerprint</string>
+    <string name="am_cancel_description">Cancel actions</string>
+    <string name="am_triangle">Triangle.</string>
+    <!-- Actions for New Markers -->
+    <string name="amn_title">New Fingerprint</string>
+    <string name="amn_position">At position (%1$d:%2$d)</string>
+    <string name="amn_create_description">Create fingerprint</string>
 </resources>
