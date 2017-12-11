@@ -41,6 +41,11 @@ public class BeaconEntry {
     public BeaconEntry() {
     }
 
+    // Default constructor used for Gson
+    public BeaconEntry(String bssid) {
+        this.bssid = bssid;
+    }
+
     public BeaconEntry(Object object) {
         Map<String, Object> bluetoothRecord = (HashMap<String, Object>) object;
         this.timestamp = Long.valueOf(bluetoothRecord.get("timestamp").toString());

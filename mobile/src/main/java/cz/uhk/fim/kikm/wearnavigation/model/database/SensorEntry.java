@@ -62,7 +62,7 @@ public class SensorEntry {
     @JsonAnySetter
     public void setSensorEntry(String key, Object value) {
         typeString = key;
-        // TODO: set type by typeString
+        // TODO: set type by typeString (create array of types ints and strings). Switch case them and set the (int) type from (string) typeString
         try {
             Map<String, Double> map = (Map<String, Double>) value;
 

@@ -53,13 +53,13 @@
             android:background="@color/colorTransparent"
             android:contentDescription="@string/am_show_info_description"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/am_delete"
+            app:layout_constraintEnd_toStartOf="@+id/am_create"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/am_title"
             app:srcCompat="@drawable/ic_marker_info_30dp" />
 
         <ImageButton
-            android:id="@+id/am_delete"
+            android:id="@+id/am_create"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
@@ -67,12 +67,12 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:background="@color/colorTransparent"
-            android:contentDescription="@string/am_delete_description"
+            android:contentDescription="@string/am_create_description"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/am_title"
-            app:srcCompat="@drawable/ic_marker_delete_30dp" />
+            app:srcCompat="@drawable/ic_marker_add_30dp" />
 
         <ImageButton
             android:id="@+id/am_cancel"
@@ -86,7 +86,7 @@
             android:contentDescription="@string/am_cancel_description"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/am_delete"
+            app:layout_constraintStart_toEndOf="@+id/am_create"
             app:layout_constraintTop_toBottomOf="@id/am_title"
             app:srcCompat="@drawable/ic_marker_close_30dp" />
 

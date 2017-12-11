@@ -136,7 +136,9 @@ public class BluetoothLEScanner implements BeaconConsumer {
      * Handles activity destroy function
      */
     public void handleDestroy() {
-        beaconManager.unbind(this);
+        if (beaconManager.isBound(this)) {
+            beaconManager.unbind(this);
+        }
     }
 
     /**
@@ -152,5 +154,10 @@ public class BluetoothLEScanner implements BeaconConsumer {
     public void handleResume() {
         if (beaconManager.isBound(this)) beaconManager.setBackgroundMode(false);
         else beaconManager.bind(this);
+    }
+
+    public void setScanPeriods(long foregroundPeriod, long backgroundPeriod) {
+        beaconManager.setForegroundBetweenScanPeriod(foregroundPeriod);
+        beaconManager.setBackgroundScanPeriod(backgroundPeriod);
     }
 }

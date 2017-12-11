@@ -51,7 +51,7 @@ public class DeviceEntry {
     private int api;                    // The user-visible SDK version of the framework; its possible values are defined in Build.VERSION_CODES.
 
     // Creates instance of this class with current device information
-    public DeviceEntry createInstance() {
+    public static DeviceEntry createInstance() {
         return new DeviceEntry(true);
     }
 

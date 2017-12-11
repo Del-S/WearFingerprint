@@ -1,6 +1,7 @@
 package cz.uhk.fim.kikm.wearnavigation.activities.scan;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageButton;
@@ -19,8 +20,10 @@ import java.util.List;
 import cz.uhk.fim.kikm.wearnavigation.BaseActivity;
 import cz.uhk.fim.kikm.wearnavigation.R;
 import cz.uhk.fim.kikm.wearnavigation.model.database.Fingerprint;
+import cz.uhk.fim.kikm.wearnavigation.model.database.LocationEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseDataInterface;
 import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseDataLoader;
+import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
 
 /**
  * Displays map with fingerprints and enables different actions with them.
@@ -97,8 +100,8 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
         for (Fingerprint fingerprint : mFingerprints) {
             // Initiates image view
             ImageView iw = new ImageView(this);
-            int[] fingerprintInfo = { fingerprint.getDbId(), fingerprint.getX(), fingerprint.getY() };
-            iw.setTag(fingerprintInfo);                  // Set database id, x and y of the Fingerprint to the view.
+            int[] fingerprintInfo = { fingerprint.getX(), fingerprint.getY() };
+            iw.setTag(fingerprintInfo);                  // Set x and y of the Fingerprint to the view.
 
             // Sets image resource of the marker
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(84,120);
@@ -120,45 +123,61 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
             mMarkerClicked = true;           // Set to disable HotSpot click to trigger
 
             // Adds callout layout to the map
-            int[] data = (int[]) markerView.getTag();         // Position of the callout widget
-            View markerActions = generateMarkerActionView(data[0]);  // Generates layout of the callout widget
-            mMap.addCallout( markerActions, data[1], data[2], -0.5f, -1.0f );
+            int[] position = (int[]) markerView.getTag();         // Position of the callout widget
+            View markerActions = generateMarkerActionView(position);  // Generates layout of the callout widget
+            mMap.addCallout( markerActions, position[0], position[1], -0.5f, -1.0f );
         }
     };
 
     /**
-     * Generates view that enables user to show more information about Fingerprint.
-     * Also enables to delete Fingerprint from the database.
+     * Generates view that enables user to show more information about Fingerprints.
+     * Also enables to create new one in the same place.
      *
-     * @param fingerprintDbId database id of fingerprint
+     * @param position x and y position of the marker
      * @return View with the actions
      */
-    private View generateMarkerActionView(final int fingerprintDbId) {
+    private View generateMarkerActionView(int[] position) {
         // Load view via inflater
         LayoutInflater inflater = LayoutInflater.from(ScanActivity.this);
         View calloutView = inflater.inflate(R.layout.actions_marker, null);
 
+        // Parse fingerprint data
+        final int fpX = position[0];
+        final int fpY = position[1];
+
         // Button to show more information about selected fingerprint.
-        ImageButton info = calloutView.findViewById(R.id.am_show_info);
-        info.setOnClickListener(new View.OnClickListener() {
+        ImageButton buttonInfo = calloutView.findViewById(R.id.am_show_info);
+        buttonInfo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText( ScanActivity.this, "Show information fragment with selected fingerprint (id = " + fingerprintDbId + " ) information.", Toast.LENGTH_SHORT ).show();
+                Toast.makeText( ScanActivity.this, "Show information fragment with fingerprints at this position.", Toast.LENGTH_SHORT ).show();
             }
         });
 
-        // Delete button function to delete selected Fingerprint.
-        ImageButton delete = calloutView.findViewById(R.id.am_delete);
-        delete.setOnClickListener(new View.OnClickListener() {
+        // Button to create new fingerprint.
+        ImageButton buttonCreate = calloutView.findViewById(R.id.am_create);
+        buttonCreate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText( ScanActivity.this, "Delete fingerprint (id = " + fingerprintDbId + " ).", Toast.LENGTH_SHORT ).show();
+                // Create fingerprint for scanning
+                Fingerprint fingerprint = new Fingerprint();
+                // TODO: have a setter for building and floor
+                fingerprint.setLocationEntry(new LocationEntry("J3NP"));
+                fingerprint.setX(fpX);
+                fingerprint.setY(fpY);
+
+                // Create instance of scanner and start it with execute
+                FingerprintScanner scanner = new FingerprintScanner(ScanActivity.this, fingerprint);
+                scanner.execute();
+
+                // Remove single does not work :(
+                mMap.getCalloutLayout().removeAllViews();
             }
         });
 
         // Cancel button in markerView
-        ImageButton cancel = calloutView.findViewById(R.id.am_cancel);
-        cancel.setOnClickListener(new View.OnClickListener() {
+        ImageButton buttonCancel = calloutView.findViewById(R.id.am_cancel);
+        buttonCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // Remove single does not work :(
@@ -202,7 +221,7 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
      * @param posY of the new fingerprint
      * @return View of the action menu
      */
-    private View generateNewMarkerActionView(int posX, int posY) {
+    private View generateNewMarkerActionView(final int posX, final int posY) {
         // Load view via inflater
         LayoutInflater inflater = LayoutInflater.from(ScanActivity.this);
         View calloutView = inflater.inflate(R.layout.actions_marker_new, null);
@@ -212,17 +231,29 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
         textPosition.setText(String.format(getResources().getString(R.string.amn_position), posX, posY));
 
         // Button to create new fingerprint.
-        ImageButton info = calloutView.findViewById(R.id.amn_create);
-        info.setOnClickListener(new View.OnClickListener() {
+        ImageButton buttonCreate = calloutView.findViewById(R.id.amn_create);
+        buttonCreate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText( ScanActivity.this, "Add new fingerprint", Toast.LENGTH_SHORT ).show();
+                // Create fingerprint for scanning
+                Fingerprint fingerprint = new Fingerprint();
+                // TODO: have a setter for building and floor
+                fingerprint.setLocationEntry(new LocationEntry("J3NP"));
+                fingerprint.setX(posX);
+                fingerprint.setY(posY);
+
+                // Create instance of scanner and start it with execute
+                FingerprintScanner scanner = new FingerprintScanner(ScanActivity.this, fingerprint);
+                scanner.execute();
+
+                // Remove single does not work :(
+                mMap.getCalloutLayout().removeAllViews();
             }
         });
 
         // Cancel button in markerView
-        ImageButton cancel = calloutView.findViewById(R.id.amn_cancel);
-        cancel.setOnClickListener(new View.OnClickListener() {
+        ImageButton buttonCancel = calloutView.findViewById(R.id.amn_cancel);
+        buttonCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // Remove single does not work :(

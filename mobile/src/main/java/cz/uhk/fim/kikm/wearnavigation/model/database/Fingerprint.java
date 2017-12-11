@@ -60,7 +60,8 @@ public class Fingerprint {
     private List<SensorEntry> sensorEntries;        // List of beacon entries scanned for this fingerprint
 
     public Fingerprint() {
-        // Set scan UUID to send into other device
+        // Set id and scan UUID to send into other device
+        id = UUID.randomUUID();
         scanID = UUID.randomUUID();
 
         // Initiate lists
@@ -68,6 +69,9 @@ public class Fingerprint {
         wirelessEntries = new ArrayList<>();
         cellularEntries = new ArrayList<>();
         sensorEntries = new ArrayList<>();
+
+        // Set device
+        deviceEntry = DeviceEntry.createInstance();
     }
 
     /**
@@ -202,7 +206,9 @@ public class Fingerprint {
     }
 
     public void setLevel(String level) {
-        this.locationEntry = new LocationEntry(level);
+        if(level != null) {
+            this.locationEntry = new LocationEntry(level);
+        }
         this.level = level;
     }
 

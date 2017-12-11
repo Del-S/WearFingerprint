@@ -5,7 +5,7 @@ import org.altbeacon.beacon.Beacon;
 import java.util.Collection;
 
 /**
- * Interface for communication with Bluetooth LE Scanner.
+ * Interface for communication with Bluetooth LE FingerprintScanner.
  */
 public interface BluetoothLEScannerInterface {
     /**

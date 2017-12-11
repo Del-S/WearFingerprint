@@ -61,7 +61,7 @@ public class DatabaseCRUD {
             try {
                 db.beginTransaction();  // Start transaction
                 // Check if fingerprint already exists in the database by its UUID
-                if(!doesFingerprintExist(db, fingerprint.getId().toString())) {
+                if(fingerprint.getId() != null && !doesFingerprintExist(db, fingerprint.getId().toString())) {
                     boolean error = false;  // Check if there was some error
 
                     long locationId = saveLocationEntry(db, fingerprint.getLocationEntry());    // Save location and get its id
@@ -476,8 +476,8 @@ public class DatabaseCRUD {
 
     public List<WirelessEntry> getWirelessByFingerprintId(SQLiteDatabase db, int fingerprintId) {
         String[] columns = {WirelessEntry.DB_ID, WirelessEntry.DB_FINGERPRINT_DB_ID, WirelessEntry.DB_SSID, WirelessEntry.DB_BSSID, WirelessEntry.DB_DISTANCE,
-                WirelessEntry.DB_RSSI, WirelessEntry.DB_FREQUENCY, WirelessEntry.DB_CHANNEL, WirelessEntry.DB_DISTANCE,
-                WirelessEntry.DB_TIMESTAMP, WirelessEntry.DB_SCAN_TIME, WirelessEntry.DB_SCAN_DIFFERENCE};
+                WirelessEntry.DB_RSSI, WirelessEntry.DB_FREQUENCY, WirelessEntry.DB_CHANNEL, WirelessEntry.DB_TIMESTAMP,
+                WirelessEntry.DB_SCAN_TIME, WirelessEntry.DB_SCAN_DIFFERENCE};
         String selection = WirelessEntry.DB_FINGERPRINT_DB_ID + " = ?";
         String[] selectionArgs = new String[] {String.valueOf( fingerprintId )};
 
@@ -494,7 +494,7 @@ public class DatabaseCRUD {
                 wirelessEntry.setDistance(cursor.getFloat(cursor.getColumnIndex(WirelessEntry.DB_DISTANCE)));
                 wirelessEntry.setRssi(cursor.getInt(cursor.getColumnIndex(WirelessEntry.DB_RSSI)));
                 wirelessEntry.setFrequency(cursor.getInt(cursor.getColumnIndex(WirelessEntry.DB_FREQUENCY)));
-                wirelessEntry.setDistance(cursor.getFloat(cursor.getColumnIndex(WirelessEntry.DB_DISTANCE)));
+                wirelessEntry.setChannel(cursor.getInt(cursor.getColumnIndex(WirelessEntry.DB_CHANNEL)));
                 wirelessEntry.setTimestamp(cursor.getLong(cursor.getColumnIndex(WirelessEntry.DB_TIMESTAMP)));
                 wirelessEntry.setScanTime(cursor.getLong(cursor.getColumnIndex(WirelessEntry.DB_SCAN_TIME)));
                 wirelessEntry.setScanDifference(cursor.getLong(cursor.getColumnIndex(WirelessEntry.DB_SCAN_DIFFERENCE)));
