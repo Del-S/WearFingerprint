@@ -15,14 +15,13 @@ import android.os.Build;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.util.SparseIntArray;
+import android.widget.Toast;
 
 import org.altbeacon.beacon.Beacon;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import cz.uhk.fim.kikm.wearnavigation.model.database.BeaconEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.Fingerprint;
@@ -30,7 +29,7 @@ import cz.uhk.fim.kikm.wearnavigation.model.database.SensorEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.WirelessEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseCRUD;
 
-// TODO: github issue #19
+// TODO: github issue #18
 // TODO: add cellular scanner
 public class FingerprintScanner extends AsyncTask<Void, Void, Fingerprint> implements BluetoothLEScannerInterface {
 
@@ -49,6 +48,15 @@ public class FingerprintScanner extends AsyncTask<Void, Void, Fingerprint> imple
 
     private SensorManager mSensorManager;
     private SensorScanner mSensorScanner;
+    private List<Sensor> sensors;
+
+    private final int STATE_NONE = 0;
+    private final int STATE_STARTTING = 1;
+    private final int STATE_RUNNING = 2;
+    private final int STATE_DONE = 3;
+    private int mState = STATE_NONE;
+
+    private int temDelay = 0;
 
     public FingerprintScanner(Context context, Fingerprint fingerprint) {
         mContext = context;
@@ -61,10 +69,9 @@ public class FingerprintScanner extends AsyncTask<Void, Void, Fingerprint> imple
         mWifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         mWifiScanner = new WifiScanner();
         context.registerReceiver(mWifiScanner, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-        mWifiManager.startScan();
 
         mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-        List<Sensor> sensors = new ArrayList<>();
+        sensors = new ArrayList<>();
         sensors.add(mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION));
         sensors.add(mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER));
         sensors.add(mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY));
@@ -72,19 +79,21 @@ public class FingerprintScanner extends AsyncTask<Void, Void, Fingerprint> imple
         sensors.add(mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD));
         sensors.add(mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR));
         mSensorScanner = new SensorScanner(sensors);
-        for (Sensor sensor : sensors) {
-            mSensorManager.registerListener(mSensorScanner, sensor, SensorManager.SENSOR_DELAY_NORMAL);
-        }
+    }
+
+    @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
+        mState = STATE_STARTTING;
+        publishProgress();
     }
 
     @Override
     protected Fingerprint doInBackground(Void... voids) {
-        Log.d("SCANNER", "Executing scan");
         // Checking if ble scanner service was bound or not (3 tries)
         int connectionTry = 3;
         while(!mServiceBound && connectionTry > 0) {
             try {
-                Log.d("SCANNER", "waiting for LE connection");
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -97,32 +106,60 @@ public class FingerprintScanner extends AsyncTask<Void, Void, Fingerprint> imple
             return null;
         }
 
+        // Start scanning
+        mState = STATE_RUNNING;
+        mWifiManager.startScan();
+        for (Sensor sensor : sensors) {
+            mSensorManager.registerListener(mSensorScanner, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+
         // Until the scan time is up the thread will be put to sleep
         while (System.currentTimeMillis() < mStartTime + TIME) {
             if (!isCancelled()) {
                 try {
-                    Log.d("SCANNER", "Scanning");
+                    publishProgress();
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    Log.e("FingerprintScanner", "Cannot run sleep() in interrupted thread", e);
+                    return null;
                 }
             } else {
                 mBluetoothLEScanner.cancelScan();
                 return null;
             }
-            //publishProgress();
         }
-
-        Log.d("SCANNER", "Scan finished");
 
         // Return calculated fingerprint
         return mFingerprint;
     }
 
     @Override
+    protected void onProgressUpdate(Void... values) {
+        if(mState == STATE_STARTTING) {
+            Toast.makeText(mContext, "Starting scanner", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        int beaconCount = mFingerprint.getBeaconEntries().size();
+        int wirelessCount = mFingerprint.getWirelessEntries().size();
+        int cellularCount = mFingerprint.getCellularEntries().size();
+        int sensorCOunt = mFingerprint.getSensorEntries().size();
+
+        if(mState == STATE_RUNNING && temDelay <= 0) {
+            Toast.makeText(mContext, "Scanning... Found " + beaconCount + ", " + wirelessCount + ", " + cellularCount + ", " + sensorCOunt + ", " +  "(b,w,c,s).", Toast.LENGTH_SHORT).show();
+            temDelay = 6;
+        }
+        temDelay--;
+
+        if(mState == STATE_DONE) {
+            Toast.makeText(mContext, "Scan done. Found " + beaconCount + ", " + wirelessCount + ", " + cellularCount + ", " + sensorCOunt + ", " +  "(b,w,c,s).", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
     protected void onPostExecute(Fingerprint fingerprint) {
         if(fingerprint != null) {
-            //mDatabase.saveFingerprint(fingerprint, null);
+            mDatabase.saveFingerprint(fingerprint, null);
 
             Log.d("Scanner", "Beacon count: " + fingerprint.getBeaconEntries().size());
             Log.d("Scanner", "Wireless count: " + fingerprint.getWirelessEntries().size());
@@ -134,6 +171,9 @@ public class FingerprintScanner extends AsyncTask<Void, Void, Fingerprint> imple
         mContext.unregisterReceiver(mWifiScanner);
         mSensorManager.unregisterListener(mSensorScanner);
         mBluetoothLEScanner.handleDestroy();
+
+        mState = STATE_DONE;
+        publishProgress();
     }
 
     @Override

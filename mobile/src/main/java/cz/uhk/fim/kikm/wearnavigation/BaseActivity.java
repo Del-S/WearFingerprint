@@ -2,6 +2,7 @@ package cz.uhk.fim.kikm.wearnavigation;
 
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.design.internal.BottomNavigationItemView;
@@ -37,6 +38,10 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
 
         // Remove title from the app
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        // TODO: screen rotation is disabled because of the scanner (test after is is an Service)
+        // Disable landscape mode for now
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         // Sets view based on child activity
         setContentView(getContentViewId());
