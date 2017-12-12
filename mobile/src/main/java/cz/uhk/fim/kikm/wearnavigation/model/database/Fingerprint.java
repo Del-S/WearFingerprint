@@ -245,6 +245,9 @@ public class Fingerprint {
     }
 
     public List<BeaconEntry> getBeaconEntries() {
+        if(beaconEntries == null) {
+            beaconEntries = new ArrayList<>();
+        }
         return beaconEntries;
     }
 
@@ -253,6 +256,9 @@ public class Fingerprint {
     }
 
     public List<WirelessEntry> getWirelessEntries() {
+        if(wirelessEntries == null) {
+            wirelessEntries = new ArrayList<>();
+        }
         return wirelessEntries;
     }
 
@@ -261,6 +267,9 @@ public class Fingerprint {
     }
 
     public List<CellularEntry> getCellularEntries() {
+        if(cellularEntries == null) {
+            cellularEntries = new ArrayList<>();
+        }
         return cellularEntries;
     }
 
@@ -269,6 +278,9 @@ public class Fingerprint {
     }
 
     public List<SensorEntry> getSensorEntries() {
+        if(sensorEntries == null) {
+            sensorEntries = new ArrayList<>();
+        }
         return sensorEntries;
     }
 
