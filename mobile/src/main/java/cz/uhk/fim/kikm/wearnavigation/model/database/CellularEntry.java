@@ -1,5 +1,17 @@
 package cz.uhk.fim.kikm.wearnavigation.model.database;
 
+import android.database.Cursor;
+import android.os.Build;
+import android.telephony.CellIdentityGsm;
+import android.telephony.CellIdentityLte;
+import android.telephony.CellIdentityWcdma;
+import android.telephony.CellInfo;
+import android.telephony.CellInfoGsm;
+import android.telephony.CellInfoLte;
+import android.telephony.CellInfoWcdma;
+import android.telephony.NeighboringCellInfo;
+import android.telephony.gsm.GsmCellLocation;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.Expose;
@@ -46,6 +58,11 @@ public class CellularEntry {
     // Default constructor used for Gson
     public CellularEntry() {}
 
+    /**
+     * Create this object from a map.
+     *
+     * @param object Map of variables
+     */
     public CellularEntry(Object object) {
         Map<String, Object> cellularRecord = (HashMap<String, Object>) object;
         this.timestamp = Long.valueOf(cellularRecord.get("timestamp").toString());
@@ -55,6 +72,88 @@ public class CellularEntry {
         this.distance = Float.valueOf(cellularRecord.get("distance").toString());
         this.scanTime = Long.valueOf(cellularRecord.get("time").toString());
         this.scanDifference = Long.valueOf(cellularRecord.get("difference").toString());
+    }
+
+    /**
+     * Create instance of CellularEntry from NeighboringCellInfo.
+     *
+     * @param neighboringCellInfo to get data from.
+     */
+    public CellularEntry(NeighboringCellInfo neighboringCellInfo) {
+        this.cid = neighboringCellInfo.getCid();
+        this.lac = neighboringCellInfo.getLac();
+        this.rssi = neighboringCellInfo.getRssi();
+    }
+
+    /**
+     * Create instance of CellularEntry from GsmCellLocation.
+     *
+     * @param gsmCellLocation to get data from.
+     */
+    public CellularEntry(GsmCellLocation gsmCellLocation, int rssi) {
+        this.cid = gsmCellLocation.getCid();
+        this.lac = gsmCellLocation.getLac();
+        this.rssi = rssi;
+    }
+
+    /**
+     * Create instance of CellularEntry from CellInfoGsm.
+     *
+     * @param cellInfoGsm to get data from.
+     */
+    private CellularEntry(CellInfoGsm cellInfoGsm) {
+        CellIdentityGsm cellIdentityGsm = cellInfoGsm.getCellIdentity();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            this.bsic = cellIdentityGsm.getBsic();
+        }
+        this.cid = cellIdentityGsm.getCid();
+        this.lac = cellIdentityGsm.getLac();
+        this.rssi = cellInfoGsm.getCellSignalStrength().getDbm();
+    }
+
+    /**
+     * Create instance of CellularEntry from CellInfoLte.
+     *
+     * @param cellInfoLte to get data from.
+     */
+    private CellularEntry(CellInfoLte cellInfoLte) {
+        CellIdentityLte cellIdentityLte = cellInfoLte.getCellIdentity();
+
+        this.cid = cellIdentityLte.getCi();
+        this.lac = cellIdentityLte.getTac();
+        this.rssi = cellInfoLte.getCellSignalStrength().getDbm();
+    }
+
+    /**
+     * Create instance of CellularEntry from CellInfoWcdma.
+     *
+     * @param cellInfoWcdma to get data from.
+     */
+    private CellularEntry(CellInfoWcdma cellInfoWcdma) {
+        CellIdentityWcdma cellIdentityWcdma = cellInfoWcdma.getCellIdentity();
+
+        this.cid = cellIdentityWcdma.getCid();
+        this.lac = cellIdentityWcdma.getLac();
+        this.rssi = cellInfoWcdma.getCellSignalStrength().getDbm();
+    }
+
+    /**
+     * Load instance based on CellInfo. This can be instance of different classes so
+     * we create instance of CellularEntry based on specific CellInfo instance.
+     *
+     * @param cellInfo to identify and get data from
+     * @return instance of CellularEntry
+     */
+    public static CellularEntry createCellularEntry(CellInfo cellInfo) {
+        if (cellInfo instanceof CellInfoGsm) {
+            return new CellularEntry( (CellInfoGsm) cellInfo );
+        } else if (cellInfo instanceof CellInfoLte) {
+            return new CellularEntry( (CellInfoLte) cellInfo );
+        } else if (cellInfo instanceof CellInfoWcdma) {
+            return new CellularEntry( (CellInfoWcdma) cellInfo );
+        }
+        return new CellularEntry();
     }
 
     public int getId() {

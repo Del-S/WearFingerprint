@@ -1,11 +1,17 @@
 package cz.uhk.fim.kikm.wearnavigation.activities.scan;
 
+import android.Manifest;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -56,19 +62,25 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
     private JobInfo.Builder jobBuilder;
     private Gson gson = new Gson();
 
+    // Location manager to get location from the network
+    private LocationManager locationManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        jobScheduler = (JobScheduler) getSystemService( Context.JOB_SCHEDULER_SERVICE );
-        jobBuilder = new JobInfo.Builder( JOB_ID, new ComponentName( getPackageName(),
-                        FingerprintScanner.class.getName() ) );
+        jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        jobBuilder = new JobInfo.Builder(JOB_ID, new ComponentName(getPackageName(),
+                FingerprintScanner.class.getName()));
         jobBuilder.setMinimumLatency(0);
         jobBuilder.setOverrideDeadline(200);
         jobBuilder.setPersisted(false);
 
         loadMap();              // Find and load map
         loadFingerprints();     // Loads fingerprint data
+
+        // Load location manager
+        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
     }
 
     /**
@@ -87,9 +99,9 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
         mMap.setScaleLimits( 0, 2 );            // Let the image explode (set scale limits)
         mMap.setScale(0.50F);                   // Set initial scale to have the map zoomed in at first
 
-        mMap.setMarkerAnchorPoints( -0.5f, -0.5f );      // Lets center all markers both horizontally and vertically
         mMap.setMarkerTapListener(mMarkerTapListener);                  // Sets listener on tap events for the markers
         mMap.defineBounds(0,0, MAP_WIDTH, MAP_HEIGHT);         // Define bound to be able to convert Absolute X to Relative X for marker clicks
+        mMap.setMarkerAnchorPoints( -0.5f, -0.5f );     // Lets center all markers both horizontally and vertically
 
         // Make the whole map clickable to be able to add new pins (fingerprints)
         HotSpot hotSpot = new HotSpot();
@@ -97,7 +109,7 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
         mMap.addHotSpot(hotSpot);
         mMap.setHotSpotTapListener(mHotspotTapListener);
 
-        frameTo( 0.5, 0.5 );                       // Frame the map to the center of the view (does not work in onCreate())
+        frameTo( MAP_WIDTH / 2, MAP_HEIGHT / 2 );  // Frame the map to the center of the view (does not work in onCreate())
 
         mMap.setShouldRenderWhilePanning( true );       // Render while panning
         mMap.setShouldLoopScale( false );               // Disallow going back to minimum scale while double-taping at maximum scale (for demo purpose)
@@ -161,8 +173,8 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
         View calloutView = inflater.inflate(R.layout.actions_marker, null);
 
         // Parse fingerprint data
-        final int fpX = position[0];
-        final int fpY = position[1];
+        final int posX = position[0];
+        final int posY = position[1];
 
         // Button to show more information about selected fingerprint.
         ImageButton buttonInfo = calloutView.findViewById(R.id.am_show_info);
@@ -178,23 +190,8 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
         buttonCreate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Create fingerprint for scanning
-                Fingerprint fingerprint = new Fingerprint();
-                // TODO: have a setter for building and floor
-                fingerprint.setLocationEntry(new LocationEntry("J3NP"));
-                fingerprint.setX(fpX);
-                fingerprint.setY(fpY);
-
-                // Create instance of scanner and start it with execute
-                String jsonFinger = gson.toJson(fingerprint);
-                PersistableBundle bundle = new PersistableBundle();
-                bundle.putString(FingerprintScanner.PARAM_FINGERPRINT, jsonFinger);
-
-                jobBuilder.setExtras(bundle);
-                jobScheduler.schedule(jobBuilder.build());
-
-                // Remove single does not work :(
-                mMap.getCalloutLayout().removeAllViews();
+                runFingerprintScanner(posX, posY);          // Triggers a fingerprint scanner job
+                mMap.getCalloutLayout().removeAllViews();   // Remove single does not work :(
             }
         });
 
@@ -258,23 +255,8 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
         buttonCreate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Create fingerprint for scanning
-                Fingerprint fingerprint = new Fingerprint();
-                // TODO: have a setter for building and floor
-                fingerprint.setLocationEntry(new LocationEntry("J3NP"));
-                fingerprint.setX(posX);
-                fingerprint.setY(posY);
-
-                // Create instance of scanner and start it with execute
-                String jsonFinger = gson.toJson(fingerprint);
-                PersistableBundle bundle = new PersistableBundle();
-                bundle.putString(FingerprintScanner.PARAM_FINGERPRINT, jsonFinger);
-
-                jobBuilder.setExtras(bundle);
-                jobScheduler.schedule(jobBuilder.build());
-
-                // Remove single does not work :(
-                mMap.getCalloutLayout().removeAllViews();
+                runFingerprintScanner(posX, posY);          // Triggers a fingerprint scanner job
+                mMap.getCalloutLayout().removeAllViews();   // Remove single does not work :(
             }
         });
 
@@ -289,6 +271,35 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
         });
 
         return calloutView;
+    }
+
+    private void runFingerprintScanner(int posX, int posY) {
+        // Create fingerprint for scanning
+        Fingerprint fingerprint = new Fingerprint();
+        // TODO: have a setter for building and floor
+        fingerprint.setLocationEntry(new LocationEntry("J3NP"));
+        fingerprint.setX(posX);
+        fingerprint.setY(posY);
+
+        // Getting last knows location from Network
+        double[] lastKnownLocation = {0, 0};
+        if (locationManager != null &&
+                ActivityCompat.checkSelfPermission(ScanActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(ScanActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            lastKnownLocation[0] = location.getLatitude();
+            lastKnownLocation[1] = location.getLongitude();
+        }
+
+        // Create instance of scanner and start it with execute
+        String jsonFinger = gson.toJson(fingerprint);
+        PersistableBundle bundle = new PersistableBundle();
+        bundle.putString(FingerprintScanner.PARAM_FINGERPRINT, jsonFinger);
+        bundle.putDoubleArray(FingerprintScanner.PARAM_LOCATION, lastKnownLocation);
+
+        // Run the job
+        jobBuilder.setExtras(bundle);                   // Set extra bundle data
+        jobScheduler.schedule(jobBuilder.build());      // Schedule job to run
     }
 
     /**

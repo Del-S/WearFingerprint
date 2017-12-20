@@ -1,5 +1,7 @@
 package cz.uhk.fim.kikm.wearnavigation;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -8,6 +10,7 @@ import android.support.annotation.NonNull;
 import android.support.design.internal.BottomNavigationItemView;
 import android.support.design.internal.BottomNavigationMenuView;
 import android.support.design.widget.BottomNavigationView;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,6 +24,7 @@ import java.lang.reflect.Field;
 import cz.uhk.fim.kikm.wearnavigation.activities.devices.ShowDevicesActivity;
 import cz.uhk.fim.kikm.wearnavigation.activities.scan.ScanActivity;
 import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
+import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
 import cz.uhk.fim.kikm.wearnavigation.utils.SimpleDialogHelper;
 
 public abstract class BaseActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener {
@@ -29,6 +33,8 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
     protected BottomNavigationView navigationView;
     // Bluetooth check request code
     private final int REQUEST_ENABLE_BT = 1000;
+    // Request access to coarse location
+    private final int REQUEST_ACCESS_LOCATION = 1001;
     // App wide configuration class
     protected Configuration mConfiguration;
 
@@ -61,6 +67,8 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
 
         // Bluetooth check
         checkBluetooth();
+        // Cellular check
+        checkLocationPermissions();
     }
 
     @Override
@@ -153,6 +161,7 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
      *
      * @param view Bottom navigation to disable shifting
      */
+    @SuppressLint("RestrictedApi")
     public static void disableShiftMode(BottomNavigationView view) {
         BottomNavigationMenuView menuView = (BottomNavigationMenuView) view.getChildAt(0);
         try {
@@ -214,6 +223,18 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
             } else {
                 checkBle();
             }
+        }
+    }
+
+    /**
+     * Asks for permission to access Coarse and Fine location
+     */
+    protected void checkLocationPermissions() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_ACCESS_LOCATION);
         }
     }
 
