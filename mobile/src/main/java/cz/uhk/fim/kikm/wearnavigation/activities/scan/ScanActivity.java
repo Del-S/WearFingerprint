@@ -39,28 +39,24 @@ import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
 
 /**
  * Displays map with fingerprints and enables different actions with them.
- * - See information about selected fingerprint
+ * - See information about selected fingerprints (based on location)
  * - Create a new fingerprint
- * - Delete fingerprint
  */
 public class ScanActivity extends BaseActivity implements DatabaseDataInterface<List<Fingerprint>> {
 
-    // Map view
-    private TileView mMap;
-    // List of the fingerprints loaded and kept for display here
-    private List<Fingerprint> mFingerprints;
-    // Disables HotSpot click if marker was clicked
-    private boolean mMarkerClicked = false;
-
-    public static final int JOB_ID = 1;
+    // Map stuff
+    private TileView mMap;                      // Map view
+    private List<Fingerprint> mFingerprints;    // List of the fingerprints loaded and kept for display here
+    private boolean mMarkerClicked = false;     // Disables HotSpot click if marker was clicked
 
     // Sizes of the map
     private final int MAP_WIDTH = 3000;
     private final int MAP_HEIGHT = 3000;
 
-    private JobScheduler jobScheduler;
-    private JobInfo.Builder jobBuilder;
-    private Gson gson = new Gson();
+    private Gson gson = new Gson();             // Class to json (and reverse) parser
+    private JobScheduler jobScheduler;          // JobScheduler used to run FingerprintScanner
+    private JobInfo.Builder jobBuilder;         // Specific job to run via Scheduler
+    public static final int JOB_ID = 1;         // Scanner Job id
 
     // Location manager to get location from the network
     private LocationManager locationManager;
@@ -69,15 +65,9 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        jobBuilder = new JobInfo.Builder(JOB_ID, new ComponentName(getPackageName(),
-                FingerprintScanner.class.getName()));
-        jobBuilder.setMinimumLatency(0);
-        jobBuilder.setOverrideDeadline(200);
-        jobBuilder.setPersisted(false);
-
         loadMap();              // Find and load map
         loadFingerprints();     // Loads fingerprint data
+        createJobForScanner();  // Create job to scan for new fingerprint
 
         // Load location manager
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
@@ -116,7 +106,7 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
     }
 
     /**
-     * Initiates loading of the fingerprints
+     * Initiates loading of the fingerprints.
      */
     private void loadFingerprints() {
         // Connects to the database via AsyncTask and downloads basic fingerprint information
@@ -125,7 +115,7 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
     }
 
     /**
-     * Displays all the fingerprints on the map
+     * Displays all the fingerprints on the map.
      */
     private void displayFingerprints() {
         for (Fingerprint fingerprint : mFingerprints) {
@@ -142,6 +132,20 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
             // Adds marker to the map
             mMap.addMarker(iw, fingerprint.getX(), fingerprint.getY(), null, null);
         }
+    }
+
+    /**
+     * Creates FingerprintScanner job to run in the future.
+     */
+    private void createJobForScanner() {
+        jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);  // Initiate JobScheduler
+
+        // Building job to run
+        jobBuilder = new JobInfo.Builder(JOB_ID,
+                new ComponentName(getPackageName(), FingerprintScanner.class.getName()));
+        jobBuilder.setMinimumLatency(0);                // Specify that this job should be delayed by the provided amount of time.
+        jobBuilder.setOverrideDeadline(200);            // Set deadline which is the maximum scheduling latency.
+        jobBuilder.setPersisted(false);                 // Set whether or not to persist this job across device reboots.
     }
 
     /**
@@ -273,6 +277,13 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
         return calloutView;
     }
 
+    /**
+     * Builds and runs the FingerprintScanner job.
+     * Creates Fingerprint based on position in the map and sends it into the scanner.
+     *
+     * @param posX in the map
+     * @param posY in the map
+     */
     private void runFingerprintScanner(int posX, int posY) {
         // Create fingerprint for scanning
         Fingerprint fingerprint = new Fingerprint();
@@ -291,11 +302,15 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
             lastKnownLocation[1] = location.getLongitude();
         }
 
+        // TODO: Have a parameter for that
+        long scanLength = 60000;    // Length of the scan
+
         // Create instance of scanner and start it with execute
         String jsonFinger = gson.toJson(fingerprint);
         PersistableBundle bundle = new PersistableBundle();
         bundle.putString(FingerprintScanner.PARAM_FINGERPRINT, jsonFinger);
         bundle.putDoubleArray(FingerprintScanner.PARAM_LOCATION, lastKnownLocation);
+        bundle.putLong(FingerprintScanner.PARAM_SCAN_LENGTH, scanLength);
 
         // Run the job
         jobBuilder.setExtras(bundle);                   // Set extra bundle data
@@ -317,7 +332,6 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
 
     @Override
     protected void updateUI() {
-
     }
 
     @Override
