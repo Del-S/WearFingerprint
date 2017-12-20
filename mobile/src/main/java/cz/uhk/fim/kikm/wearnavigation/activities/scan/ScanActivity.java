@@ -1,6 +1,11 @@
 package cz.uhk.fim.kikm.wearnavigation.activities.scan;
 
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
+import android.content.Context;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +15,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.qozix.tileview.TileView;
 import com.qozix.tileview.geom.CoordinateTranslater;
 import com.qozix.tileview.hotspots.HotSpot;
@@ -40,13 +46,26 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
     // Disables HotSpot click if marker was clicked
     private boolean mMarkerClicked = false;
 
+    public static final int JOB_ID = 1;
+
     // Sizes of the map
     private final int MAP_WIDTH = 3000;
     private final int MAP_HEIGHT = 3000;
 
+    private JobScheduler jobScheduler;
+    private JobInfo.Builder jobBuilder;
+    private Gson gson = new Gson();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        jobScheduler = (JobScheduler) getSystemService( Context.JOB_SCHEDULER_SERVICE );
+        jobBuilder = new JobInfo.Builder( JOB_ID, new ComponentName( getPackageName(),
+                        FingerprintScanner.class.getName() ) );
+        jobBuilder.setMinimumLatency(0);
+        jobBuilder.setOverrideDeadline(200);
+        jobBuilder.setPersisted(false);
 
         loadMap();              // Find and load map
         loadFingerprints();     // Loads fingerprint data
@@ -167,8 +186,12 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
                 fingerprint.setY(fpY);
 
                 // Create instance of scanner and start it with execute
-                FingerprintScanner scanner = new FingerprintScanner(ScanActivity.this, fingerprint);
-                scanner.execute();
+                String jsonFinger = gson.toJson(fingerprint);
+                PersistableBundle bundle = new PersistableBundle();
+                bundle.putString(FingerprintScanner.PARAM_FINGERPRINT, jsonFinger);
+
+                jobBuilder.setExtras(bundle);
+                jobScheduler.schedule(jobBuilder.build());
 
                 // Remove single does not work :(
                 mMap.getCalloutLayout().removeAllViews();
@@ -243,8 +266,12 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
                 fingerprint.setY(posY);
 
                 // Create instance of scanner and start it with execute
-                FingerprintScanner scanner = new FingerprintScanner(ScanActivity.this, fingerprint);
-                scanner.execute();
+                String jsonFinger = gson.toJson(fingerprint);
+                PersistableBundle bundle = new PersistableBundle();
+                bundle.putString(FingerprintScanner.PARAM_FINGERPRINT, jsonFinger);
+
+                jobBuilder.setExtras(bundle);
+                jobScheduler.schedule(jobBuilder.build());
 
                 // Remove single does not work :(
                 mMap.getCalloutLayout().removeAllViews();

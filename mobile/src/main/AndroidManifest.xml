@@ -30,12 +30,15 @@
             </intent-filter>
         </activity>
         <activity android:name=".activities.devices.ShowDevicesActivity" />
+        <activity android:name=".activities.scan.ScanActivity" />
 
         <service
-            android:name=".model.tasks.BluetoothConnection.BluetoothConnectionService"
+            android:name=".model.tasks.bluetoothConnection.BluetoothConnectionService"
             android:exported="false" />
 
-        <activity android:name=".activities.scan.ScanActivity"></activity>
+        <service
+            android:name=".model.tasks.FingerprintScanner"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 
 </manifest>

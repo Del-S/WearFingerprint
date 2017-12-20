@@ -10,26 +10,27 @@ import android.util.Log;
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.MonitorNotifier;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 
 import java.util.Collection;
 
-public class BluetoothLEScanner implements BeaconConsumer {
+public class BLEScanner implements BeaconConsumer {
     // Tag used for debug and error
-    private static final String TAG = "BluetoothLEScanner";
+    private static final String TAG = "BLEScanner";
     // Load beacon manager for application
     private BeaconManager beaconManager;
     // Scan specific region for beacons
     private Region region = new Region("UHK", null, null, null);
     // Interface to communicate with starting class
-    private BluetoothLEScannerInterface mInterface;
+    private BLEScannerInterface mInterface;
     // Hold application context variable
     private Context mApplicationContext;
     // Is searching check
     private boolean mIsScanning = false;
 
-    public BluetoothLEScanner(Context applicationContext, BluetoothLEScannerInterface bleInterface) {
+    public BLEScanner(Context applicationContext, BLEScannerInterface bleInterface) {
         mApplicationContext = applicationContext;
         mInterface = bleInterface;
 
@@ -37,23 +38,19 @@ public class BluetoothLEScanner implements BeaconConsumer {
         beaconManager = BeaconManager.getInstanceForApplication(mApplicationContext);
 
         // Bind consumer to beacon manager
-        beaconManager.bind(this);
+        if(!beaconManager.isBound(this)) {
+            beaconManager.bind(this);
+        }
     }
 
     @Override
     public void onBeaconServiceConnect() {
-        //beaconManager.setForegroundBetweenScanPeriod(100L);
-
         // Add range notifier
         beaconManager.addRangeNotifier(new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
                 if (beacons.size() > 0) {
-                    if(beacons.size() == 1) {
-                        mInterface.foundBeacon(beacons.iterator().next());
-                    } else {
-                        mInterface.foundMultipleBeacons(beacons);
-                    }
+                    mInterface.foundBeacons(beacons);
                 }
             }
 
@@ -157,7 +154,7 @@ public class BluetoothLEScanner implements BeaconConsumer {
     }
 
     public void setScanPeriods(long foregroundPeriod, long backgroundPeriod) {
-        beaconManager.setForegroundBetweenScanPeriod(foregroundPeriod);
+        beaconManager.setForegroundScanPeriod(foregroundPeriod);
         beaconManager.setBackgroundScanPeriod(backgroundPeriod);
     }
 }

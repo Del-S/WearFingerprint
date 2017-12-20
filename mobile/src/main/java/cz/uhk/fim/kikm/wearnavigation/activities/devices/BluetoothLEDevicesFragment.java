@@ -3,6 +3,7 @@ package cz.uhk.fim.kikm.wearnavigation.activities.devices;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -20,17 +21,17 @@ import java.util.Collection;
 
 import cz.uhk.fim.kikm.wearnavigation.R;
 import cz.uhk.fim.kikm.wearnavigation.model.adapters.BleBeaconsAdapter;
-import cz.uhk.fim.kikm.wearnavigation.model.tasks.BluetoothLEScanner;
-import cz.uhk.fim.kikm.wearnavigation.model.tasks.BluetoothLEScannerInterface;
+import cz.uhk.fim.kikm.wearnavigation.model.tasks.BLEScanner;
+import cz.uhk.fim.kikm.wearnavigation.model.tasks.BLEScannerInterface;
 import cz.uhk.fim.kikm.wearnavigation.utils.SimpleDividerItemDecoration;
 
-public class BluetoothLEDevicesFragment extends Fragment implements BluetoothLEScannerInterface {
+public class BluetoothLEDevicesFragment extends Fragment implements BLEScannerInterface {
 
     // Error and debug tag
     private final String TAG = "BleDevicesFragment";
 
     // Bluetooth scanner class that handles connection to AltBeacon scanning
-    private BluetoothLEScanner mBluetoothLEScanner;
+    private BLEScanner mBLEScanner;
     // TextView informing about discovering devices
     private TextView mScanForDevices;
     // Handler that cancels search
@@ -53,19 +54,26 @@ public class BluetoothLEDevicesFragment extends Fragment implements BluetoothLES
         super.onCreate(savedInstanceState);
 
         // Initiate scanner
-        mBluetoothLEScanner = new BluetoothLEScanner(getActivity().getApplicationContext(), this);
+        FragmentActivity activity = getActivity();
+        if(activity != null) {
+            mBLEScanner = new BLEScanner(activity.getApplicationContext(), this);
+        }
     }
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_devices_bluetooth_low_energy, container, false);
 
         // Find view for scanning devices
         mScanForDevices = rootView.findViewById(R.id.fdble_title_search);
 
         // Divider for row items
-        Drawable divider = ContextCompat.getDrawable(getActivity(), R.drawable.row_with_divider);
+        Drawable divider = null;
+        FragmentActivity activity = getActivity();
+        if(activity != null) {
+            divider = ContextCompat.getDrawable(activity, R.drawable.row_with_divider);
+        }
 
         // Load adapter for the Bluetooth LE devices
         mBleBeaconsAdapter = new BleBeaconsAdapter(getActivity());
@@ -74,7 +82,9 @@ public class BluetoothLEDevicesFragment extends Fragment implements BluetoothLES
         RecyclerView devicesView = rootView.findViewById(R.id.fdble_list);
         devicesView.setLayoutManager(new LinearLayoutManager(getActivity()));
         devicesView.setAdapter(mBleBeaconsAdapter);
-        devicesView.addItemDecoration(new SimpleDividerItemDecoration(divider));
+        if(divider != null) {
+            devicesView.addItemDecoration(new SimpleDividerItemDecoration(divider));
+        }
 
         return rootView;
     }
@@ -90,7 +100,7 @@ public class BluetoothLEDevicesFragment extends Fragment implements BluetoothLES
         // Cancel LE scan
         cancelScanning();
         // Send LE scanner the information that Fragment is destroyed
-        mBluetoothLEScanner.handleDestroy();
+        mBLEScanner.handleDestroy();
     }
 
     /**
@@ -103,7 +113,7 @@ public class BluetoothLEDevicesFragment extends Fragment implements BluetoothLES
         // Cancel LE scan
         cancelScanning();
         // Send LE scanner the information that Fragment is paused
-        mBluetoothLEScanner.handlePause();
+        mBLEScanner.handlePause();
     }
 
     /**
@@ -114,7 +124,7 @@ public class BluetoothLEDevicesFragment extends Fragment implements BluetoothLES
         super.onResume();
 
         // Inform scanner that Fragment was resumed
-        mBluetoothLEScanner.handleResume();
+        mBLEScanner.handleResume();
     }
 
     /**
@@ -128,32 +138,12 @@ public class BluetoothLEDevicesFragment extends Fragment implements BluetoothLES
     }
 
     /**
-     * Save found Beacons into the Adapter for display
-     *
-     * @param beacon to save and display
-     */
-    @Override
-    public void foundBeacon(final Beacon beacon) {
-        FragmentActivity activity = getActivity();
-        if(activity != null) {
-            // This function called from another Thread so we need to run it in main thread
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mBleBeaconsAdapter.addBeacon(null);
-                    mBleBeaconsAdapter.addBeacon(beacon);
-                }
-            });
-        }
-    }
-
-    /**
      * Save multiple found Beacons into the Adapter for display
      *
      * @param beacons to save and display
      */
     @Override
-    public void foundMultipleBeacons(final Collection<Beacon> beacons) {
+    public void foundBeacons(final Collection<Beacon> beacons) {
         FragmentActivity activity = getActivity();
         if(activity != null) {
             // This function called from another Thread so we need to run it in main thread
@@ -170,12 +160,12 @@ public class BluetoothLEDevicesFragment extends Fragment implements BluetoothLES
      * Starts classic bluetooth discovery for limited amount of time
      */
     private void startScanning() {
-        if( !mBluetoothLEScanner.isScanning() ) {
+        if( !mBLEScanner.isScanning() ) {
             // Clear adapter on new search
             mBleBeaconsAdapter.clearBeaconList();
 
             // Starting bluetooth discovery
-            mBluetoothLEScanner.startScan(60000);
+            mBLEScanner.startScan(60000);
         }
 
         // Change discovering view
@@ -197,8 +187,8 @@ public class BluetoothLEDevicesFragment extends Fragment implements BluetoothLES
      */
     private void cancelScanning() {
         // Call cancel scanning on the scanner
-        if( mBluetoothLEScanner.isScanning() ) {
-            mBluetoothLEScanner.cancelScan();
+        if( mBLEScanner.isScanning() ) {
+            mBLEScanner.cancelScan();
         }
 
         // Disable canceling of current scanning (only used if it was canceled prematurely)

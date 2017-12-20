@@ -1,13 +1,16 @@
 package cz.uhk.fim.kikm.wearnavigation;
 
 import android.app.Application;
+import android.app.job.JobScheduler;
 import android.content.Context;
+import android.util.Log;
 
 import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 
-import cz.uhk.fim.kikm.wearnavigation.model.tasks.BluetoothConnection.BluetoothConnectionService;
+import cz.uhk.fim.kikm.wearnavigation.activities.scan.ScanActivity;
+import cz.uhk.fim.kikm.wearnavigation.model.tasks.bluetoothConnection.BluetoothConnectionService;
 import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
 
 public class WearApplication extends Application {
@@ -37,6 +40,12 @@ public class WearApplication extends Application {
 
         // This reduces bluetooth power usage by about 60% when application is not visible
         backgroundPowerSaver = new BackgroundPowerSaver(this);
+
+        JobScheduler jobScheduler = (JobScheduler) getSystemService( Context.JOB_SCHEDULER_SERVICE );
+        if(jobScheduler != null) {
+            Log.d("acasc", "Cancel job");
+            jobScheduler.cancel(ScanActivity.JOB_ID);
+        }
     }
 
     /**
