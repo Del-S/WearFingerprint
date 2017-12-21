@@ -3,7 +3,10 @@ package cz.uhk.fim.kikm.wearnavigation;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
@@ -16,6 +19,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
 import android.widget.Toast;
 
@@ -24,11 +28,15 @@ import java.lang.reflect.Field;
 import cz.uhk.fim.kikm.wearnavigation.activities.devices.ShowDevicesActivity;
 import cz.uhk.fim.kikm.wearnavigation.activities.scan.ScanActivity;
 import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
+import cz.uhk.fim.kikm.wearnavigation.model.database.Fingerprint;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
+import cz.uhk.fim.kikm.wearnavigation.utils.AnimationHelper;
 import cz.uhk.fim.kikm.wearnavigation.utils.SimpleDialogHelper;
 
 public abstract class BaseActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener {
 
+    // Log tag
+    private static final String TAG = "BaseActivity";
     // Global variable for Bottom navigation
     protected BottomNavigationView navigationView;
     // Bluetooth check request code
@@ -37,6 +45,8 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
     private final int REQUEST_ACCESS_LOCATION = 1001;
     // App wide configuration class
     protected Configuration mConfiguration;
+    // Scanner receiver instance
+    private ScannerProgressReceiver mReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,10 +54,6 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
 
         // Remove title from the app
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-
-        // TODO: screen rotation is disabled because of the scanner (test after is is an Service)
-        // Disable landscape mode for now
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         // Sets view based on child activity
         setContentView(getContentViewId());
@@ -79,10 +85,27 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        // Register scanner receiver to display state of the scan
+        IntentFilter filter = new IntentFilter(FingerprintScanner.ACTION_POST_PROGRESS);
+        mReceiver = new ScannerProgressReceiver();
+        this.registerReceiver(mReceiver, filter);
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
         // Disables transitions between activities (for bottom menu)
         overridePendingTransition(0, 0);
+        // Unregister scanner receiver
+        if(mReceiver != null) {
+            try {
+                this.unregisterReceiver(mReceiver);
+            } catch (RuntimeException e) {
+                Log.e(TAG, "Cannot unregister receiver.", e);
+            }
+        }
     }
 
     @Override
@@ -178,9 +201,9 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
                 item.setChecked(item.getItemData().isChecked());
             }
         } catch (NoSuchFieldException e) {
-            Log.e("BNVHelper", "Unable to get shift mode field", e);
+            Log.e(TAG, "Bottom menu: Unable to get shift mode field", e);
         } catch (IllegalAccessException e) {
-            Log.e("BNVHelper", "Unable to change value of shift mode", e);
+            Log.e(TAG, "Bottom menu: Unable to change value of shift mode", e);
         }
     }
 
@@ -249,6 +272,15 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
         }
     }
 
+    /**
+     * Check if Bluetooth was enabled.
+     * If it was then check Bluetooth LE.
+     * It it was not just toast message and kill the app.
+     *
+     * @param requestCode to check
+     * @param resultCode ok or canceled
+     * @param data intent data as parameters
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -264,6 +296,19 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
                 break;
         }
     }
+
+    public class ScannerProgressReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            String action = intent.getAction();
+            if(action != null && action.equals(FingerprintScanner.ACTION_POST_PROGRESS)) {
+                int state = intent.getIntExtra(FingerprintScanner.ACTION_STATE, 0);
+                AnimationHelper.displayScanStatus(BaseActivity.this, View.VISIBLE, 200);
+                // TODO: complete this
+            }
+        }
+    }
+
 
     /**
      * Update UI function that updates the screen

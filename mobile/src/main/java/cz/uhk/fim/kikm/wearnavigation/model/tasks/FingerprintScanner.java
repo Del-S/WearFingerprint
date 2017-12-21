@@ -46,6 +46,14 @@ import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseCRUD;
 // TODO: github issue #23
 public class FingerprintScanner extends JobService {
 
+    // Broadcast data Bundle keys
+    public static final String ACTION_POST_PROGRESS = "scanProgress";   // Broadcast intent information
+    public static final String ACTION_STATE = "state";                  // Broadcast current state
+    public static final String ACTION_DATA = "data";                    // Broadcast count data for every device
+    public static final String ACTION_TIME_LENGTH = "timeLength";       // Broadcast length of current scan
+    public static final String ACTION_TIME_CURRENT = "timeCurrent";     // Broadcast current time in scan
+
+    // Parameters send to this job as JobParameters
     public static final String PARAM_FINGERPRINT = "fingerprint";   // Bundle parameter name for fingerprint
     public static final String PARAM_LOCATION = "lastLocation";     // Bundle parameter name for last known location
     public static final String PARAM_SCAN_LENGTH = "mScanLength";   // Bundle parameter name for length of the scan
@@ -115,8 +123,6 @@ public class FingerprintScanner extends JobService {
         private final int STATE_RUNNING = 2;         // Scan is running
         private final int STATE_DONE = 3;            // Scan finished
         private int mState = STATE_NONE;             // Current state variable
-
-        private int temDelay = 0;
 
         ScannerTask(Fingerprint fingerprint, long scanLength, double[] location) {
             Context context = getApplicationContext();      // Load application context to bind listeners, get managers, etc.
@@ -209,31 +215,27 @@ public class FingerprintScanner extends JobService {
 
         @Override
         protected void onProgressUpdate(Void... values) {
-            Context context = getApplicationContext();
+            // Create broadcast intent
+            Intent intent = new Intent();
+            intent.setAction(ACTION_POST_PROGRESS);             // Set intent action to get in BroadcastReceiver
 
-            // If scan is starting we only display starting scan information
-            if (mState == STATE_STARTING) {
-                Toast.makeText(context, "Starting scanner", Toast.LENGTH_SHORT).show();
-                return;
-            }
+            long currentTime = System.currentTimeMillis() - mStartTime; // Calculate and set current time
+            intent.putExtra(ACTION_STATE, mState);              // Set current state to intent extra data
+            intent.putExtra(ACTION_TIME_LENGTH, mScanLength);   // Set scan length to extra
+            intent.putExtra(ACTION_TIME_CURRENT, currentTime);  // Set current time into extra
+
 
             // Load counts of devices found
-            int beaconCount = mFingerprint.getBeaconEntries().size();
-            int wirelessCount = mFingerprint.getWirelessEntries().size();
-            int cellularCount = mFingerprint.getCellularEntries().size();
-            int sensorCOunt = mFingerprint.getSensorEntries().size();
+            int beaconCount = mFingerprint.getBeaconEntries().size();       // Beacon count in fingerprint
+            int wirelessCount = mFingerprint.getWirelessEntries().size();   // Wireless count in fingerprint
+            int cellularCount = mFingerprint.getCellularEntries().size();   // Cellular count in fingerprint
+            int sensorCount = mFingerprint.getSensorEntries().size();       // Sensor count in fingerprint
+            // Make array of counts
+            int[] data = {beaconCount, wirelessCount, cellularCount, sensorCount};
+            intent.putExtra(ACTION_DATA, data);         // Set array into the intent extra
 
-            // Every 5 seconds there is a notification displayed
-            if (mState == STATE_RUNNING && temDelay <= 0) {
-                Toast.makeText(context, "Scanning... Found " + beaconCount + ", " + wirelessCount + ", " + cellularCount + ", " + sensorCOunt + ", " + "(b,w,c,s).", Toast.LENGTH_SHORT).show();
-                temDelay = 6;
-            }
-            temDelay--;
-
-            // After scan completed we display final message
-            if (mState == STATE_DONE) {
-                Toast.makeText(context, "Scan done. Found " + beaconCount + ", " + wirelessCount + ", " + cellularCount + ", " + sensorCOunt + ", " + "(b,w,c,s).", Toast.LENGTH_SHORT).show();
-            }
+            // Send broadcast
+            sendBroadcast(intent);
         }
 
         @Override
