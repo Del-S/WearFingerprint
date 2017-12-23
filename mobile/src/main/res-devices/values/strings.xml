@@ -36,19 +36,4 @@
     <string name="ib_name">N/A</string>
     <string name="ib_mac">Mac address</string>
     <string name="ib_rssi">0 dBm</string>
-
-    <!-- *********************** -->
-    <!-- Fingerprint scan status -->
-    <!-- *********************** -->
-    <string name="spo_status">Scan status</string>
-    <string name="spo_status_none">Scheduling</string>
-    <string name="spo_status_starting">Starting</string>
-    <string name="spo_status_running">Scanning</string>
-    <string name="spo_status_done">Complete</string>
-
-    <!-- Scan status data -->
-    <string name="spo_data_count_default">0</string>
-    <string name="spo_data_bluetooth_title">BL</string>
-    <string name="spo_data_wireless_title">W</string>
-    <string name="spo_data_cellular_title">C</string>
 </resources>

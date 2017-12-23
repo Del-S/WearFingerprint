@@ -17,6 +17,7 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.telephony.CellInfo;
 import android.telephony.NeighboringCellInfo;
@@ -36,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import cz.uhk.fim.kikm.wearnavigation.R;
 import cz.uhk.fim.kikm.wearnavigation.model.database.BeaconEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.CellularEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.Fingerprint;
@@ -48,10 +50,7 @@ public class FingerprintScanner extends JobService {
 
     // Broadcast data Bundle keys
     public static final String ACTION_POST_PROGRESS = "scanProgress";   // Broadcast intent information
-    public static final String ACTION_STATE = "state";                  // Broadcast current state
     public static final String ACTION_DATA = "data";                    // Broadcast count data for every device
-    public static final String ACTION_TIME_LENGTH = "timeLength";       // Broadcast length of current scan
-    public static final String ACTION_TIME_CURRENT = "timeCurrent";     // Broadcast current time in scan
 
     // Parameters send to this job as JobParameters
     public static final String PARAM_FINGERPRINT = "fingerprint";   // Bundle parameter name for fingerprint
@@ -97,6 +96,7 @@ public class FingerprintScanner extends JobService {
         private long mScanLength = 60000;            // Length of the current scan
         private long mStartTime;                     // Timestamp when scan was started
         private Fingerprint mFingerprint;            // Fingerprint data that will be saved into the database
+        private ScanProgress mScanProgress;
 
         // Bluetooth scanner variables
         private BLEScanner mBLEScanner;              // Bluetooth scanner to scan for LE
@@ -199,7 +199,7 @@ public class FingerprintScanner extends JobService {
                 if (!isCancelled()) {               // If this task is cancelled
                     try {
                         publishProgress();          // Update progress information
-                        Thread.sleep(1000);   // Pause thread for a second
+                        Thread.sleep(2000);   // Pause thread for a second
                     } catch (InterruptedException e) {
                         Log.e("FingerprintScanner", "Cannot run sleep() in interrupted thread", e);
                         return null;
@@ -211,31 +211,6 @@ public class FingerprintScanner extends JobService {
             }
 
             return mFingerprint;    // Return calculated fingerprint
-        }
-
-        @Override
-        protected void onProgressUpdate(Void... values) {
-            // Create broadcast intent
-            Intent intent = new Intent();
-            intent.setAction(ACTION_POST_PROGRESS);             // Set intent action to get in BroadcastReceiver
-
-            long currentTime = System.currentTimeMillis() - mStartTime; // Calculate and set current time
-            intent.putExtra(ACTION_STATE, mState);              // Set current state to intent extra data
-            intent.putExtra(ACTION_TIME_LENGTH, mScanLength);   // Set scan length to extra
-            intent.putExtra(ACTION_TIME_CURRENT, currentTime);  // Set current time into extra
-
-
-            // Load counts of devices found
-            int beaconCount = mFingerprint.getBeaconEntries().size();       // Beacon count in fingerprint
-            int wirelessCount = mFingerprint.getWirelessEntries().size();   // Wireless count in fingerprint
-            int cellularCount = mFingerprint.getCellularEntries().size();   // Cellular count in fingerprint
-            int sensorCount = mFingerprint.getSensorEntries().size();       // Sensor count in fingerprint
-            // Make array of counts
-            int[] data = {beaconCount, wirelessCount, cellularCount, sensorCount};
-            intent.putExtra(ACTION_DATA, data);         // Set array into the intent extra
-
-            // Send broadcast
-            sendBroadcast(intent);
         }
 
         @Override
@@ -254,6 +229,79 @@ public class FingerprintScanner extends JobService {
             // Change and publish progress
             mState = STATE_DONE;    // Scan is done
             publishProgress();      // Publish progress after scan is done
+        }
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
+            // Calculate scan length into seconds for display
+            int scanLengthSeconds = (int) (mScanLength / 1000);
+
+            // Create ScanProgress instance if it does not exist
+            if(mScanProgress == null) {
+                mScanProgress = new ScanProgress();
+            }
+
+            // Set current variables into the ScanProgress
+            mScanProgress.setState( getStateAsString() );            // Set current state (string) of this job
+            mScanProgress.setScanLength(scanLengthSeconds);          // Set length of the scan (usually stays the same)
+            mScanProgress.setCurrentTime( getCurrentTimeAsSeconds(scanLengthSeconds) );     // Set current time in the scan
+            // Set entries count
+            mScanProgress.setBeaconCount( mFingerprint.getBeaconEntries().size() );         // Sets beacon count
+            mScanProgress.setWirelessCount( mFingerprint.getWirelessEntries().size() );     // Sets wireless counts
+            mScanProgress.setCellularCount( mFingerprint.getCellularEntries().size() );     // Sets cellular count
+            mScanProgress.setSensorCount( mFingerprint.getSensorEntries().size() );         // Sets sensor counts
+
+            Intent intent = new Intent();               // Send broadcast
+            intent.setAction(ACTION_POST_PROGRESS);     // Set intent action to get in BroadcastReceiver
+            intent.putExtra(ACTION_DATA, mScanProgress);// Adds ScanProgress into the intent bundle to send it
+            sendBroadcast(intent);                      // Send broadcast with data
+        }
+
+        /**
+         * Returns current state of this task as a String to be displayed.
+         *
+         * @return String text of current state
+         */
+        @NonNull
+        private String getStateAsString() {
+            // Load context to load string from it
+            Context context = getApplicationContext();
+
+            // Return correct text for each state of this task
+            switch (mState) {
+                case STATE_NONE:
+                    return context.getResources().getText(R.string.spo_status_none).toString();
+                case STATE_STARTING:
+                    return context.getResources().getText(R.string.spo_status_starting).toString();
+                case STATE_RUNNING:
+                    return context.getResources().getText(R.string.spo_status_running).toString();
+                case STATE_DONE:
+                    return context.getResources().getText(R.string.spo_status_done).toString();
+                default:
+                    return context.getResources().getText(R.string.spo_status_none).toString();
+            }
+        }
+
+        /**
+         * Calculates the current time into seconds for display as progress.
+         * Used in progress bar to display progress.
+         *
+         * @param maxTime so we don't move over it
+         * @return int seconds of current time
+         */
+        private int getCurrentTimeAsSeconds(int maxTime) {
+            switch (mState) {
+                case STATE_DONE:
+                    return maxTime;
+                case STATE_RUNNING:
+                    int currentTime = (int) ((System.currentTimeMillis() - mStartTime) / 1000);  // Calculate and set current time in seconds
+                    if(currentTime > maxTime) {
+                        currentTime = maxTime;
+                    }
+                    return currentTime;
+                default:
+                    return 0;
+            }
         }
 
         @Override

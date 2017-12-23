@@ -30,6 +30,7 @@ import cz.uhk.fim.kikm.wearnavigation.activities.scan.ScanActivity;
 import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
 import cz.uhk.fim.kikm.wearnavigation.model.database.Fingerprint;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
+import cz.uhk.fim.kikm.wearnavigation.model.tasks.ScanProgress;
 import cz.uhk.fim.kikm.wearnavigation.utils.AnimationHelper;
 import cz.uhk.fim.kikm.wearnavigation.utils.SimpleDialogHelper;
 
@@ -302,9 +303,11 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
         public void onReceive(final Context context, final Intent intent) {
             String action = intent.getAction();
             if(action != null && action.equals(FingerprintScanner.ACTION_POST_PROGRESS)) {
-                int state = intent.getIntExtra(FingerprintScanner.ACTION_STATE, 0);
-                AnimationHelper.displayScanStatus(BaseActivity.this, View.VISIBLE, 200);
-                // TODO: complete this
+                ScanProgress scanProgress = null;
+                if(intent.getExtras() != null) {
+                    scanProgress = intent.getExtras().getParcelable(FingerprintScanner.ACTION_DATA);
+                }
+                AnimationHelper.displayScanStatus(BaseActivity.this, scanProgress, View.VISIBLE, 200);
             }
         }
     }

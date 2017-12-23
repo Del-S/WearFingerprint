@@ -10,14 +10,48 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import cz.uhk.fim.kikm.wearnavigation.R;
+import cz.uhk.fim.kikm.wearnavigation.model.tasks.ScanProgress;
 
+// TODO: add comments and maybe change from static to instance
 public class AnimationHelper {
 
     private final static String TAG = "AnimationHelper";
 
-    public static void displayScanStatus(Activity activity, final int toVisibility, int duration) {
+    public static void displayScanStatus(Activity activity, ScanProgress scanProgress, final int toVisibility, int duration) {
+
+        final View view = loadScanStatusView(activity);
+        // Do the animation only if the visibility should change
+        if(toVisibility != view.getVisibility()) {
+            view.setVisibility(View.VISIBLE);
+
+            // Show or hide the overlay
+            boolean show = toVisibility == View.VISIBLE;
+            if (show) {
+                view.setAlpha(0);
+            }
+            view.bringToFront();        // So the view is not under different view we bring it to front
+            view.animate()              // Display this view with animation
+                    .setDuration(duration)
+                    .alpha(show ? 100 : 0)
+                    .setListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            view.setVisibility(toVisibility);
+                        }
+                    });
+        } else {
+            // If not than do nothing
+            view.setVisibility(toVisibility);
+        }
+
+        setScanProgressTexts(view, scanProgress);
+    }
+
+    private static View loadScanStatusView(Activity activity) {
         View scanStatusView = activity.findViewById(R.id.scan_progress_overlay);       // Load scan progress overlay from activity
 
         // If the overlay does not exist then then inflate it with layout
@@ -58,30 +92,26 @@ public class AnimationHelper {
             }
         }
 
-        final View view = scanStatusView;      // Only for the final part so it can be used in setListener
-        // Do the animation only if the visibility should change
-        if(toVisibility != view.getVisibility()) {
-            view.setVisibility(View.VISIBLE);
-
-            // Show or hide the overlay
-            boolean show = toVisibility == View.VISIBLE;
-            if (show) {
-                view.setAlpha(0);
-            }
-            view.bringToFront();        // So the view is not under different view we bring it to front
-            view.animate()              // Display this view with animation
-                    .setDuration(duration)
-                    .alpha(show ? 100 : 0)
-                    .setListener(new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            view.setVisibility(toVisibility);
-                        }
-                    });
-        } else {
-            // If not than do nothing
-            view.setVisibility(toVisibility);
-        }
+        return scanStatusView;
     }
 
+    private static void setScanProgressTexts(View view, ScanProgress scanProgress) {
+        if(view != null && scanProgress != null) {
+            // Load widgets from the view
+            ProgressBar progress = view.findViewById(R.id.spo_progress);        // Load progress bar widget
+            TextView status = view.findViewById(R.id.spo_status);               // Load text status information widget
+            TextView bleCount = view.findViewById(R.id.spo_bluetooth_count);    // Load bluetooth entries count widget
+            TextView wifiCount = view.findViewById(R.id.spo_wireless_count);    // Load wireless entries count widget
+            TextView cellCount = view.findViewById(R.id.spo_cellular_count);    // Load cellular entries count widget
+
+            // Set the data into the widgets
+            progress.setIndeterminate(false);                       // Set progress bar as not infinite and forces to use progress
+            progress.setMax(scanProgress.getScanLength());          // Sets the max value into progress bar
+            progress.setProgress(scanProgress.getCurrentTime());    // Set current value into progress bar
+            status.setText(scanProgress.getState());                // Sets status text to inform user
+            bleCount.setText( String.valueOf(scanProgress.getBeaconCount()) );        // Sets count of the bluetooth le device entries
+            wifiCount.setText( String.valueOf(scanProgress.getWirelessCount()) );     // Sets count of wireless devices entries
+            cellCount.setText( String.valueOf(scanProgress.getCellularCount()) );     // Sets count of cellular tower entries
+        }
+    }
 }
