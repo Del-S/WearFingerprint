@@ -43,7 +43,6 @@ public class WearApplication extends Application {
 
         JobScheduler jobScheduler = (JobScheduler) getSystemService( Context.JOB_SCHEDULER_SERVICE );
         if(jobScheduler != null) {
-            Log.d("acasc", "Cancel job");
             jobScheduler.cancel(ScanActivity.JOB_ID);
         }
     }

@@ -12,6 +12,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -39,29 +40,19 @@ import cz.uhk.fim.kikm.wearnavigation.utils.SimpleDividerItemDecoration;
 
 public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapter.BlDevicesInterface, BluetoothConnectionInterface {
 
-    // Error and debug tag
-    private static final String TAG = "BlDevicesFragment";
+    private static final String TAG = "BlDevicesFragment";  // Error and debug tag
 
-    // Interface to communicate with context activity
-    private ActivityConnection mInterface;
-    // App configuration
-    private Configuration mConfiguration;
-    // Handler for Bluetooth connection service using this as interface
-    private final Handler mHandler = new BluetoothConnectionHandler(this);
-    // Bonded bluetooth connection service
-    private BluetoothConnectionService mService = null;
+    private ActivityConnection mInterface;                  // Interface to communicate with context activity
+    private Configuration mConfiguration;                   // App configuration
+    private final Handler mHandler = new BluetoothConnectionHandler(this);  // Handler for Bluetooth connection service using this as interface
+    private BluetoothConnectionService mService = null;     // Bonded bluetooth connection service
 
-    // Adapter to get devices from
-    private BluetoothAdapter mBluetoothAdapter;
-    // TextView informing about discovering devices
-    private TextView mDiscoverDevices;
-    // Handler that cancels search
-    private Handler cancelSearchHandler = new Handler();
+    private BluetoothAdapter mBluetoothAdapter;             // Adapter to get devices from
+    private TextView mDiscoverDevices;                      // TextView informing about discovering devices
+    private Handler cancelSearchHandler = new Handler();    // Handler that cancels search
 
-    // Adapters to show devices
-    private BlDevicesAdapter mBlDeviceAdapterBonded, mBlDeviceAdapter;
-    // Global list of bounded devices
-    private List<BluetoothDevice> bondedDevices = new ArrayList<>();
+    private BlDevicesAdapter mBlDeviceAdapterBonded, mBlDeviceAdapter;      // Adapters to show devices
+    private List<BluetoothDevice> bondedDevices = new ArrayList<>();        // Global list of bounded devices
 
     /**
      * Create instance of BluetoothDevicesFragment and pass variable to it to change functions
@@ -95,7 +86,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_devices_bluetooth, container, false);
 
         // Load configuration
@@ -233,12 +224,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         mDiscoverDevices.setOnClickListener(null);
 
         // After 15 seconds disable discovery
-        cancelSearchHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                cancelDiscovery();
-            }
-        }, 15000);
+        cancelSearchHandler.postDelayed(this::cancelDiscovery, 15000);
     }
 
     /**
@@ -256,13 +242,10 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         // Add scan button function and change design
         mDiscoverDevices.setText(R.string.fdb_title_bl_search);
         mDiscoverDevices.setTextColor(getResources().getColor( R.color.colorTextPrimaryDark ));
-        mDiscoverDevices.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mBlDeviceAdapter.clearDeviceList();
-                mBlDeviceAdapterBonded.clearFoundDeviceList();
-                startDiscovery();
-            }
+        mDiscoverDevices.setOnClickListener(v -> {
+            mBlDeviceAdapter.clearDeviceList();
+            mBlDeviceAdapterBonded.clearFoundDeviceList();
+            startDiscovery();
         });
     }
 

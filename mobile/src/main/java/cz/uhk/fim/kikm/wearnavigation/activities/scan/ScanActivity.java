@@ -139,7 +139,10 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
      */
     private void createJobForScanner() {
         jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);  // Initiate JobScheduler
-
+        if(jobScheduler != null) {
+            jobScheduler.cancel(JOB_ID);
+        }
+        // TODO: issue #29
         // Building job to run
         jobBuilder = new JobInfo.Builder(JOB_ID,
                 new ComponentName(getPackageName(), FingerprintScanner.class.getName()));

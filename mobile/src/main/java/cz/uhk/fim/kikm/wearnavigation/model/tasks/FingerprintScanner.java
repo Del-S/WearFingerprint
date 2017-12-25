@@ -27,14 +27,12 @@ import android.telephony.TelephonyManager;
 import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
 import android.util.SparseIntArray;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 
 import org.altbeacon.beacon.Beacon;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import cz.uhk.fim.kikm.wearnavigation.R;
@@ -45,7 +43,6 @@ import cz.uhk.fim.kikm.wearnavigation.model.database.SensorEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.WirelessEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseCRUD;
 
-// TODO: github issue #23
 public class FingerprintScanner extends JobService {
 
     // Broadcast data Bundle keys
@@ -89,7 +86,7 @@ public class FingerprintScanner extends JobService {
     }
 
     @SuppressLint("StaticFieldLeak")
-    private class ScannerTask extends AsyncTask<Void, Void, Fingerprint> implements BLEScannerInterface {
+    private class ScannerTask extends AsyncTask<Void, Void, Fingerprint> {
 
         // Global scan variables
         private DatabaseCRUD mDatabase;              // Database helper for inserting data into the database
@@ -99,8 +96,8 @@ public class FingerprintScanner extends JobService {
         private ScanProgress mScanProgress;
 
         // Bluetooth scanner variables
-        private BLEScanner mBLEScanner;              // Bluetooth scanner to scan for LE
-        private boolean mServiceBound = false;       // Check if service is bound or not
+        private BLEScannerManager mBLEScannerManager;      // Bluetooth scanner manager to run BLE scanner service
+        private BeaconScanner mBeaconScanner;              // Bluetooth scanner to parse data in this job
 
         // Wifi scanner variables
         private WifiManager mWifiManager;            // Manager to get wifi data from
@@ -133,7 +130,10 @@ public class FingerprintScanner extends JobService {
             mFingerprint = fingerprint;                 // Set fingerprint information
 
             // Initiate bluetooth scanner
-            mBLEScanner = new BLEScanner(context, this);
+            mBLEScannerManager = BLEScannerManager.getInstance(context);
+            mBLEScannerManager.setScanPeriods(1000L, 2000L);   // Change scan periods
+            mBeaconScanner = new BeaconScanner();
+            context.registerReceiver(mBeaconScanner, new IntentFilter(BLEScannerManager.ACTION_BEACONS_FOUND));    // Register receiver to the context to listen for beacon data
 
             // Initiate wireless scanner
             mWifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
@@ -165,34 +165,37 @@ public class FingerprintScanner extends JobService {
             super.onPreExecute();
             mState = STATE_STARTING;    // Set state to starting
             publishProgress();          // Update progress to change state
+
+            // Try to bound BLE scanner
+            if( !mBLEScannerManager.isBound() ) mBLEScannerManager.bindScanner();
         }
 
         @Override
         protected Fingerprint doInBackground(Void... voids) {
             // Checking if ble scanner service was bound or not (3 tries)
             int connectionTry = 3;
-            while (!mServiceBound && connectionTry > 0) {
+            while (!mBLEScannerManager.isBound() && connectionTry > 0) {
                 try {
-                    // 200 millisecond to wait for next try
-                    Thread.sleep(200);
+                    mBLEScannerManager.bindScanner();  // Try to bind scanner
+                    Thread.sleep(200);    // 200 millisecond to wait for next try
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
                 connectionTry--;
             }
 
-            // Service is not bound then we finish the scan
-            if (!mServiceBound) {
-                return null;
-            }
-
-            // Start scanning
-            mState = STATE_RUNNING;         // Change state to running
-            mWifiManager.startScan();       // Start wifi scanner
-            // Bind sensor scanner
+            // Starting scans
+            if (!mBLEScannerManager.isBound()) return null;  // Service is not bound then we finish the scan
+            if (!mBLEScannerManager.startScan(mScanLength, true)) return null;   // Try to start BLE scan
+            mWifiManager.startScan();                        // Start wifi scan
+            // Bind sensor scanner to start sensor scans
             for (Sensor sensor : sensors) {
                 mSensorManager.registerListener(mSensorScanner, sensor, SensorManager.SENSOR_DELAY_NORMAL);
             }
+
+            // Set time and state
+            mStartTime = System.currentTimeMillis();            // Set current time as start time
+            mState = STATE_RUNNING;                             // Change state to running
 
             // Until the scan time is up the thread will be put to sleep
             while (System.currentTimeMillis() < mStartTime + mScanLength) {
@@ -205,7 +208,7 @@ public class FingerprintScanner extends JobService {
                         return null;
                     }
                 } else {
-                    mBLEScanner.cancelScan();   // Cancel scan if the task was canceled
+                    mBLEScannerManager.cancelScan();   // Cancel scan if the task was canceled
                     return null;
                 }
             }
@@ -224,7 +227,7 @@ public class FingerprintScanner extends JobService {
             Context context = getApplicationContext();          // Load context to unregister received
             context.unregisterReceiver(mWifiScanner);           // Unregister wifi receiver
             mSensorManager.unregisterListener(mSensorScanner);  // Unregister scanner receiver
-            mBLEScanner.handleDestroy();                        // Destroy ble scanner
+            mBLEScannerManager.handleDestroy();                        // Destroy ble scanner
 
             // Change and publish progress
             mState = STATE_DONE;    // Scan is done
@@ -251,7 +254,7 @@ public class FingerprintScanner extends JobService {
             mScanProgress.setCellularCount( mFingerprint.getCellularEntries().size() );     // Sets cellular count
             mScanProgress.setSensorCount( mFingerprint.getSensorEntries().size() );         // Sets sensor counts
 
-            Intent intent = new Intent();               // Send broadcast
+            Intent intent = new Intent();               // Create broadcast intent
             intent.setAction(ACTION_POST_PROGRESS);     // Set intent action to get in BroadcastReceiver
             intent.putExtra(ACTION_DATA, mScanProgress);// Adds ScanProgress into the intent bundle to send it
             sendBroadcast(intent);                      // Send broadcast with data
@@ -301,27 +304,6 @@ public class FingerprintScanner extends JobService {
                     return currentTime;
                 default:
                     return 0;
-            }
-        }
-
-        @Override
-        public void serviceConnected() {
-            // When BLE scanner service is connected we can start the scan
-            mBLEScanner.setScanPeriods(1000L, 2000L);   // Change scan periods
-            if (mBLEScanner.startScan(mScanLength)) {    // If the scan was started
-                mServiceBound = true;                    // Mark service as bound
-                mStartTime = System.currentTimeMillis(); // Set start time after service was connected
-            }
-        }
-
-        @Override
-        public void foundBeacons(Collection<Beacon> beacons) {
-            List<BeaconEntry> beaconEntries = mFingerprint.getBeaconEntries();    // Load list of current beacons
-            long currentMillis = System.currentTimeMillis();                      // Get current milliseconds for calculation of times
-
-            // Create BeaconEntries from found beacons and add them to the list
-            for (Beacon beacon : beacons) {
-                beaconEntries.add(createBeaconEntry(beacon, currentMillis));
             }
         }
 
@@ -380,6 +362,40 @@ public class FingerprintScanner extends JobService {
 
             // Return scanTimeDifference
             return scanDifference;
+        }
+
+        /**
+         * Receiver that handles Beacon scanner.
+         * Parse Beacons into BeaconEntries.
+         */
+        class BeaconScanner extends BroadcastReceiver {
+
+            /**
+             * When Broadcast was received the data is parsed into the BeaconEntries
+             *
+             * @param context context that send Broadcast
+             * @param intent of the broadcast
+             */
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                if(action != null && action.equals(BLEScannerManager.ACTION_BEACONS_FOUND)) {
+                    if(intent.getExtras() != null) {
+                        // Get beacon list from intent extras
+                        ArrayList<Beacon> beacons = intent.getExtras().getParcelableArrayList(BLEScannerManager.ACTION_BEACONS_DATA);
+
+                        if(beacons != null) {
+                            List<BeaconEntry> beaconEntries = mFingerprint.getBeaconEntries();    // Load list of current beacons
+                            long currentMillis = System.currentTimeMillis();                      // Get current milliseconds for calculation of times
+
+                            // Create BeaconEntries from found beacons and add them to the list
+                            for (Beacon beacon : beacons) {
+                                beaconEntries.add(createBeaconEntry(beacon, currentMillis));
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         /**
