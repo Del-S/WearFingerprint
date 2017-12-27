@@ -55,8 +55,6 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
 
     private Gson gson = new Gson();             // Class to json (and reverse) parser
     private JobScheduler jobScheduler;          // JobScheduler used to run FingerprintScanner
-    private JobInfo.Builder jobBuilder;         // Specific job to run via Scheduler
-    public static final int JOB_ID = 1;         // Scanner Job id
 
     // Location manager to get location from the network
     private LocationManager locationManager;
@@ -67,10 +65,28 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
 
         loadMap();              // Find and load map
         loadFingerprints();     // Loads fingerprint data
-        createJobForScanner();  // Create job to scan for new fingerprint
 
         // Load location manager
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        jobScheduler = (JobScheduler) getSystemService( Context.JOB_SCHEDULER_SERVICE );
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mMap.resume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mMap.pause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mMap.destroy();
     }
 
     /**
@@ -132,23 +148,6 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
             // Adds marker to the map
             mMap.addMarker(iw, fingerprint.getX(), fingerprint.getY(), null, null);
         }
-    }
-
-    /**
-     * Creates FingerprintScanner job to run in the future.
-     */
-    private void createJobForScanner() {
-        jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);  // Initiate JobScheduler
-        if(jobScheduler != null) {
-            jobScheduler.cancel(JOB_ID);
-        }
-        // TODO: issue #29
-        // Building job to run
-        jobBuilder = new JobInfo.Builder(JOB_ID,
-                new ComponentName(getPackageName(), FingerprintScanner.class.getName()));
-        jobBuilder.setMinimumLatency(0);                // Specify that this job should be delayed by the provided amount of time.
-        jobBuilder.setOverrideDeadline(200);            // Set deadline which is the maximum scheduling latency.
-        jobBuilder.setPersisted(false);                 // Set whether or not to persist this job across device reboots.
     }
 
     /**

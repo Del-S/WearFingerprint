@@ -2,6 +2,7 @@ package cz.uhk.fim.kikm.wearnavigation;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.job.JobInfo;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -46,8 +47,9 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
     private final int REQUEST_ACCESS_LOCATION = 1001;
     // App wide configuration class
     protected Configuration mConfiguration;
-    // Scanner receiver instance
-    private ScannerProgressReceiver mReceiver;
+
+    protected JobInfo.Builder jobBuilder;       // Job builder for FingerprintScanner
+    private ScannerProgressReceiver mReceiver;  // Scanner receiver instance
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +73,7 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
 
         // Load configuration from the application
         mConfiguration = ((WearApplication) getApplicationContext()).getConfiguration();
+        jobBuilder = ((WearApplication) getApplicationContext()).getFingerprintJob();
 
         // Bluetooth check
         checkBluetooth();
@@ -307,7 +310,7 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
                 if(intent.getExtras() != null) {
                     scanProgress = intent.getExtras().getParcelable(FingerprintScanner.ACTION_DATA);
                 }
-                AnimationHelper.displayScanStatus(BaseActivity.this, scanProgress, View.VISIBLE, 200);
+                AnimationHelper.displayScanStatus(BaseActivity.this, scanProgress, View.VISIBLE, 800);
             }
         }
     }

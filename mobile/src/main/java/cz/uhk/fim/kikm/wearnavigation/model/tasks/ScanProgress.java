@@ -8,7 +8,8 @@ import android.os.Parcelable;
  * This classed is parsed to json and then send as a Broadcast.
  */
 public class ScanProgress implements Parcelable {
-    private String state;          // State of the current scan
+    private int state;             // State of current scan
+    private String stateString;    // State string of the current scan
     private int scanLength;        // Max length of current scan
     private int currentTime;       // Current elapsed time in the current scan
 
@@ -21,8 +22,9 @@ public class ScanProgress implements Parcelable {
     ScanProgress() {
     }
 
-    ScanProgress(Parcel in) {
-        state = in.readString();
+    private ScanProgress(Parcel in) {
+        setState(in.readInt());
+        stateString = in.readString();
         scanLength = in.readInt();
         currentTime = in.readInt();
         beaconCount = in.readInt();
@@ -33,7 +35,8 @@ public class ScanProgress implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(state);
+        dest.writeInt(getState());
+        dest.writeString(stateString);
         dest.writeInt(scanLength);
         dest.writeInt(currentTime);
         dest.writeInt(beaconCount);
@@ -59,12 +62,20 @@ public class ScanProgress implements Parcelable {
         }
     };
 
-    public String getState() {
+    public String getStateString() {
+        return stateString;
+    }
+
+    public int getState() {
         return state;
     }
 
-    public void setState(String state) {
+    public void setState(int state) {
         this.state = state;
+    }
+
+    public void setStateString(String stateString) {
+        this.stateString = stateString;
     }
 
     public int getScanLength() {

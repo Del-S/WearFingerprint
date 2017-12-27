@@ -3,6 +3,7 @@ package cz.uhk.fim.kikm.wearnavigation.utils;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
+import android.os.Handler;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
 import android.support.design.widget.BottomNavigationView;
@@ -14,6 +15,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import cz.uhk.fim.kikm.wearnavigation.R;
+import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.ScanProgress;
 
 // TODO: add comments and maybe change from static to instance
@@ -25,7 +27,7 @@ public class AnimationHelper {
 
         final View view = loadScanStatusView(activity);
         // Do the animation only if the visibility should change
-        if(toVisibility != view.getVisibility()) {
+        if (toVisibility != view.getVisibility()) {
             view.setVisibility(View.VISIBLE);
 
             // Show or hide the overlay
@@ -34,6 +36,7 @@ public class AnimationHelper {
                 view.setAlpha(0);
             }
             view.bringToFront();        // So the view is not under different view we bring it to front
+            view.setElevation(5);       // Set elevation to create shadows fro this view
             view.animate()              // Display this view with animation
                     .setDuration(duration)
                     .alpha(show ? 100 : 0)
@@ -48,7 +51,7 @@ public class AnimationHelper {
             view.setVisibility(toVisibility);
         }
 
-        setScanProgressTexts(view, scanProgress);
+        setScanProgressTexts(activity, view, scanProgress);
     }
 
     private static View loadScanStatusView(Activity activity) {
@@ -95,8 +98,10 @@ public class AnimationHelper {
         return scanStatusView;
     }
 
-    private static void setScanProgressTexts(View view, ScanProgress scanProgress) {
-        if(view != null && scanProgress != null) {
+    private static void setScanProgressTexts(Activity activity, View view, ScanProgress scanProgress) {
+        if(view != null
+                && view.getVisibility() != View.GONE
+                && scanProgress != null) {
             // Load widgets from the view
             ProgressBar progress = view.findViewById(R.id.spo_progress);        // Load progress bar widget
             TextView status = view.findViewById(R.id.spo_status);               // Load text status information widget
@@ -108,10 +113,20 @@ public class AnimationHelper {
             progress.setIndeterminate(false);                       // Set progress bar as not infinite and forces to use progress
             progress.setMax(scanProgress.getScanLength());          // Sets the max value into progress bar
             progress.setProgress(scanProgress.getCurrentTime());    // Set current value into progress bar
-            status.setText(scanProgress.getState());                // Sets status text to inform user
+            status.setText(scanProgress.getStateString());                // Sets status text to inform user
             bleCount.setText( String.valueOf(scanProgress.getBeaconCount()) );        // Sets count of the bluetooth le device entries
             wifiCount.setText( String.valueOf(scanProgress.getWirelessCount()) );     // Sets count of wireless devices entries
             cellCount.setText( String.valueOf(scanProgress.getCellularCount()) );     // Sets count of cellular tower entries
+
+            // Hide this view after completion (5 seconds)
+            if(scanProgress.getState() == FingerprintScanner.TASK_STATE_DONE) {
+                Handler hideHandler = new Handler();
+                hideHandler.postDelayed(() -> {
+                    if (activity != null) {
+                        displayScanStatus(activity, null, View.GONE, 800);
+                    }
+                }, 5000);
+            }
         }
     }
 }

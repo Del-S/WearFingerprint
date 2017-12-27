@@ -45,6 +45,8 @@ import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseCRUD;
 
 public class FingerprintScanner extends JobService {
 
+    public static final int JOB_ID = 1;     // ID of this job in JobBuilder
+
     // Broadcast data Bundle keys
     public static final String ACTION_POST_PROGRESS = "scanProgress";   // Broadcast intent information
     public static final String ACTION_DATA = "data";                    // Broadcast count data for every device
@@ -53,6 +55,12 @@ public class FingerprintScanner extends JobService {
     public static final String PARAM_FINGERPRINT = "fingerprint";   // Bundle parameter name for fingerprint
     public static final String PARAM_LOCATION = "lastLocation";     // Bundle parameter name for last known location
     public static final String PARAM_SCAN_LENGTH = "mScanLength";   // Bundle parameter name for length of the scan
+
+    // States of this scanner
+    private final int TASK_STATE_NONE = 0;            // Nothing is happening
+    private final int TASK_STATE_STARTING = 1;        // Starting scan
+    private final int TASK_STATE_RUNNING = 2;         // Scan is running
+    public static final int TASK_STATE_DONE = 3;             // Scan finished
 
     private Gson mGson = new Gson();                                // Json to Class parser
     private ScannerTask mScannerTask;                               // Task that will run in this job
@@ -114,12 +122,7 @@ public class FingerprintScanner extends JobService {
         private SensorScanner mSensorScanner;        // Scanner to parse data into ScannerEntries
         private List<Sensor> sensors;                // List of collected sensors
 
-        // States of this scanner
-        private final int STATE_NONE = 0;            // Nothing is happening
-        private final int STATE_STARTING = 1;        // Starting scan
-        private final int STATE_RUNNING = 2;         // Scan is running
-        private final int STATE_DONE = 3;            // Scan finished
-        private int mState = STATE_NONE;             // Current state variable
+        private int mState = TASK_STATE_NONE;             // Current state variable
 
         ScannerTask(Fingerprint fingerprint, long scanLength, double[] location) {
             Context context = getApplicationContext();      // Load application context to bind listeners, get managers, etc.
@@ -163,7 +166,7 @@ public class FingerprintScanner extends JobService {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            mState = STATE_STARTING;    // Set state to starting
+            mState = TASK_STATE_STARTING;    // Set state to starting
             publishProgress();          // Update progress to change state
 
             // Try to bound BLE scanner
@@ -195,7 +198,7 @@ public class FingerprintScanner extends JobService {
 
             // Set time and state
             mStartTime = System.currentTimeMillis();            // Set current time as start time
-            mState = STATE_RUNNING;                             // Change state to running
+            mState = TASK_STATE_RUNNING;                             // Change state to running
 
             // Until the scan time is up the thread will be put to sleep
             while (System.currentTimeMillis() < mStartTime + mScanLength) {
@@ -230,7 +233,7 @@ public class FingerprintScanner extends JobService {
             mBLEScannerManager.handleDestroy();                        // Destroy ble scanner
 
             // Change and publish progress
-            mState = STATE_DONE;    // Scan is done
+            mState = TASK_STATE_DONE;    // Scan is done
             publishProgress();      // Publish progress after scan is done
         }
 
@@ -245,7 +248,8 @@ public class FingerprintScanner extends JobService {
             }
 
             // Set current variables into the ScanProgress
-            mScanProgress.setState( getStateAsString() );            // Set current state (string) of this job
+            mScanProgress.setState(mState);                          // Set current state
+            mScanProgress.setStateString( getStateAsString() );      // Set current state (string) of this job
             mScanProgress.setScanLength(scanLengthSeconds);          // Set length of the scan (usually stays the same)
             mScanProgress.setCurrentTime( getCurrentTimeAsSeconds(scanLengthSeconds) );     // Set current time in the scan
             // Set entries count
@@ -272,13 +276,13 @@ public class FingerprintScanner extends JobService {
 
             // Return correct text for each state of this task
             switch (mState) {
-                case STATE_NONE:
+                case TASK_STATE_NONE:
                     return context.getResources().getText(R.string.spo_status_none).toString();
-                case STATE_STARTING:
+                case TASK_STATE_STARTING:
                     return context.getResources().getText(R.string.spo_status_starting).toString();
-                case STATE_RUNNING:
+                case TASK_STATE_RUNNING:
                     return context.getResources().getText(R.string.spo_status_running).toString();
-                case STATE_DONE:
+                case TASK_STATE_DONE:
                     return context.getResources().getText(R.string.spo_status_done).toString();
                 default:
                     return context.getResources().getText(R.string.spo_status_none).toString();
@@ -294,9 +298,9 @@ public class FingerprintScanner extends JobService {
          */
         private int getCurrentTimeAsSeconds(int maxTime) {
             switch (mState) {
-                case STATE_DONE:
+                case TASK_STATE_DONE:
                     return maxTime;
-                case STATE_RUNNING:
+                case TASK_STATE_RUNNING:
                     int currentTime = (int) ((System.currentTimeMillis() - mStartTime) / 1000);  // Calculate and set current time in seconds
                     if(currentTime > maxTime) {
                         currentTime = maxTime;
