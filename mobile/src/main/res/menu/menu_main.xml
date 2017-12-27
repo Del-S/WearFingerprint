@@ -10,9 +10,9 @@
         android:visible="false"/>
 
     <item
-        android:id="@+id/action_show_bluetooth_test"
-        android:icon="@drawable/ic_bluetooth_24dp"
-        android:title="BL Test"
+        android:id="@+id/action_show_scan"
+        android:icon="@drawable/ic_scan_24dp"
+        android:title="@string/app_menu_scan"
         app:showAsAction="always"
         android:visible="false"/>
 

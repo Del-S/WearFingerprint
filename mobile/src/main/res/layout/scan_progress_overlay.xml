@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/scan_progress_overlay"
+    android:background="@color/colorBackgroundWhite"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <ProgressBar
+        android:id="@+id/spo_progress"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="15dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="15dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/spo_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:text="@string/spo_status"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        app:layout_constraintBottom_toBottomOf="@+id/spo_progress"
+        app:layout_constraintStart_toEndOf="@+id/spo_progress"
+        app:layout_constraintTop_toTopOf="@+id/spo_progress" />
+
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/spo_data_content"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        app:layout_constraintBottom_toBottomOf="@+id/spo_progress"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/spo_status"
+        app:layout_constraintTop_toTopOf="@+id/spo_progress">
+
+        <android.support.constraint.Guideline
+            android:id="@+id/spo_guide_center"
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.5"/>
+
+        <TextView
+            android:id="@+id/spo_bluetooth_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="8dp"
+            android:text="@string/spo_data_bluetooth_title"
+            app:layout_constraintBottom_toTopOf="@+id/spo_bluetooth_count"
+            app:layout_constraintEnd_toEndOf="@+id/spo_bluetooth_count"
+            app:layout_constraintStart_toStartOf="@+id/spo_bluetooth_count"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/spo_bluetooth_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="15dp"
+            android:text="@string/spo_data_count_default"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/spo_wireless_count"/>
+
+        <TextView
+            android:id="@+id/spo_wireless_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="8dp"
+            android:text="@string/spo_data_wireless_title"
+            app:layout_constraintBottom_toTopOf="@+id/spo_wireless_count"
+            app:layout_constraintEnd_toEndOf="@+id/spo_wireless_count"
+            app:layout_constraintStart_toStartOf="@+id/spo_wireless_count"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/spo_wireless_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="@string/spo_data_count_default"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/spo_guide_center"
+            app:layout_constraintStart_toStartOf="@+id/spo_guide_center" />
+
+        <TextView
+            android:id="@+id/spo_cellular_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="8dp"
+            android:text="@string/spo_data_cellular_title"
+            app:layout_constraintEnd_toEndOf="@+id/spo_cellular_count"
+            app:layout_constraintStart_toStartOf="@+id/spo_cellular_count"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/spo_cellular_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginStart="15dp"
+            android:text="@string/spo_data_count_default"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/spo_wireless_count" />
+
+    </android.support.constraint.ConstraintLayout>
+</android.support.constraint.ConstraintLayout>

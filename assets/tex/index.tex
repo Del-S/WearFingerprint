@@ -1,0 +1,342 @@
+%% LyX 1.5.5 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[a4paper,english,english,openright,cleardoubleempty,BCOR10mm,DIV11,12pt]{scrreprt}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{array}
+\usepackage{float}
+\usepackage{longtable}
+\usepackage{varioref}
+\usepackage{wrapfig}
+\usepackage{fancybox}
+\usepackage{calc}
+\usepackage{framed}
+\usepackage{url}
+\def\UrlBreaks{\do\/\do-}
+\usepackage{graphicx}
+\usepackage{placeins} %floatbarrier \FloatBarrier
+%\usepackage{listing}
+\usepackage{pdfpages}
+\usepackage{epstopdf}
+\usepackage[left=3cm,top=2.5cm,right=2.5cm,bottom=2.5cm]{geometry}
+\usepackage{breakurl}
+\usepackage{indentfirst}
+
+% Cut words in half
+%\hyphenation{Word-cut}
+
+\makeatletter
+
+\usepackage[font=small,labelfont=bf]{caption} %captiony
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+\providecommand{\LyX}{L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
+\newcommand{\lyxline}[1][1pt]{%
+  \par\noindent%
+  \rule[.5ex]{\linewidth}{#1}\par}
+\newcommand{\noun}[1]{\textsc{#1}}
+%% Special footnote code from the package 'stblftnt.sty'
+%% Author: Robin Fairbairns -- Last revised Dec 13 1996
+\let\SF@@footnote\footnote
+\def\footnote{\ifx\protect\@typeset@protect
+    \expandafter\SF@@footnote
+  \else
+    \expandafter\SF@gobble@opt
+  \fi
+}
+
+\renewcommand{\baselinestretch}{1.5} %line height
+
+\expandafter\def\csname SF@gobble@opt \endcsname{\@ifnextchar[%]
+  \SF@gobble@twobracket
+  \@gobble
+}
+\edef\SF@gobble@opt{\noexpand\protect
+  \expandafter\noexpand\csname SF@gobble@opt \endcsname}
+\def\SF@gobble@twobracket[#1]#2{}
+%% Because html converters don't know tabularnewline
+\providecommand{\tabularnewline}{\\}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Textclass specific LaTeX commands.
+\newenvironment{lyxcode}
+{\begin{list}{}{
+\setlength{\rightmargin}{\leftmargin}
+\setlength{\listparindent}{0pt}% needed for AMS classes
+\raggedright
+\setlength{\itemsep}{0pt}
+\setlength{\parsep}{0pt}
+\normalfont\ttfamily}%
+ \item[]}
+{\end{list}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
+%<-------------------------------společná nastavení------------------------------>
+%s\usepackage[]{babel}%počeštění názvů (Obsah, Kapitola, Literatura atp.)
+\usepackage[]{hyperref} %odkazy v  pdf jsou klikací s barevnými rámečky
+\usepackage[numbers,sort&compress]{natbib} %balíček pro citace literatury
+%\usepackage{hypernat}%interakce mezi hyperref a natbib
+%\newcommand{\BibTeX}{{\sc Bib}\TeX}%BibTeX logo
+\hypersetup{   % Nastavení polí PDF dokumentu
+pdftitle={Radio Fingerprint Acquisition Using a SmartWatch},%
+pdfauthor={Bc. David Sucharda},%
+pdfsubject={},%
+pdfkeywords={Fingerprint, Android, Wear}%
+}
+\usepackage{multicol}
+
+
+
+
+%<-----------------------------volání stylů----------------------------------------->
+% (znak % je označení komentáře: co je za ním, není aktivní)
+%<------------------------------------písmo----------------------------------------->
+%\usepackage{pkg/bc-latinmodern}
+%\usepackage{pkg/bc-times}
+\usepackage{pkg/bc-palatino}
+%\usepackage{pkg/bc-iwona}
+%\usepackage{pkg/bc-helvetika}
+
+
+%<------------------------------záhlaví stránek------------------------------------>
+%\usepackage{pkg/bc-headings}
+\usepackage{pkg/bc-fancyhdr}
+
+%<------------------------------hlavičky kapitol------------------------------------>
+%\usepackage{pkg/bc-neueskapitel}
+%\usepackage{pkg/bc-fancychap}
+
+\makeatother
+
+\usepackage{babel}
+
+%java code block%
+
+\usepackage{listing}
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\renewcommand*{\lstlistingname}{Code example} %prejmenovani
+\renewcommand*{\lstlistlistingname}{List of code examples}
+
+% syntax highlight pro jazyk Java %
+\lstset{
+  %frame=r,
+  captionpos=b,
+  language=Java,
+  aboveskip=3mm,
+  belowskip=3mm,
+  xleftmargin=0.2mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3,
+    inputencoding=utf8,
+    extendedchars=true,
+    literate=%
+    {á}{{\'a}}1
+    {č}{{\v{c}}}1
+    {ď}{{\v{d}}}1
+    {é}{{\'e}}1
+    {ě}{{\v{e}}}1
+    {í}{{\'i}}1
+    {ň}{{\v{n}}}1
+    {ó}{{\'o}}1
+    {ř}{{\v{r}}}1
+    {š}{{\v{s}}}1
+    {ť}{{\v{t}}}1
+    {ú}{{\'u}}1
+    {ů}{{\r{u}}}1
+    {ý}{{\'y}}1
+    {ž}{{\v{z}}}1
+    {Á}{{\'A}}1
+    {Č}{{\v{C}}}1
+    {Ď}{{\v{D}}}1
+    {É}{{\'E}}1
+    {Ě}{{\v{E}}}1
+    {Í}{{\'I}}1
+    {Ň}{{\v{N}}}1
+    {Ó}{{\'O}}1
+    {Ř}{{\v{R}}}1
+    {Š}{{\v{S}}}1
+    {Ť}{{\v{T}}}1
+    {Ú}{{\'U}}1
+    {Ů}{{\r{U}}}1
+    {Ý}{{\'Y}}1
+    {Ž}{{\v{Z}}}1
+}
+
+\begin{document}
+\renewcommand{\figurename}{Picture}
+\renewcommand{\tablename}{Table}
+\renewcommand{\contentsname}{Content}
+\renewcommand{\bibname}{Literature}
+\renewcommand{\listfigurename}{List of pictures}
+\renewcommand{\listtablename}{List of tables}
+%~\thispagestyle{empty}{\small ~\vfill{}
+%}{\small \par}
+
+%~\thispagestyle{empty}\vfill{}
+%Tato stránka je tzv. protititul a je graficky součástí titulní stránky.
+%Nechte ji prázdnou, nebo na ni umístěte vhodnou fotografii či ilustraci.
+
+\cleardoublepage{}~\thispagestyle{empty}\begin{center}\pagenumbering{roman}\vspace{10mm}
+
+
+\textsf{\textsc{\noun{\LARGE University of Hradec Králové}}}\\
+\vspace{0.5em}
+\textsc{\noun{\LARGE Faculty of Informatics and Management}}\\
+\vspace*{1em}
+\textsf{\textsc{\noun{\Large Department of Information Technologies }}}
+
+\vspace{15mm}
+
+%\includegraphics[width=0.4\textwidth]{img/logo_uhk}
+
+\vspace{15mm}
+
+
+\textsf{\huge MASTER'S THESIS}{\huge \par}
+
+\vspace{15mm}
+
+
+\textsf{\LARGE Radio Fingerprint Acquisition Using a SmartWatch}{\LARGE \par}
+
+\vspace{10mm}
+
+
+\end{center}
+
+\vspace*{\fill}
+
+
+\vspace{10mm}
+
+
+\begin{description}
+\item [{{\large Author:}}] \noindent \textsf{\large Bc. David Sucharda}{\large \par}
+\item [{{\large Study programme:}}] \noindent \textsf{\large Applied Informatics}{\large \par}
+\item [{{\large Supervisor:}}] \noindent \textsf{\large Ing. Pavel Kříž, Ph.D.}
+
+{\large \bigskip{}
+}\noindent {\large{} Hradec Králové \hspace{\fill}April 2018}\\
+{\large{}
+}{\large \par}
+
+\end{description}
+\clearpage{}
+
+%{\small \thispagestyle{plain}\addcontentsline{toc}{chapter}{Abstrakt} }{\small \par}
+
+\newpage{}\thispagestyle{empty}
+
+{\small %\setcounter{page}{3} % nastavení číslování stránek
+\ }{\small \par}
+
+\noindent {\small \vfill{}
+ % nastavuje dynamické umístění následujícího textu do spodní části stránky
+~}{\small \par}
+
+
+% Declaration in Czech
+\paragraph{Prohlášení}
+
+\noindent {\small \\Prohlašuji, že jsem diplomovou práci vypracoval samostatně a uvedl jsem všechny použité prameny a literaturu.}{\small \par}
+\vspace{5mm}
+
+% Declaration in English
+\paragraph{Declaration}
+
+\noindent {\small \\I declare that I have elaborated this thesis independently and listed all the sources and literature.}{\small \par}
+\vspace{25mm}
+
+% Sign text
+{\small \bigskip{}
+}\noindent {\small{} Hradec Králové day 26th of April 2018\hspace{\fill}Bc. David Sucharda}\\
+{\small{} % doplňte patřičné datum, jméno a příjmení
+}{\small \par}
+
+\clearpage{}
+
+\newpage{}\thispagestyle{empty}
+
+{\small %\setcounter{page}{3} % nastavení číslování stránek
+\ }{\small \par}
+
+\noindent {\small \vfill{}
+ % nastavuje dynamické umístění následujícího textu do spodní části stránky
+~}{\small \par}
+
+\paragraph{Poděkování}
+
+\noindent {\small \\Rád bych zde poděkoval Ing. Pavlu Kříži, Ph.D. za odborné vedení práce, podnětné rady a čas, který mi věnoval.}{\small \par}
+\vspace{5mm}
+
+\paragraph{Thanks}
+
+\noindent {\small \\I would like to thank to Ing. Pavel Křiž, Ph.D. for professional guidance, incentive advices, and the time he gave me.\newpage{}}{\small \par}
+
+\clearpage{}
+
+\newpage{}\thispagestyle{empty}
+
+{\small %\setcounter{page}{3} % nastavení číslování stránek
+\ }{\small \par}
+
+\noindent {\small \vfill{}
+ % nastavuje dynamické umístění následujícího textu do spodní části stránky
+~}{\small \par}
+
+\paragraph{Anotace}
+\noindent\textbf{\small \\Název práce: Sběr ráriových fingerprintů pomocí chytrých hodinek}{\small \par}
+\noindent \\Text.
+
+\paragraph{Annotation}
+\noindent \\Text
+
+\cleardoublepage{}
+
+%\thispagestyle{empty}~{\small \addcontentsline{toc}{chapter}{Zadání
+%práce} }{\small \par}
+
+{\small %%%   Výtisk pak na tomto míste nezapomeňte PODEPSAT!
+%%%                                         *********
+}{\small \par}
+
+\cleardoublepage{}\thispagestyle{empty}{\small
+%\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}%hloubla obsahu
+\pagenumbering{gobble}
+\tableofcontents{}% vkládá automaticky generovaný obsah dokumentu
+\listoffigures{}
+\listoftables{}
+
+\thispagestyle{empty}
+
+\include{tex/chap01}
+
+
+\include{tex/_bib}
+
+
+\addcontentsline{toc}{chapter}{Literature}
+\cleardoublepage{}
+
+%\include{prilohy}
+
+% Include pdf scan of Thesis entry
+%\includepdf[pages={1}]{zadani.pdf}
+
+\end{document}

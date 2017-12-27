@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="cz.uhk.fim.kikm.wearnavigationsimple">
+    package="cz.uhk.fim.kikm.wearnavigation">
 
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <uses-feature
         android:name="android.hardware.bluetooth_le"
@@ -27,10 +31,15 @@
             </intent-filter>
         </activity>
         <activity android:name=".activities.devices.ShowDevicesActivity" />
-        <activity android:name=".activities.bluetoothTest.BluetoothTest" />
+        <activity android:name=".activities.scan.ScanActivity" />
 
-        <service android:name=".model.tasks.BluetoothConnection.BluetoothConnectionService"
+        <service
+            android:name=".model.tasks.bluetoothConnection.BluetoothConnectionService"
             android:exported="false" />
+
+        <service
+            android:name=".model.tasks.FingerprintScanner"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 
 </manifest>
