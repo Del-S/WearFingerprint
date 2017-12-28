@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <android.support.wear.widget.BoxInsetLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -10,18 +9,82 @@
     tools:context="cz.uhk.fim.kikm.wearnavigation.MainActivity"
     tools:deviceIds="wear">
 
-    <FrameLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:orientation="vertical"
         android:padding="@dimen/inner_frame_layout_padding"
         app:boxedEdges="all">
 
         <TextView
-            android:id="@+id/text"
+            android:id="@+id/am_title"
+            android:layout_gravity="center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/hello_world" />
+            android:text="@string/app_name" />
 
-    </FrameLayout>
+        <Button
+            android:id="@+id/am_run_scan"
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Button" />
+
+        <TableLayout
+            android:id="@+id/am_data_content"
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <TableRow>
+                <TextView
+                    android:id="@+id/am_bluetooth_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:text="@string/am_data_bluetooth_title" />
+
+                <TextView
+                    android:id="@+id/am_wireless_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:text="@string/am_data_wireless_title" />
+
+                <TextView
+                    android:id="@+id/am_cellular_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:text="@string/am_data_cellular_title" />
+            </TableRow>
+
+            <TableRow>
+
+                <TextView
+                    android:id="@+id/am_bluetooth_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:text="@string/am_data_count_default" />
+
+                <TextView
+                    android:id="@+id/am_wireless_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:text="@string/am_data_count_default" />
+
+                <TextView
+                    android:id="@+id/am_cellular_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:text="@string/am_data_count_default" />
+            </TableRow>
+
+        </TableLayout>
+
+    </LinearLayout>
 </android.support.wear.widget.BoxInsetLayout>
 
