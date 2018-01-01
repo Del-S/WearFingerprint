@@ -17,7 +17,6 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.telephony.CellInfo;
@@ -34,11 +33,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cz.uhk.fim.kikm.wearnavigation.R;
-import cz.uhk.fim.kikm.wearnavigation.model.BeaconEntry;
-import cz.uhk.fim.kikm.wearnavigation.model.CellularEntry;
-import cz.uhk.fim.kikm.wearnavigation.model.Fingerprint;
-import cz.uhk.fim.kikm.wearnavigation.model.SensorEntry;
-import cz.uhk.fim.kikm.wearnavigation.model.WirelessEntry;
+import cz.uhk.fim.kikm.wearnavigation.model.database.BeaconEntry;
+import cz.uhk.fim.kikm.wearnavigation.model.database.CellularEntry;
+import cz.uhk.fim.kikm.wearnavigation.model.database.Fingerprint;
+import cz.uhk.fim.kikm.wearnavigation.model.database.SensorEntry;
+import cz.uhk.fim.kikm.wearnavigation.model.database.WirelessEntry;
 
 public class FingerprintScanner extends JobService {
 
@@ -119,7 +118,7 @@ public class FingerprintScanner extends JobService {
 
         private int mState = TASK_STATE_NONE;             // Current state variable
 
-        private int mThreadUpdateDelay = 2000;      // This job will post scan progress every 2 seconds
+        private int mThreadUpdateDelay = 1000;      // This job will post scan progress every 1 seconds
         // Delays for Wireless and Sensor scans
         private final int mSensorScanDelay = 25;       // onSensorChanged is called every 200ms so 200 * 25 = 5000ms = 5s
         private final int mWirelessDelay = 4000;       // Wireless time delay in ms (4s = 4000ms). Connected to mThreadUpdateDelay.
@@ -246,8 +245,8 @@ public class FingerprintScanner extends JobService {
 
         @Override
         protected void onProgressUpdate(Void... values) {
-            // Calculate scan length into seconds for display
-            int scanLengthSeconds = (int) (mScanLength / 1000);
+            // Get scanLength as int
+            int maxTime = (int) mScanLength;
 
             // Create ScanProgress instance if it does not exist
             if(mScanProgress == null) {
@@ -257,8 +256,8 @@ public class FingerprintScanner extends JobService {
             // Set current variables into the ScanProgress
             mScanProgress.setState(mState);                          // Set current state
             mScanProgress.setStateString( getStateAsString() );      // Set current state (string) of this job
-            mScanProgress.setScanLength(scanLengthSeconds);          // Set length of the scan (usually stays the same)
-            mScanProgress.setCurrentTime( getCurrentTimeAsSeconds(scanLengthSeconds) );     // Set current time in the scan
+            mScanProgress.setScanLength(maxTime);          // Set length of the scan (usually stays the same)
+            mScanProgress.setCurrentTime( getCurrentTime(maxTime) );     // Set current time in the scan
             // Set entries count
             mScanProgress.setBeaconCount( mFingerprint.getBeaconEntries().size() );         // Sets beacon count
             mScanProgress.setWirelessCount( mFingerprint.getWirelessEntries().size() );     // Sets wireless counts
@@ -297,18 +296,18 @@ public class FingerprintScanner extends JobService {
         }
 
         /**
-         * Calculates the current time into seconds for display as progress.
+         * Calculates the current time based on status.
          * Used in progress bar to display progress.
          *
          * @param maxTime so we don't move over it
-         * @return int seconds of current time
+         * @return int milliseconds of current time
          */
-        private int getCurrentTimeAsSeconds(int maxTime) {
+        private int getCurrentTime(int maxTime) {
             switch (mState) {
                 case TASK_STATE_DONE:
                     return maxTime;
                 case TASK_STATE_RUNNING:
-                    int currentTime = (int) ((System.currentTimeMillis() - mStartTime) / 1000);  // Calculate and set current time in seconds
+                    int currentTime = (int) (System.currentTimeMillis() - mStartTime);  // Calculate and set current time in milliseconds
                     if(currentTime > maxTime) {
                         currentTime = maxTime;
                     }

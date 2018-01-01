@@ -4,52 +4,61 @@ import android.Manifest;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.IBinder;
 import android.os.PersistableBundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
-import android.widget.Button;
+import android.view.View;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.wearable.CapabilityClient;
+import com.google.android.gms.wearable.CapabilityInfo;
+import com.google.android.gms.wearable.DataClient;
+import com.google.android.gms.wearable.DataEvent;
+import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.MessageClient;
+import com.google.android.gms.wearable.MessageEvent;
+import com.google.android.gms.wearable.Wearable;
 import com.google.gson.Gson;
 
-import cz.uhk.fim.kikm.wearnavigation.model.Fingerprint;
-import cz.uhk.fim.kikm.wearnavigation.model.LocationEntry;
+import java.util.UUID;
+
+import cz.uhk.fim.kikm.wearnavigation.model.database.Fingerprint;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.ScanProgress;
-import cz.uhk.fim.kikm.wearnavigation.model.tasks.bluetoothConnection.BluetoothConnectionHandler;
-import cz.uhk.fim.kikm.wearnavigation.model.tasks.bluetoothConnection.BluetoothConnectionInterface;
-import cz.uhk.fim.kikm.wearnavigation.model.tasks.bluetoothConnection.BluetoothConnectionService;
+import cz.uhk.fim.kikm.wearnavigation.utils.ParcelableUtils;
+import cz.uhk.fim.kikm.wearnavigation.utils.ProgressBarAnimation;
 
-public class MainActivity extends WearableActivity implements BluetoothConnectionInterface {
+public class MainActivity extends WearableActivity implements
+        DataClient.OnDataChangedListener,
+        MessageClient.OnMessageReceivedListener,
+        CapabilityClient.OnCapabilityChangedListener {
+
+    private static final String TAG = "MainActivity";
 
     // Request permissions parameters
     private final int REQUEST_ENABLE_BT = 1000;         // Bluetooth check request code
     private final int REQUEST_ACCESS_LOCATION = 1001;   // Request access to coarse location
 
-    // Bluetooth device communication
-    private final Handler mHandler = new BluetoothConnectionHandler(this);  // Handler for Bluetooth connection service using this as interface
-    private BluetoothConnectionService mService = null;
-
-    // Scanner count to display
-    private TextView mBluetoothCount;       // Display Bluetooth device count
-    private TextView mWirelessCount;        // Display Wireless device count
-    private TextView mCellularCount;        // Display Cellular tower count
-    private Button mRunScan;                // Runs a new fingerprint scan
+    private TextView mIntro;                    // Intro before scan is initiated
+    private RelativeLayout mProgressContent;    // Content holding all scanning progress data
+    private TextView mProgressStatus;           // Status of scanning
+    private ProgressBar mProgressBar;           // Progress bar of scanning
+    private TextView mProgressPercent;          // Progress in percentage
+    private ProgressBarAnimation mProgressAnimation;
 
     // Scanner variables
     private JobScheduler jobScheduler;          // JobScheduler used to run FingerprintScanner
@@ -63,22 +72,21 @@ public class MainActivity extends WearableActivity implements BluetoothConnectio
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Load count widgets
-        mBluetoothCount = findViewById(R.id.am_bluetooth_count);
-        mWirelessCount = findViewById(R.id.am_wireless_count);
-        mCellularCount = findViewById(R.id.am_cellular_count);
-
         // Run fingerprint scanner job
         jobBuilder = ((WearApplication) getApplicationContext()).getFingerprintJob();   // Load scanner job from Application
-        mRunScan = findViewById(R.id.am_run_scan);      // Find button to trigger the scan
-        mRunScan.setOnClickListener(v -> {              // Add onClick listener to run the scan
-            runFingerprintScanner(0,0);      // Trigger the scan with dummy values
-            mRunScan.setEnabled(false);                 // Disable multiple scan runs
-        });
-
         // Load system services
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);    // Load location manager
         jobScheduler = (JobScheduler) getSystemService( Context.JOB_SCHEDULER_SERVICE );        // Load JobScheduler
+
+        // Load displays
+        mIntro = findViewById(R.id.am_intro);
+        mProgressContent = findViewById(R.id.am_progress_content);
+        mProgressStatus = findViewById(R.id.am_progress_status);
+        mProgressBar = findViewById(R.id.am_progress);
+        mProgressPercent = findViewById(R.id.am_progress_percent);
+
+        // Set progress bar animation
+        mProgressAnimation = new ProgressBarAnimation(mProgressBar, 1000);
 
         // Enables Always-on
         setAmbientEnabled();
@@ -87,15 +95,91 @@ public class MainActivity extends WearableActivity implements BluetoothConnectio
         checkLocationPermissions(); // Location permission check
     }
 
-    /**
-     * Asks for permission to access Coarse and Fine location
-     */
-    protected void checkLocationPermissions() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
-                    REQUEST_ACCESS_LOCATION);
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Register scanner receiver to display state of the scan
+        IntentFilter filter = new IntentFilter(FingerprintScanner.ACTION_POST_PROGRESS);
+        mReceiver = new ScannerProgressReceiver();
+        this.registerReceiver(mReceiver, filter);
+
+        //new Handler().postDelayed(() -> runFingerprintScanner(0,0), 500);
+        // Instantiates clients without member variables, as clients are inexpensive to create and
+        // won't lose their listeners. (They are cached and shared between GoogleApi instances.)
+        Wearable.getDataClient(this).addListener(this);
+        Wearable.getMessageClient(this).addListener(this);
+        Wearable.getCapabilityClient(this)
+                .addListener(
+                        this, Uri.parse("wear://"), CapabilityClient.FILTER_REACHABLE);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        // Unregister scanner receiver
+        if(mReceiver != null) {
+            try {
+                this.unregisterReceiver(mReceiver);
+            } catch (RuntimeException e) {
+                Log.e("MainActivity", "Cannot unregister receiver.", e);
+            }
+        }
+
+        Wearable.getDataClient(this).removeListener(this);
+        Wearable.getMessageClient(this).removeListener(this);
+        Wearable.getCapabilityClient(this).removeListener(this);
+    }
+
+    @Override
+    public void onMessageReceived(MessageEvent event) {
+        Log.d(TAG, "onMessageReceived: " + event);
+    }
+
+    @Override
+    public void onCapabilityChanged(CapabilityInfo capabilityInfo) {
+        Log.d(TAG, "onCapabilityChanged: " + capabilityInfo);
+    }
+
+    @Override
+    public void onDataChanged(DataEventBuffer dataEvents) {
+        Log.d(TAG, "onDataChanged(): " + dataEvents);
+
+        for (DataEvent event : dataEvents) {
+            if (event.getType() == DataEvent.TYPE_CHANGED) {
+                String path = event.getDataItem().getUri().getPath();
+                if (DataLayerListenerService.SCAN_PATH.equals(path)) {
+                    DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
+                    int scanStatus = dataMapItem.getDataMap().getInt(DataLayerListenerService.SCAN_STATUS_KEY);
+                    Log.d(TAG, "Scan status: " + scanStatus);
+                    Fingerprint fingerprint = ParcelableUtils.getParcelable(dataMapItem.getDataMap(),
+                            DataLayerListenerService.SCAN_DATA,
+                            Fingerprint.CREATOR);
+
+                    runFingerprintScanner(fingerprint);
+                    Log.d(TAG, fingerprint.toString());
+
+                } else if (DataLayerListenerService.COUNT_PATH.equals(path)) {
+                    DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
+                    Fingerprint fingerprint = ParcelableUtils.getParcelable(dataMapItem.getDataMap(),
+                            DataLayerListenerService.SCAN_DATA,
+                            Fingerprint.CREATOR);
+
+                    runFingerprintScanner(fingerprint);
+                    Log.d(TAG, fingerprint.toString());
+
+                    Log.d(TAG, "Data Changed for COUNT_PATH");
+                } else {
+                    Log.d(TAG, "Unrecognized path: " + path);
+                }
+
+            } else if (event.getType() == DataEvent.TYPE_DELETED) {
+                Log.d(TAG, "DataItem Deleted: " + event.getDataItem().toString());
+            } else {
+                Log.d(TAG, "Unknown data event Type = " + event.getType());
+            }
         }
     }
 
@@ -103,15 +187,13 @@ public class MainActivity extends WearableActivity implements BluetoothConnectio
      * Builds and runs the FingerprintScanner job.
      * Creates Fingerprint based on position in the map and sends it into the scanner.
      *
-     * @param posX in the map
-     * @param posY in the map
+     * @param fingerprint to save scan data to
      */
-    private void runFingerprintScanner(int posX, int posY) {
-        // Create fingerprint for scanning
-        Fingerprint fingerprint = new Fingerprint();
-        fingerprint.setLocationEntry(new LocationEntry("J3NP"));
-        fingerprint.setX(posX);
-        fingerprint.setY(posY);
+    private void runFingerprintScanner(Fingerprint fingerprint) {
+        // Creating new id for this scan
+        fingerprint.setId(UUID.randomUUID());
+
+        displayScanView(true);
 
         // Getting last knows location from Network
         double[] lastKnownLocation = {0, 0};
@@ -137,31 +219,18 @@ public class MainActivity extends WearableActivity implements BluetoothConnectio
         jobScheduler.schedule(jobBuilder.build());      // Schedule job to run
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // Bind to BluetoothConnectionService
-        Intent intent = new Intent(this, BluetoothConnectionService.class);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-
-        // Register scanner receiver to display state of the scan
-        IntentFilter filter = new IntentFilter(FingerprintScanner.ACTION_POST_PROGRESS);
-        mReceiver = new ScannerProgressReceiver();
-        this.registerReceiver(mReceiver, filter);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        unbindService(mConnection);
-
-        // Unregister scanner receiver
-        if(mReceiver != null) {
-            try {
-                this.unregisterReceiver(mReceiver);
-            } catch (RuntimeException e) {
-                Log.e("MainActivity", "Cannot unregister receiver.", e);
-            }
+    /**
+     * Changes display or hide based on if the scan us running or not.
+     *
+     * @param show true/false
+     */
+    private void displayScanView(boolean show) {
+        if(show) {
+            mIntro.setVisibility(View.GONE);
+            mProgressContent.setVisibility(View.VISIBLE);
+        } else {
+            mIntro.setVisibility(View.VISIBLE);
+            mProgressContent.setVisibility(View.GONE);
         }
     }
 
@@ -179,41 +248,19 @@ public class MainActivity extends WearableActivity implements BluetoothConnectio
                     ScanProgress scanProgress = intent.getExtras().getParcelable(FingerprintScanner.ACTION_DATA);
 
                     if (scanProgress != null) {
-                        // Display count numbers
-                        mBluetoothCount.setText(String.valueOf(scanProgress.getBeaconCount()));
-                        mWirelessCount.setText(String.valueOf(scanProgress.getWirelessCount()));
-                        mCellularCount.setText(String.valueOf(scanProgress.getCellularCount()));
+                        int progressMax = scanProgress.getScanLength();
+                        int progressCurrent = scanProgress.getCurrentTime();
+                        int progressPercent = (int) (((double) progressCurrent / (double) progressMax) * 100);
 
-                        // Enable new scan if current one is done
-                        if(scanProgress.getState() == FingerprintScanner.TASK_STATE_DONE) {
-                            mRunScan.setEnabled(true);
-                        }
+                        mProgressStatus.setText(scanProgress.getStateString());
+                        mProgressBar.setMax(progressMax);
+                        mProgressAnimation.setProgress(progressCurrent);
+                        mProgressPercent.setText(String.format( getResources().getString(R.string.am_progress_percent), progressPercent));
                     }
                 }
             }
         }
     }
-
-    private ServiceConnection mConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            mService = ((BluetoothConnectionService.LocalBinder)iBinder).getInstance();
-            mService.setHandler(mHandler);
-
-            // Connect to the device
-            BluetoothDevice device = null;
-            if(device != null) {
-                mService.connect(device);
-            } else {
-                mService.start();
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            mService = null;
-        }
-    };
 
     /**
      * Checking if the device has bluetooth and if it is enabled.
@@ -248,6 +295,20 @@ public class MainActivity extends WearableActivity implements BluetoothConnectio
         }
     }
 
+
+    /**
+     * Asks for permission to access Coarse and Fine location
+     */
+    protected void checkLocationPermissions() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_ACCESS_LOCATION);
+        }
+    }
+
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -262,30 +323,5 @@ public class MainActivity extends WearableActivity implements BluetoothConnectio
                 }
                 break;
         }
-    }
-
-    @Override
-    public void deviceConnected(BluetoothDevice device) {
-        Toast.makeText(this, "Connected device: " + device.getAddress(), Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void connectionFailed(BluetoothDevice device) {
-        Toast.makeText(this, "Connection failed device: " + device.getAddress(), Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void connectionFailed() {
-        Toast.makeText(this, "Connection failed.", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void messageReceived(String message) {
-        Toast.makeText(this, "You got a message: " + message, Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void messageSend(String message) {
-        Toast.makeText(this, "You send a message: " + message, Toast.LENGTH_SHORT).show();
     }
 }

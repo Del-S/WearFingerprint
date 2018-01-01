@@ -1,4 +1,7 @@
-package cz.uhk.fim.kikm.wearnavigation.model;
+package cz.uhk.fim.kikm.wearnavigation.model.database;
+
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import com.google.gson.annotations.Expose;
 
@@ -7,7 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class Fingerprint {
+public class Fingerprint implements Parcelable {
 
     // Variables of this class
     @Expose(serialize = false)
@@ -45,6 +48,58 @@ public class Fingerprint {
         // Set device
         deviceEntry = DeviceEntry.createInstance();
     }
+
+    private Fingerprint(Parcel in) {
+        dbId = in.readInt();
+        x = in.readInt();
+        y = in.readInt();
+        scanStart = in.readLong();
+        scanEnd = in.readLong();
+        level = in.readString();
+        location_id = in.readLong();
+        locationEntry = in.readParcelable(LocationEntry.class.getClassLoader());
+        device_id = in.readLong();
+        deviceEntry = in.readParcelable(DeviceEntry.class.getClassLoader());
+        beaconEntries = in.createTypedArrayList(BeaconEntry.CREATOR);
+        wirelessEntries = in.createTypedArrayList(WirelessEntry.CREATOR);
+        cellularEntries = in.createTypedArrayList(CellularEntry.CREATOR);
+        sensorEntries = in.createTypedArrayList(SensorEntry.CREATOR);
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(dbId);
+        dest.writeInt(x);
+        dest.writeInt(y);
+        dest.writeLong(scanStart);
+        dest.writeLong(scanEnd);
+        dest.writeString(level);
+        dest.writeLong(location_id);
+        dest.writeParcelable(locationEntry, flags);
+        dest.writeLong(device_id);
+        dest.writeParcelable(deviceEntry, flags);
+        dest.writeTypedList(beaconEntries);
+        dest.writeTypedList(wirelessEntries);
+        dest.writeTypedList(cellularEntries);
+        dest.writeTypedList(sensorEntries);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<Fingerprint> CREATOR = new Creator<Fingerprint>() {
+        @Override
+        public Fingerprint createFromParcel(Parcel in) {
+            return new Fingerprint(in);
+        }
+
+        @Override
+        public Fingerprint[] newArray(int size) {
+            return new Fingerprint[size];
+        }
+    };
 
     public int getDbId() {
         return dbId;

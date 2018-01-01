@@ -3,30 +3,11 @@ package cz.uhk.fim.kikm.wearnavigation.model.database;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.Expose;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
-@JsonIgnoreProperties(value = { "technology" })
 public class WirelessEntry implements Parcelable {
-
-    // Database labels for database
-    public final static String DB_TABLE = "wireless";
-    public final static String DB_ID = "id";
-    public final static String DB_FINGERPRINT_DB_ID = "fingerprintId";
-    public final static String DB_SSID = "ssid";
-    public final static String DB_BSSID = "bssid";
-    public final static String DB_RSSI = "rssi";
-    public final static String DB_FREQUENCY = "frequency";
-    public final static String DB_CHANNEL = "channel";
-    public final static String DB_DISTANCE = "distance";
-    public final static String DB_TIMESTAMP = "timestamp";
-    public final static String DB_SCAN_TIME = "scanTime";
-    public final static String DB_SCAN_DIFFERENCE = "scanDifference";
 
     // Variables of this class
     @Expose(serialize = false)
@@ -39,23 +20,29 @@ public class WirelessEntry implements Parcelable {
     private int channel;        // Channel on which access point broadcasts
     private float distance;     // Distance between access point and device
     private long timestamp;     // Device was found at this timestamp
-    @JsonProperty("time")
     private long scanTime;      // Device was found at this time during the scan (seconds)
     /**
      * Difference between scanTime and last scanDifference (device based by bssid).
      * Informs about the time difference between this entry and previous one.
      */
-    @JsonProperty("difference")
     private long scanDifference;
 
     // Default constructor used for Gson
     public WirelessEntry() {
     }
 
-
-    @Override
-    public int describeContents() {
-        return 0;
+    private WirelessEntry(Parcel in) {
+        id = in.readInt();
+        fingerprintId = in.readInt();
+        ssid = in.readString();
+        bssid = in.readString();
+        rssi = in.readInt();
+        frequency = in.readInt();
+        channel = in.readInt();
+        distance = in.readFloat();
+        timestamp = in.readLong();
+        scanTime = in.readLong();
+        scanDifference = in.readLong();
     }
 
     @Override
@@ -73,18 +60,9 @@ public class WirelessEntry implements Parcelable {
         dest.writeLong(scanDifference);
     }
 
-    private WirelessEntry(Parcel in) {
-        id = in.readInt();
-        fingerprintId = in.readInt();
-        ssid = in.readString();
-        bssid = in.readString();
-        rssi = in.readInt();
-        frequency = in.readInt();
-        channel = in.readInt();
-        distance = in.readFloat();
-        timestamp = in.readLong();
-        scanTime = in.readLong();
-        scanDifference = in.readLong();
+    @Override
+    public int describeContents() {
+        return 0;
     }
 
     public static final Creator<WirelessEntry> CREATOR = new Creator<WirelessEntry>() {
@@ -188,7 +166,7 @@ public class WirelessEntry implements Parcelable {
     }
 
     @Override
-    public boolean equals(java.lang.Object o) {
+    public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
@@ -229,7 +207,7 @@ public class WirelessEntry implements Parcelable {
      * Convert the given object to string with each line indented by 4 spaces
      * (except the first line).
      */
-    private String toIndentedString(java.lang.Object o) {
+    private String toIndentedString(Object o) {
         if (o == null) {
             return "null";
         }

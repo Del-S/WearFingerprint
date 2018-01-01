@@ -124,6 +124,9 @@ public class FingerprintScanner extends JobService {
 
         private int mState = TASK_STATE_NONE;             // Current state variable
 
+        private int mThreadUpdateDelay = 2000;      // This job will post scan progress every 2 seconds
+        private final int mSensorScanDelay = 25;    // Delay for sensor scanner. OnSensorChanged is called every 200ms so 200 * 25 = 5000ms = 5s
+
         ScannerTask(Fingerprint fingerprint, long scanLength, double[] location) {
             Context context = getApplicationContext();      // Load application context to bind listeners, get managers, etc.
 
@@ -205,7 +208,7 @@ public class FingerprintScanner extends JobService {
                 if (!isCancelled()) {               // If this task is cancelled
                     try {
                         publishProgress();          // Update progress information
-                        Thread.sleep(2000);   // Pause thread for a second
+                        Thread.sleep(mThreadUpdateDelay);   // Pause thread for a second
                     } catch (InterruptedException e) {
                         Log.e("FingerprintScanner", "Cannot run sleep() in interrupted thread", e);
                         return null;
@@ -510,7 +513,7 @@ public class FingerprintScanner extends JobService {
                 if (sensorTimer.get(sensorType) <= 0) {
                     // This ensured that new sensor record will be handled every 5seconds
                     // onSensorChanged is called every 200ms so 200 * 25 = 5000ms = 5s
-                    sensorTimer.put(sensorType, 25);
+                    sensorTimer.put(sensorType, mSensorScanDelay);
 
                     // Calculate time variables
                     long timestamp = System.currentTimeMillis();

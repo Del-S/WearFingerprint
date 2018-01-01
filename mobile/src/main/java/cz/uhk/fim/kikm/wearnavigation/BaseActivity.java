@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.design.internal.BottomNavigationItemView;
 import android.support.design.internal.BottomNavigationMenuView;
@@ -24,6 +25,15 @@ import android.view.View;
 import android.view.Window;
 import android.widget.Toast;
 
+import com.google.android.gms.wearable.CapabilityClient;
+import com.google.android.gms.wearable.CapabilityInfo;
+import com.google.android.gms.wearable.DataClient;
+import com.google.android.gms.wearable.DataEvent;
+import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.MessageClient;
+import com.google.android.gms.wearable.MessageEvent;
+import com.google.android.gms.wearable.Wearable;
+
 import java.lang.reflect.Field;
 
 import cz.uhk.fim.kikm.wearnavigation.activities.devices.ShowDevicesActivity;
@@ -35,7 +45,10 @@ import cz.uhk.fim.kikm.wearnavigation.model.tasks.ScanProgress;
 import cz.uhk.fim.kikm.wearnavigation.utils.AnimationHelper;
 import cz.uhk.fim.kikm.wearnavigation.utils.SimpleDialogHelper;
 
-public abstract class BaseActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener {
+public abstract class BaseActivity extends AppCompatActivity implements
+        BottomNavigationView.OnNavigationItemSelectedListener,
+        DataClient.OnDataChangedListener,
+        CapabilityClient.OnCapabilityChangedListener {
 
     // Log tag
     private static final String TAG = "BaseActivity";
@@ -75,10 +88,8 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
         mConfiguration = ((WearApplication) getApplicationContext()).getConfiguration();
         jobBuilder = ((WearApplication) getApplicationContext()).getFingerprintJob();
 
-        // Bluetooth check
-        checkBluetooth();
-        // Cellular check
-        checkLocationPermissions();
+        checkBluetooth();           // Bluetooth check
+        checkLocationPermissions(); // Location permission check
     }
 
     @Override
@@ -95,6 +106,13 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
         IntentFilter filter = new IntentFilter(FingerprintScanner.ACTION_POST_PROGRESS);
         mReceiver = new ScannerProgressReceiver();
         this.registerReceiver(mReceiver, filter);
+
+        // Instantiates clients without member variables, as clients are inexpensive to create and
+        // won't lose their listeners. (They are cached and shared between GoogleApi instances.)
+        Wearable.getDataClient(this).addListener(this);
+        Wearable.getCapabilityClient(this)
+                .addListener(
+                        this, Uri.parse("wear://"), CapabilityClient.FILTER_REACHABLE);
     }
 
     @Override
@@ -110,6 +128,9 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
                 Log.e(TAG, "Cannot unregister receiver.", e);
             }
         }
+
+        Wearable.getDataClient(this).removeListener(this);
+        Wearable.getCapabilityClient(this).removeListener(this);
     }
 
     @Override
@@ -301,6 +322,31 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
         }
     }
 
+    @Override
+    public void onDataChanged(DataEventBuffer dataEvents) {
+        Log.d(TAG, "onDataChanged: " + dataEvents);
+
+        for (DataEvent event : dataEvents) {
+            if (event.getType() == DataEvent.TYPE_CHANGED) {
+                Log.d(TAG,"DataItem Changed: " + event.getDataItem().toString());
+            } else if (event.getType() == DataEvent.TYPE_DELETED) {
+                Log.d(TAG,"DataItem Deleted" + event.getDataItem().toString());
+            }
+        }
+    }
+
+    @Override
+    public void onCapabilityChanged(final CapabilityInfo capabilityInfo) {
+        Log.d(TAG, "onCapabilityChanged: " + capabilityInfo);
+
+        //mDataItemListAdapter.add(new Event("onCapabilityChanged", capabilityInfo.toString()));
+    }
+
+
+    /**
+     * This receiver gets information from currently running Fingerprint scan and displays it.
+     * Display is handled via AnimationHelper.
+     */
     public class ScannerProgressReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(final Context context, final Intent intent) {

@@ -1,13 +1,15 @@
-package cz.uhk.fim.kikm.wearnavigation.model;
+package cz.uhk.fim.kikm.wearnavigation.model.database;
 
 import android.os.Build;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import com.google.gson.annotations.Expose;
 
 import java.util.Objects;
 
-public class DeviceEntry {
+public class DeviceEntry implements Parcelable {
 
     // Variables of this class
     @Expose(serialize = false)
@@ -56,6 +58,56 @@ public class DeviceEntry {
         this.os = Build.VERSION.CODENAME + "-" + Build.VERSION.RELEASE;
         this.api = Build.VERSION.SDK_INT;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(dbId);
+        dest.writeString(type);
+        dest.writeString(deviceId);
+        dest.writeString(deviceName);
+        dest.writeString(model);
+        dest.writeString(brand);
+        dest.writeString(manufacturer);
+        dest.writeString(display);
+        dest.writeString(hardware);
+        dest.writeString(serialNumber);
+        dest.writeString(deviceFingerprint);
+        dest.writeString(os);
+        dest.writeInt(api);
+    }
+
+    private DeviceEntry(Parcel in) {
+        dbId = in.readInt();
+        type = in.readString();
+        deviceId = in.readString();
+        deviceName = in.readString();
+        model = in.readString();
+        brand = in.readString();
+        manufacturer = in.readString();
+        display = in.readString();
+        hardware = in.readString();
+        serialNumber = in.readString();
+        deviceFingerprint = in.readString();
+        os = in.readString();
+        api = in.readInt();
+    }
+
+    public static final Creator<DeviceEntry> CREATOR = new Creator<DeviceEntry>() {
+        @Override
+        public DeviceEntry createFromParcel(Parcel in) {
+            return new DeviceEntry(in);
+        }
+
+        @Override
+        public DeviceEntry[] newArray(int size) {
+            return new DeviceEntry[size];
+        }
+    };
 
     public int getDbId() {
         return dbId;

@@ -11,11 +11,9 @@ import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
-import cz.uhk.fim.kikm.wearnavigation.model.tasks.bluetoothConnection.BluetoothConnectionService;
 
 public class WearApplication extends Application {
 
-    private static BluetoothConnectionService sService; // Bluetooth communication service
     private BackgroundPowerSaver backgroundPowerSaver;  // Power saver for BeaconLibrary
     private JobInfo.Builder jobBuilder;                 // Specific job to run via JobScheduler
 
@@ -49,19 +47,5 @@ public class WearApplication extends Application {
      */
     public JobInfo.Builder getFingerprintJob() {
         return jobBuilder;
-    }
-
-    /**
-     * Get bluetooth connection service to be able to communicate with wear devices
-     *
-     * @param context
-     * @return
-     */
-    public static BluetoothConnectionService getConnectionService(Context context) {
-        if(sService == null) {
-            // Construct communication service
-            sService = new BluetoothConnectionService();
-        }
-        return sService;
     }
 }

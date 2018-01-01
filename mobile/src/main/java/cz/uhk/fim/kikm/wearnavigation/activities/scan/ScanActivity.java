@@ -1,18 +1,14 @@
 package cz.uhk.fim.kikm.wearnavigation.activities.scan;
 
 import android.Manifest;
-import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.v4.app.ActivityCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageButton;
@@ -36,13 +32,17 @@ import cz.uhk.fim.kikm.wearnavigation.model.database.LocationEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseDataInterface;
 import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseDataLoader;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
+import cz.uhk.fim.kikm.wearnavigation.utils.wearCommunication.WearDataSender;
 
 /**
  * Displays map with fingerprints and enables different actions with them.
  * - See information about selected fingerprints (based on location)
  * - Create a new fingerprint
  */
-public class ScanActivity extends BaseActivity implements DatabaseDataInterface<List<Fingerprint>> {
+public class ScanActivity extends BaseActivity implements
+        DatabaseDataInterface<List<Fingerprint>> {
+
+    private static final String DATA_ACTIVITY_STARTED = "/start-activity-complete";
 
     // Map stuff
     private TileView mMap;                      // Map view
@@ -53,11 +53,12 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
     private final int MAP_WIDTH = 3000;
     private final int MAP_HEIGHT = 3000;
 
-    private Gson gson = new Gson();             // Class to json (and reverse) parser
+    private final Gson gson = new Gson();       // Class to json (and reverse) parser
     private JobScheduler jobScheduler;          // JobScheduler used to run FingerprintScanner
+    private LocationManager locationManager;    // Location manager to get location from the network
 
-    // Location manager to get location from the network
-    private LocationManager locationManager;
+    private WearDataSender mWearDataSender;
+    private Fingerprint mNewFingerprint;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +70,8 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
         // Load location manager
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         jobScheduler = (JobScheduler) getSystemService( Context.JOB_SCHEDULER_SERVICE );
+
+        mWearDataSender = new WearDataSender(this);
     }
 
     @Override
@@ -196,8 +199,10 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
         buttonCreate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                runFingerprintScanner(posX, posY);          // Triggers a fingerprint scanner job
-                mMap.getCalloutLayout().removeAllViews();   // Remove single does not work :(
+                Fingerprint fingerprint = buildFingerprint(posX, posY);     // Build fingerprint to save scan data to
+                //runLocalFingerprintScanner(fingerprint);                  // Triggers a fingerprint scanner job on the phone
+                mWearDataSender.initiateScanStart(mNewFingerprint);         // Triggers scan on wear device
+                mMap.getCalloutLayout().removeAllViews();                   // Remove single does not work :(
             }
         });
 
@@ -261,8 +266,10 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
         buttonCreate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                runFingerprintScanner(posX, posY);          // Triggers a fingerprint scanner job
-                mMap.getCalloutLayout().removeAllViews();   // Remove single does not work :(
+                Fingerprint fingerprint = buildFingerprint(posX, posY);     // Build fingerprint to save scan data to
+                //runLocalFingerprintScanner(fingerprint);                  // Triggers a fingerprint scanner job on the phone
+                mWearDataSender.initiateScanStart(mNewFingerprint);         // Triggers scan on wear device
+                mMap.getCalloutLayout().removeAllViews();                   // Remove single does not work :(
             }
         });
 
@@ -280,20 +287,30 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
     }
 
     /**
+     * Creates fingerprint for scanning. Sets all necessary data for scanning.
+     *
+     * @param posX of fingerprint
+     * @param posY of fingerprint
+     * @return Fingerprint to add scan data to
+     */
+    private Fingerprint buildFingerprint(int posX, int posY) {
+        // Create fingerprint for scanning
+        mNewFingerprint = new Fingerprint();
+        // TODO: have a setter for building and floor
+        mNewFingerprint.setLocationEntry(new LocationEntry("J3NP"));
+        mNewFingerprint.setX(posX);
+        mNewFingerprint.setY(posY);
+
+        return mNewFingerprint;
+    }
+
+    /**
      * Builds and runs the FingerprintScanner job.
      * Creates Fingerprint based on position in the map and sends it into the scanner.
      *
-     * @param posX in the map
-     * @param posY in the map
+     * @param fingerprint to save scan data to
      */
-    private void runFingerprintScanner(int posX, int posY) {
-        // Create fingerprint for scanning
-        Fingerprint fingerprint = new Fingerprint();
-        // TODO: have a setter for building and floor
-        fingerprint.setLocationEntry(new LocationEntry("J3NP"));
-        fingerprint.setX(posX);
-        fingerprint.setY(posY);
-
+    private void runLocalFingerprintScanner(Fingerprint fingerprint) {
         // Getting last knows location from Network
         double[] lastKnownLocation = {0, 0};
         if (locationManager != null &&

@@ -1,21 +1,21 @@
-package cz.uhk.fim.kikm.wearnavigation.model;
+package cz.uhk.fim.kikm.wearnavigation.model.database;
+
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import com.google.gson.annotations.Expose;
 
 import java.util.Objects;
 
-public class WirelessEntry {
+public class BeaconEntry implements Parcelable {
 
     // Variables of this class
     @Expose(serialize = false)
-    private int id;             // Database id (its inner id and it is not exported)
+    private long id;            // Database id (its inner id and it is not exported)
     private int fingerprintId;  // If of fingerprint that this entry belongs to
-    private String ssid;        // Wifi network public ssid
-    private String bssid;       // The address of the access point
-    private int rssi;           // Signal strength of the access point
-    private int frequency;      // Frequency on which access point broadcasts
-    private int channel;        // Channel on which access point broadcasts
-    private float distance;     // Distance between access point and device
+    private String bssid;       // Bssid (MAC) address of the beacon
+    private float distance;     // Distance of the beacon from the device
+    private int rssi;           // Signal strength of the beacon
     private long timestamp;     // Device was found at this timestamp
     private long scanTime;      // Device was found at this time during the scan (seconds)
     /**
@@ -25,14 +25,59 @@ public class WirelessEntry {
     private long scanDifference;
 
     // Default constructor used for Gson
-    public WirelessEntry() {
+    public BeaconEntry() {
     }
 
-    public int getId() {
+    // Default constructor used for Gson
+    public BeaconEntry(String bssid) {
+        this.bssid = bssid;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(id);
+        dest.writeInt(fingerprintId);
+        dest.writeString(bssid);
+        dest.writeFloat(distance);
+        dest.writeInt(rssi);
+        dest.writeLong(timestamp);
+        dest.writeLong(scanTime);
+        dest.writeLong(scanDifference);
+    }
+
+    private BeaconEntry(Parcel in) {
+        id = in.readLong();
+        fingerprintId = in.readInt();
+        bssid = in.readString();
+        distance = in.readFloat();
+        rssi = in.readInt();
+        timestamp = in.readLong();
+        scanTime = in.readLong();
+        scanDifference = in.readLong();
+    }
+
+    public static final Creator<BeaconEntry> CREATOR = new Creator<BeaconEntry>() {
+        @Override
+        public BeaconEntry createFromParcel(Parcel in) {
+            return new BeaconEntry(in);
+        }
+
+        @Override
+        public BeaconEntry[] newArray(int size) {
+            return new BeaconEntry[size];
+        }
+    };
+
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -44,14 +89,6 @@ public class WirelessEntry {
         this.fingerprintId = fingerprintId;
     }
 
-    public String getSsid() {
-        return ssid;
-    }
-
-    public void setSsid(String ssid) {
-        this.ssid = ssid;
-    }
-
     public String getBssid() {
         return bssid;
     }
@@ -60,36 +97,20 @@ public class WirelessEntry {
         this.bssid = bssid;
     }
 
-    public int getRssi() {
-        return rssi;
-    }
-
-    public void setRssi(int rssi) {
-        this.rssi = rssi;
-    }
-
-    public int getFrequency() {
-        return frequency;
-    }
-
-    public void setFrequency(int frequency) {
-        this.frequency = frequency;
-    }
-
-    public int getChannel() {
-        return channel;
-    }
-
-    public void setChannel(int channel) {
-        this.channel = channel;
-    }
-
     public float getDistance() {
         return distance;
     }
 
     public void setDistance(float distance) {
         this.distance = distance;
+    }
+
+    public int getRssi() {
+        return rssi;
+    }
+
+    public void setRssi(int rssi) {
+        this.rssi = rssi;
     }
 
     public long getTimestamp() {
@@ -125,29 +146,23 @@ public class WirelessEntry {
             return false;
         }
 
-        WirelessEntry wirelessEntry = (WirelessEntry) o;
-        return Objects.equals(this.ssid, wirelessEntry.ssid) &&
-                Objects.equals(this.bssid, wirelessEntry.bssid) &&
-                Objects.equals(this.frequency, wirelessEntry.frequency) &&
-                Objects.equals(this.channel, wirelessEntry.channel);
+        BeaconEntry beaconEntry = (BeaconEntry) o;
+        return Objects.equals(this.bssid, beaconEntry.bssid);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ssid, bssid, frequency, channel);
+        return Objects.hash(bssid);
     }
 
 
     @Override
     public String toString() {
-        return "class WirelessEntry {\n" +
+        return "class BeaconEntry {\n" +
                 "    dbId: " + toIndentedString(id) + "\n" +
-                "    ssid: " + toIndentedString(ssid) + "\n" +
                 "    bssid: " + toIndentedString(bssid) + "\n" +
-                "    rssi: " + toIndentedString(rssi) + "\n" +
-                "    frequency: " + toIndentedString(frequency) + "\n" +
-                "    channel: " + toIndentedString(channel) + "\n" +
                 "    distance: " + toIndentedString(distance) + "\n" +
+                "    rssi: " + toIndentedString(rssi) + "\n" +
                 "    timestamp: " + toIndentedString(timestamp) + "\n" +
                 "    scanTime: " + toIndentedString(scanTime) + "\n" +
                 "    scanDifference: " + toIndentedString(scanDifference) + "\n" +

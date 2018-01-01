@@ -1,10 +1,13 @@
-package cz.uhk.fim.kikm.wearnavigation.model;
+package cz.uhk.fim.kikm.wearnavigation.model.database;
+
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import com.google.gson.annotations.Expose;
 
 import java.util.Objects;
 
-public class SensorEntry {
+public class SensorEntry implements Parcelable {
 
     // Variables of this class
     @Expose(serialize = false)
@@ -27,6 +30,50 @@ public class SensorEntry {
 
     // Default constructor used for Gson
     public SensorEntry() {}
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
+        dest.writeInt(fingerprintId);
+        dest.writeInt(type);
+        dest.writeString(typeString);
+        dest.writeDouble(x);
+        dest.writeDouble(y);
+        dest.writeDouble(z);
+        dest.writeLong(timestamp);
+        dest.writeLong(scanTime);
+        dest.writeLong(scanDifference);
+    }
+
+    private SensorEntry(Parcel in) {
+        id = in.readInt();
+        fingerprintId = in.readInt();
+        type = in.readInt();
+        typeString = in.readString();
+        x = in.readDouble();
+        y = in.readDouble();
+        z = in.readDouble();
+        timestamp = in.readLong();
+        scanTime = in.readLong();
+        scanDifference = in.readLong();
+    }
+
+    public static final Creator<SensorEntry> CREATOR = new Creator<SensorEntry>() {
+        @Override
+        public SensorEntry createFromParcel(Parcel in) {
+            return new SensorEntry(in);
+        }
+
+        @Override
+        public SensorEntry[] newArray(int size) {
+            return new SensorEntry[size];
+        }
+    };
 
     public int getId() {
         return id;

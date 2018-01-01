@@ -1,4 +1,7 @@
-package cz.uhk.fim.kikm.wearnavigation.model;
+package cz.uhk.fim.kikm.wearnavigation.model.database;
+
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import com.google.gson.annotations.Expose;
 
@@ -8,7 +11,7 @@ import java.util.Objects;
  * This class keeps information about location of the fingerprint.
  * To enable multiple buildings and floors.
  */
-public class LocationEntry {
+public class LocationEntry implements Parcelable {
 
     // Variables of this class
     @Expose(serialize = false)
@@ -40,6 +43,36 @@ public class LocationEntry {
                 break;
         }
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
+        dest.writeString(building);
+        dest.writeInt(floor);
+    }
+
+    private LocationEntry(Parcel in) {
+        id = in.readInt();
+        building = in.readString();
+        floor = in.readInt();
+    }
+
+    public static final Creator<LocationEntry> CREATOR = new Creator<LocationEntry>() {
+        @Override
+        public LocationEntry createFromParcel(Parcel in) {
+            return new LocationEntry(in);
+        }
+
+        @Override
+        public LocationEntry[] newArray(int size) {
+            return new LocationEntry[size];
+        }
+    };
 
     public int getId() {
         return id;

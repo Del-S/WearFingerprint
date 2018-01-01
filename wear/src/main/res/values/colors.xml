@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Scan colors -->
+    <color name="colorProgress">#00D124</color>
+    <color name="colorSecondaryProgress">#4DFFFFFF</color>
+    <color name="colorTextWhite">#FFFFFF</color>
+</resources>
