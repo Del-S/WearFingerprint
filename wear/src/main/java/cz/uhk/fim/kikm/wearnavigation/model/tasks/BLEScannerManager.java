@@ -1,5 +1,6 @@
 package cz.uhk.fim.kikm.wearnavigation.model.tasks;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -10,6 +11,7 @@ import android.util.Log;
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 
 import java.util.ArrayList;
@@ -31,9 +33,12 @@ public class BLEScannerManager implements BeaconConsumer {
     public static final String ACTION_BEACONS_FOUND = "beaconFound";    // Broadcast intent action for new beacons found
     public static final String ACTION_BEACONS_DATA = "beaconData";      // Broadcast data of new found beacons
 
+    private RangeNotifier mRangeNotifier;
+
     /**
      * Singleton instance and its getter
      */
+    @SuppressLint("StaticFieldLeak")
     private static BLEScannerManager sInstance = null;
     public static BLEScannerManager getInstance(Context context) {
         if(sInstance == null) {
@@ -62,12 +67,8 @@ public class BLEScannerManager implements BeaconConsumer {
 
         // Create cancel handler
         cancelHandler = new Handler();
-    }
-
-    @Override
-    public void onBeaconServiceConnect() {
-        // Add range notifier
-        beaconManager.addRangeNotifier((beacons, region) -> {
+        // Build range notifier
+        mRangeNotifier = (beacons, region) -> {
             if (beacons.size() > 0) {
                 // Send broadcast with data only if there is application context
                 if(mApplicationContext != null) {
@@ -80,7 +81,15 @@ public class BLEScannerManager implements BeaconConsumer {
                     mApplicationContext.sendBroadcast(intent);          // Send broadcast
                 }
             }
-        });
+        };
+    }
+
+    @Override
+    public void onBeaconServiceConnect() {
+        // Add range notifier
+        if(mRangeNotifier != null && !beaconManager.getRangingNotifiers().contains(mRangeNotifier)) {
+            beaconManager.addRangeNotifier(mRangeNotifier);
+        }
 
         // Sends on bound Broadcast
         if(mApplicationContext != null) {
@@ -116,6 +125,8 @@ public class BLEScannerManager implements BeaconConsumer {
      * @return true/false if scan started or not
      */
     public boolean startScan(long duration, boolean priority) {
+        Log.d("savsvsdv", "RN: " + beaconManager.getRangingNotifiers().size());
+
         // If there is a scan running and there is priority scan started we cancel current scan
         if (isScanning() && priority && !mIsPriority) {
             cancelScan();

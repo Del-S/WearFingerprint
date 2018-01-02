@@ -97,7 +97,7 @@ public class DataLayerListenerService extends WearableListenerService {
             startActivity(startIntent);
 
             // Send the rpc
-            Wearable.MessageApi.sendMessage(mGoogleApiClient, messageEvent.getSourceNodeId(), DATA_ACTIVITY_STARTED,
+            Wearable.getMessageClient(this).sendMessage(messageEvent.getSourceNodeId(), DATA_ACTIVITY_STARTED,
                     null);
         }
     }

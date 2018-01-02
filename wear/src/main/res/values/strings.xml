@@ -10,11 +10,11 @@
     <string name="am_bluetooth_not_enabled">This application does not work without bluetooth.\nShutting down.</string>
     <string name="am_bluetooth_le_support">This app requires Bluetooth Low Energy to work.\nThis device does not support it.\nShutting down.</string>
     <string name="am_intro">Waiting for scan data to arrive\u2026</string>
+    <string name="am_scan_already_running">"There is a scan running at this moment."</string>
 
     <!-- *********************** -->
     <!-- Fingerprint scan status -->
     <!-- *********************** -->
-    <string name="am_status">Scan status</string>
     <string name="am_status_none">N/A</string>
     <string name="am_status_creating">Scheduling</string>
     <string name="am_status_starting">Starting</string>

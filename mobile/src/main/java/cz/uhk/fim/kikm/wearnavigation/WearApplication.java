@@ -26,8 +26,7 @@ public class WearApplication extends Application {
         configuration = Configuration.getConfiguration(this);
         super.onCreate();
 
-
-        //BeaconManager.setDebug(true);     // Remove this after completing all scanning features
+        BeaconManager.setDebug(true);     // Remove this after completing all scanning features
         BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);    // Load beacon manager instance to enable settings change
         // Enable beacon
         beaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"));

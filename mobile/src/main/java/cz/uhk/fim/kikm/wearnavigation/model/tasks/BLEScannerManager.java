@@ -10,9 +10,11 @@ import android.util.Log;
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 public class BLEScannerManager implements BeaconConsumer {
 
@@ -30,6 +32,8 @@ public class BLEScannerManager implements BeaconConsumer {
     public static final String ACTION_SCAN_STATE_CHANGE = "scanState";  // Broadcast intent action and data for changing of scanning state
     public static final String ACTION_BEACONS_FOUND = "beaconFound";    // Broadcast intent action for new beacons found
     public static final String ACTION_BEACONS_DATA = "beaconData";      // Broadcast data of new found beacons
+
+    private RangeNotifier mRangeNotifier;
 
     /**
      * Singleton instance and its getter
@@ -62,12 +66,9 @@ public class BLEScannerManager implements BeaconConsumer {
 
         // Create cancel handler
         cancelHandler = new Handler();
-    }
 
-    @Override
-    public void onBeaconServiceConnect() {
-        // Add range notifier
-        beaconManager.addRangeNotifier((beacons, region) -> {
+        // Build range notifier
+        mRangeNotifier = (beacons, region) -> {
             if (beacons.size() > 0) {
                 // Send broadcast with data only if there is application context
                 if(mApplicationContext != null) {
@@ -80,7 +81,15 @@ public class BLEScannerManager implements BeaconConsumer {
                     mApplicationContext.sendBroadcast(intent);          // Send broadcast
                 }
             }
-        });
+        };
+    }
+
+    @Override
+    public void onBeaconServiceConnect() {
+        // Add range notifier
+        if(mRangeNotifier != null && !beaconManager.getRangingNotifiers().contains(mRangeNotifier)) {
+            beaconManager.addRangeNotifier(mRangeNotifier);
+        }
 
         // Sends on bound Broadcast
         if(mApplicationContext != null) {

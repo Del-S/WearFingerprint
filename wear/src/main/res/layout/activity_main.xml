@@ -54,7 +54,7 @@
                     android:textAppearance="@style/TextAppearance.Wearable.Medium"
                     android:textColor="@color/colorTextWhite"
                     android:layout_marginBottom="6dp"
-                    android:text="@string/am_status"/>
+                    android:text="@string/am_status_creating"/>
 
                 <TextView
                     android:id="@+id/am_progress_percent"

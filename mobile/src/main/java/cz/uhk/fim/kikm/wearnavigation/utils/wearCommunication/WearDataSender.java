@@ -1,10 +1,7 @@
 package cz.uhk.fim.kikm.wearnavigation.utils.wearCommunication;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.AsyncTask;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.annotation.WorkerThread;
 import android.util.Log;
 
@@ -24,7 +21,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import cz.uhk.fim.kikm.wearnavigation.activities.scan.ScanActivity;
 import cz.uhk.fim.kikm.wearnavigation.model.database.Fingerprint;
 
 public class WearDataSender {
@@ -50,25 +46,29 @@ public class WearDataSender {
         new StartWearableActivityTask().execute();
     }
 
-    private void sendScanStart() {
-        PutDataMapRequest dataMapRequest = PutDataMapRequest.create(SCAN_PATH);
+    public void sendScanStart() {
+        if(mFingerprint != null) {
+            PutDataMapRequest dataMapRequest = PutDataMapRequest.create(SCAN_PATH);
 
-        DataMap dataMap = dataMapRequest.getDataMap();
-        dataMap.putInt(SCAN_STATUS_KEY, STATUS_START);
-        dataMap.putLong("time", new Date().getTime());
-        ParcelableUtils.putParcelable(dataMap, SCAN_DATA, mFingerprint);
+            DataMap dataMap = dataMapRequest.getDataMap();
+            dataMap.putInt(SCAN_STATUS_KEY, STATUS_START);
+            dataMap.putLong("time", new Date().getTime());
+            ParcelableUtils.putParcelable(dataMap, SCAN_DATA, mFingerprint);
 
-        PutDataRequest request = dataMapRequest.asPutDataRequest();
-        request.setUrgent();
+            PutDataRequest request = dataMapRequest.asPutDataRequest();
+            request.setUrgent();
 
-        Task<DataItem> dataItemTask = Wearable.getDataClient(mContext).putDataItem(request);
+            Task<DataItem> dataItemTask = Wearable.getDataClient(mContext).putDataItem(request);
 
-        dataItemTask.addOnSuccessListener(new OnSuccessListener<DataItem>() {
-            @Override
-            public void onSuccess(DataItem dataItem) {
-                LOGD(TAG, "Sending scan data was successful: " + dataItem);
-            }
-        });
+            dataItemTask.addOnSuccessListener(new OnSuccessListener<DataItem>() {
+                @Override
+                public void onSuccess(DataItem dataItem) {
+                    LOGD(TAG, "Sending scan data was successful: " + dataItem);
+                }
+            });
+
+            mFingerprint = null;
+        }
     }
 
     /**
@@ -82,10 +82,6 @@ public class WearDataSender {
 
     private class StartWearableActivityTask extends AsyncTask<Void, Void, Void> {
 
-        private final int STATUS_COMPLETED = 0;
-        private final int STATUS_FAILED = 1;
-        private int status = STATUS_COMPLETED;
-
         @Override
         protected Void doInBackground(Void... args) {
             Collection<String> nodes = getNodes();
@@ -93,14 +89,6 @@ public class WearDataSender {
                 sendStartActivityMessage(node);
             }
             return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            if(status != STATUS_FAILED) {
-                sendScanStart();
-            }
         }
 
         @WorkerThread
@@ -114,14 +102,11 @@ public class WearDataSender {
                 // thread).
                 Integer result = Tasks.await(sendMessageTask);
                 LOGD(TAG, "Message sent: " + result);
-                status = STATUS_COMPLETED;
             } catch (ExecutionException exception) {
                 Log.e(TAG, "Task failed: " + exception);
-                status = STATUS_FAILED;
 
             } catch (InterruptedException exception) {
                 Log.e(TAG, "Interrupt occurred: " + exception);
-                status = STATUS_FAILED;
             }
         }
 
@@ -143,11 +128,8 @@ public class WearDataSender {
 
             } catch (ExecutionException exception) {
                 Log.e(TAG, "Task failed: " + exception);
-                status = STATUS_FAILED;
-
             } catch (InterruptedException exception) {
                 Log.e(TAG, "Interrupt occurred: " + exception);
-                status = STATUS_FAILED;
             }
 
             return results;

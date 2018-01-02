@@ -8,4 +8,6 @@
     <!-- Actions for New Markers -->
     <string name="amn_title">New Fingerprint</string>
     <string name="amn_position">At position (%1$d:%2$d)</string>
+    
+    <string name="am_scan_already_running">There is a scan running at this moment.</string>
 </resources>

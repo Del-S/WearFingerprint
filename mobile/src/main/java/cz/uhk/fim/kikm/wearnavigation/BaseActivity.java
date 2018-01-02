@@ -11,6 +11,7 @@ import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.internal.BottomNavigationItemView;
 import android.support.design.internal.BottomNavigationMenuView;
@@ -44,14 +45,18 @@ import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.ScanProgress;
 import cz.uhk.fim.kikm.wearnavigation.utils.AnimationHelper;
 import cz.uhk.fim.kikm.wearnavigation.utils.SimpleDialogHelper;
+import cz.uhk.fim.kikm.wearnavigation.utils.wearCommunication.WearDataSender;
 
 public abstract class BaseActivity extends AppCompatActivity implements
         BottomNavigationView.OnNavigationItemSelectedListener,
         DataClient.OnDataChangedListener,
-        CapabilityClient.OnCapabilityChangedListener {
+        MessageClient.OnMessageReceivedListener {
 
     // Log tag
     private static final String TAG = "BaseActivity";
+
+    private static final String DATA_ACTIVITY_STARTED = "/start-activity-complete";
+
     // Global variable for Bottom navigation
     protected BottomNavigationView navigationView;
     // Bluetooth check request code
@@ -63,6 +68,7 @@ public abstract class BaseActivity extends AppCompatActivity implements
 
     protected JobInfo.Builder jobBuilder;       // Job builder for FingerprintScanner
     private ScannerProgressReceiver mReceiver;  // Scanner receiver instance
+    protected WearDataSender mWearDataSender;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +93,7 @@ public abstract class BaseActivity extends AppCompatActivity implements
         // Load configuration from the application
         mConfiguration = ((WearApplication) getApplicationContext()).getConfiguration();
         jobBuilder = ((WearApplication) getApplicationContext()).getFingerprintJob();
+        mWearDataSender = new WearDataSender(this);
 
         checkBluetooth();           // Bluetooth check
         checkLocationPermissions(); // Location permission check
@@ -110,9 +117,7 @@ public abstract class BaseActivity extends AppCompatActivity implements
         // Instantiates clients without member variables, as clients are inexpensive to create and
         // won't lose their listeners. (They are cached and shared between GoogleApi instances.)
         Wearable.getDataClient(this).addListener(this);
-        Wearable.getCapabilityClient(this)
-                .addListener(
-                        this, Uri.parse("wear://"), CapabilityClient.FILTER_REACHABLE);
+        Wearable.getMessageClient(this).addListener(this);
     }
 
     @Override
@@ -130,7 +135,7 @@ public abstract class BaseActivity extends AppCompatActivity implements
         }
 
         Wearable.getDataClient(this).removeListener(this);
-        Wearable.getCapabilityClient(this).removeListener(this);
+        Wearable.getMessageClient(this).removeListener(this);
     }
 
     @Override
@@ -336,12 +341,14 @@ public abstract class BaseActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onCapabilityChanged(final CapabilityInfo capabilityInfo) {
-        Log.d(TAG, "onCapabilityChanged: " + capabilityInfo);
+    public void onMessageReceived(MessageEvent event) {
+        Log.d(TAG, "onMessageReceived: " + event);
 
-        //mDataItemListAdapter.add(new Event("onCapabilityChanged", capabilityInfo.toString()));
+        if(event.getPath().equals(DATA_ACTIVITY_STARTED)) {
+            // Notify wearable device that it should start a scan after a second of delay
+            new Handler().postDelayed(() -> mWearDataSender.sendScanStart(), 1000);
+        }
     }
-
 
     /**
      * This receiver gets information from currently running Fingerprint scan and displays it.
@@ -355,6 +362,10 @@ public abstract class BaseActivity extends AppCompatActivity implements
                 ScanProgress scanProgress = null;
                 if(intent.getExtras() != null) {
                     scanProgress = intent.getExtras().getParcelable(FingerprintScanner.ACTION_DATA);
+                    // Hide this view after completion (5 seconds)
+                    if(scanProgress.getState() == FingerprintScanner.TASK_STATE_DONE) {
+                        updateUI();
+                    }
                 }
                 AnimationHelper.displayScanStatus(BaseActivity.this, scanProgress, View.VISIBLE, 800);
             }
