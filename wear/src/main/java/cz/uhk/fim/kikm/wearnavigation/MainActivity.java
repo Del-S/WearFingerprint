@@ -49,8 +49,6 @@ public class MainActivity extends WearableActivity implements
 
     private static final String TAG = "MainActivity";
 
-    private static final String DATA_ACTIVITY_STARTED = "/start-activity-complete";
-
     // Request permissions parameters
     private final int REQUEST_ENABLE_BT = 1000;         // Bluetooth check request code
     private final int REQUEST_ACCESS_LOCATION = 1001;   // Request access to coarse location
@@ -97,7 +95,6 @@ public class MainActivity extends WearableActivity implements
         checkBluetooth();           // Bluetooth check
         checkLocationPermissions(); // Location permission check
     }
-
 
     @Override
     protected void onResume() {
@@ -157,17 +154,9 @@ public class MainActivity extends WearableActivity implements
                             Fingerprint.CREATOR);
 
                     runFingerprintScanner(fingerprint);
-                } else if (DataLayerListenerService.COUNT_PATH.equals(path)) {
-                    DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
-                    Fingerprint fingerprint = ParcelableUtils.getParcelable(dataMapItem.getDataMap(),
-                            DataLayerListenerService.SCAN_DATA,
-                            Fingerprint.CREATOR);
-
-                    runFingerprintScanner(fingerprint);
                 } else {
                     Log.d(TAG, "Unrecognized path: " + path);
                 }
-
             } else if (event.getType() == DataEvent.TYPE_DELETED) {
                 Log.d(TAG, "DataItem Deleted: " + event.getDataItem().toString());
             } else {
@@ -206,14 +195,11 @@ public class MainActivity extends WearableActivity implements
             lastKnownLocation[1] = location.getLongitude();
         }
 
-        long scanLength = 60000;    // Length of the scan
-
         // Create instance of scanner and start it with execute
         String jsonFinger = gson.toJson(fingerprint);
         PersistableBundle bundle = new PersistableBundle();
         bundle.putString(FingerprintScanner.PARAM_FINGERPRINT, jsonFinger);
         bundle.putDoubleArray(FingerprintScanner.PARAM_LOCATION, lastKnownLocation);
-        bundle.putLong(FingerprintScanner.PARAM_SCAN_LENGTH, scanLength);
 
         // Run the job
         jobBuilder.setExtras(bundle);                   // Set extra bundle data

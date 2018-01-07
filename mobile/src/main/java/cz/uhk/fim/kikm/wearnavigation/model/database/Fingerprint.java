@@ -25,6 +25,7 @@ public class Fingerprint implements Parcelable {
     public final static String DB_FINGERPRINT_SCAN_ID = "scanID";
     public final static String DB_X = "x";
     public final static String DB_Y = "y";
+    public final static String DB_SCAN_LENGTH = "scanLength";
     public final static String DB_SCAN_START = "scanStart";
     public final static String DB_SCAN_END = "scanEnd";
     public final static String DB_LEVEL = "level";
@@ -38,6 +39,7 @@ public class Fingerprint implements Parcelable {
     private UUID id;                                // UUID of this scan
     private UUID scanID;                            // UUID to enable fingerprint grouping
     private int x,y;                                // Calculated X and Y locations
+    private long scanLength;                        // Length of the scan in ms
     @JsonProperty("timestamp")
     private long scanStart;                         // Timestamps of scan start
     @JsonProperty("finish")
@@ -74,19 +76,39 @@ public class Fingerprint implements Parcelable {
 
         // Set device
         deviceEntry = DeviceEntry.createInstance();
+
+        // Default scan length is 60s
+        scanLength = 60000;
     }
 
-
-    @Override
-    public int describeContents() {
-        return 0;
+    private Fingerprint(Parcel in) {
+        dbId = in.readInt();
+        id = UUID.fromString(in.readString());
+        scanID = UUID.fromString(in.readString());
+        x = in.readInt();
+        y = in.readInt();
+        scanLength = in.readLong();
+        scanStart = in.readLong();
+        scanEnd = in.readLong();
+        level = in.readString();
+        location_id = in.readLong();
+        locationEntry = in.readParcelable(LocationEntry.class.getClassLoader());
+        device_id = in.readLong();
+        deviceEntry = in.readParcelable(DeviceEntry.class.getClassLoader());
+        beaconEntries = in.createTypedArrayList(BeaconEntry.CREATOR);
+        wirelessEntries = in.createTypedArrayList(WirelessEntry.CREATOR);
+        cellularEntries = in.createTypedArrayList(CellularEntry.CREATOR);
+        sensorEntries = in.createTypedArrayList(SensorEntry.CREATOR);
     }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeInt(dbId);
+        dest.writeString(id.toString());
+        dest.writeString(scanID.toString());
         dest.writeInt(x);
         dest.writeInt(y);
+        dest.writeLong(scanLength);
         dest.writeLong(scanStart);
         dest.writeLong(scanEnd);
         dest.writeString(level);
@@ -100,21 +122,9 @@ public class Fingerprint implements Parcelable {
         dest.writeTypedList(sensorEntries);
     }
 
-    protected Fingerprint(Parcel in) {
-        dbId = in.readInt();
-        x = in.readInt();
-        y = in.readInt();
-        scanStart = in.readLong();
-        scanEnd = in.readLong();
-        level = in.readString();
-        location_id = in.readLong();
-        locationEntry = in.readParcelable(LocationEntry.class.getClassLoader());
-        device_id = in.readLong();
-        deviceEntry = in.readParcelable(DeviceEntry.class.getClassLoader());
-        beaconEntries = in.createTypedArrayList(BeaconEntry.CREATOR);
-        wirelessEntries = in.createTypedArrayList(WirelessEntry.CREATOR);
-        cellularEntries = in.createTypedArrayList(CellularEntry.CREATOR);
-        sensorEntries = in.createTypedArrayList(SensorEntry.CREATOR);
+    @Override
+    public int describeContents() {
+        return 0;
     }
 
     public static final Creator<Fingerprint> CREATOR = new Creator<Fingerprint>() {
@@ -167,6 +177,14 @@ public class Fingerprint implements Parcelable {
 
     public void setY(int y) {
         this.y = y;
+    }
+
+    public long getScanLength() {
+        return scanLength;
+    }
+
+    public void setScanLength(long scanLength) {
+        this.scanLength = scanLength;
     }
 
     public long getScanStart() {
@@ -273,7 +291,7 @@ public class Fingerprint implements Parcelable {
     }
 
     @Override
-    public boolean equals(java.lang.Object o) {
+    public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
@@ -286,6 +304,7 @@ public class Fingerprint implements Parcelable {
                 Objects.equals(this.scanID, fingerprint.scanID) &&
                 Objects.equals(this.x, fingerprint.x) &&
                 Objects.equals(this.y, fingerprint.y) &&
+                Objects.equals(this.scanLength, fingerprint.scanLength) &&
                 Objects.equals(this.scanStart, fingerprint.scanStart) &&
                 Objects.equals(this.scanEnd, fingerprint.scanEnd) &&
                 Objects.equals(this.locationEntry, fingerprint.locationEntry) &&
@@ -311,6 +330,7 @@ public class Fingerprint implements Parcelable {
                 "    scanID: " + toIndentedString(scanID) + "\n" +
                 "    x: " + toIndentedString(x) + "\n" +
                 "    y: " + toIndentedString(y) + "\n" +
+                "    scanLength: " + toIndentedString(scanLength) + "\n" +
                 "    scanStart: " + toIndentedString(scanStart) + "\n" +
                 "    scanEnd: " + toIndentedString(scanEnd) + "\n" +
                 "    locationEntry: " + toIndentedString(locationEntry) + "\n" +
@@ -326,7 +346,7 @@ public class Fingerprint implements Parcelable {
      * Convert the given object to string with each line indented by 4 spaces
      * (except the first line).
      */
-    private String toIndentedString(java.lang.Object o) {
+    private String toIndentedString(Object o) {
         if (o == null) {
             return "null";
         }

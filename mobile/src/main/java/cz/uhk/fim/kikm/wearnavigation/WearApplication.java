@@ -11,7 +11,7 @@ import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
-import cz.uhk.fim.kikm.wearnavigation.model.tasks.bluetoothConnection.BluetoothConnectionService;
+import cz.uhk.fim.kikm.wearnavigation.utils.bluetoothConnection.BluetoothConnectionService;
 import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
 
 public class WearApplication extends Application {

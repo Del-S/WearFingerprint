@@ -4,8 +4,8 @@ import android.bluetooth.BluetoothDevice;
 import android.os.Bundle;
 import android.os.Handler;
 
-import cz.uhk.fim.kikm.wearnavigation.model.tasks.bluetoothConnection.BluetoothConnectionHandler;
-import cz.uhk.fim.kikm.wearnavigation.model.tasks.bluetoothConnection.BluetoothConnectionInterface;
+import cz.uhk.fim.kikm.wearnavigation.utils.bluetoothConnection.BluetoothConnectionHandler;
+import cz.uhk.fim.kikm.wearnavigation.utils.bluetoothConnection.BluetoothConnectionInterface;
 
 public class MainActivity extends BaseActivity implements BluetoothConnectionInterface {
 

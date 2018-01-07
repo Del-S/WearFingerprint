@@ -31,9 +31,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cz.uhk.fim.kikm.wearnavigation.R;
-import cz.uhk.fim.kikm.wearnavigation.model.tasks.bluetoothConnection.BluetoothConnectionHandler;
-import cz.uhk.fim.kikm.wearnavigation.model.tasks.bluetoothConnection.BluetoothConnectionInterface;
-import cz.uhk.fim.kikm.wearnavigation.model.tasks.bluetoothConnection.BluetoothConnectionService;
+import cz.uhk.fim.kikm.wearnavigation.utils.bluetoothConnection.BluetoothConnectionHandler;
+import cz.uhk.fim.kikm.wearnavigation.utils.bluetoothConnection.BluetoothConnectionInterface;
+import cz.uhk.fim.kikm.wearnavigation.utils.bluetoothConnection.BluetoothConnectionService;
 import cz.uhk.fim.kikm.wearnavigation.model.adapters.BlDevicesAdapter;
 import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
 import cz.uhk.fim.kikm.wearnavigation.utils.SimpleDividerItemDecoration;
@@ -358,7 +358,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
     @Override
     public void messageReceived(String message) {
         // Not used
-        Log.d(TAG, "Message is: " + message);
+        Log.i(TAG, "Message is: " + message);
     }
 
     /**
@@ -370,7 +370,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
     @Override
     public void messageSend(String message) {
         // Not used
-        Log.d(TAG, "Message is: " + message);
+        Log.i(TAG, "Message is: " + message);
     }
 
     /**

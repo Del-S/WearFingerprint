@@ -18,6 +18,7 @@ public class Fingerprint implements Parcelable {
     private UUID id;                                // UUID of this scan
     private UUID scanID;                            // UUID to enable fingerprint grouping
     private int x,y;                                // Calculated X and Y locations
+    private long scanLength;                        // Length of the scan in ms
     private long scanStart;                         // Timestamps of scan start
     private long  scanEnd;                          // Timestamps of scan end
     /**
@@ -47,12 +48,18 @@ public class Fingerprint implements Parcelable {
 
         // Set device
         deviceEntry = DeviceEntry.createInstance();
+
+        // Default scan length is 60s
+        scanLength = 60000;
     }
 
     private Fingerprint(Parcel in) {
         dbId = in.readInt();
+        id = UUID.fromString(in.readString());
+        scanID = UUID.fromString(in.readString());
         x = in.readInt();
         y = in.readInt();
+        scanLength = in.readLong();
         scanStart = in.readLong();
         scanEnd = in.readLong();
         level = in.readString();
@@ -69,8 +76,11 @@ public class Fingerprint implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeInt(dbId);
+        dest.writeString(id.toString());
+        dest.writeString(scanID.toString());
         dest.writeInt(x);
         dest.writeInt(y);
+        dest.writeLong(scanLength);
         dest.writeLong(scanStart);
         dest.writeLong(scanEnd);
         dest.writeString(level);
@@ -139,6 +149,14 @@ public class Fingerprint implements Parcelable {
 
     public void setY(int y) {
         this.y = y;
+    }
+
+    public long getScanLength() {
+        return scanLength;
+    }
+
+    public void setScanLength(long scanLength) {
+        this.scanLength = scanLength;
     }
 
     public long getScanStart() {
@@ -258,6 +276,7 @@ public class Fingerprint implements Parcelable {
                 Objects.equals(this.scanID, fingerprint.scanID) &&
                 Objects.equals(this.x, fingerprint.x) &&
                 Objects.equals(this.y, fingerprint.y) &&
+                Objects.equals(this.scanLength, fingerprint.scanLength) &&
                 Objects.equals(this.scanStart, fingerprint.scanStart) &&
                 Objects.equals(this.scanEnd, fingerprint.scanEnd) &&
                 Objects.equals(this.locationEntry, fingerprint.locationEntry) &&
@@ -283,14 +302,15 @@ public class Fingerprint implements Parcelable {
                 "    scanID: " + toIndentedString(scanID) + "\n" +
                 "    x: " + toIndentedString(x) + "\n" +
                 "    y: " + toIndentedString(y) + "\n" +
+                "    scanLength: " + toIndentedString(scanLength) + "\n" +
                 "    scanStart: " + toIndentedString(scanStart) + "\n" +
                 "    scanEnd: " + toIndentedString(scanEnd) + "\n" +
                 "    locationEntry: " + toIndentedString(locationEntry) + "\n" +
                 "    deviceEntry: " + toIndentedString(deviceEntry) + "\n" +
-                //"    beaconEntries: " + toIndentedString(beaconEntries.size()) + "\n" +
-                //"    wirelessEntries: " + toIndentedString(wirelessEntries.size()) + "\n" +
-                //"    cellularEntries: " + toIndentedString(cellularEntries.size()) + "\n" +
-                //"    sensorEntries: " + toIndentedString(sensorEntries.size()) + "\n" +
+                "    beaconEntriesCount: " + toIndentedString(beaconEntries.size()) + "\n" +
+                "    wirelessEntriesCount: " + toIndentedString(wirelessEntries.size()) + "\n" +
+                "    cellularEntriesCount: " + toIndentedString(cellularEntries.size()) + "\n" +
+                "    sensorEntriesCount: " + toIndentedString(sensorEntries.size()) + "\n" +
                 "}";
     }
 

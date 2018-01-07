@@ -23,7 +23,16 @@ import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.util.SparseIntArray;
+import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
+import com.google.android.gms.wearable.Wearable;
 import com.google.gson.Gson;
 
 import org.altbeacon.beacon.Beacon;
@@ -31,12 +40,14 @@ import org.altbeacon.beacon.Beacon;
 import java.util.ArrayList;
 import java.util.List;
 
+import cz.uhk.fim.kikm.wearnavigation.DataLayerListenerService;
 import cz.uhk.fim.kikm.wearnavigation.R;
 import cz.uhk.fim.kikm.wearnavigation.model.database.BeaconEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.CellularEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.Fingerprint;
 import cz.uhk.fim.kikm.wearnavigation.model.database.SensorEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.WirelessEntry;
+import cz.uhk.fim.kikm.wearnavigation.utils.ParcelableUtils;
 
 public class FingerprintScanner extends JobService {
 
@@ -49,7 +60,6 @@ public class FingerprintScanner extends JobService {
     // Parameters send to this job as JobParameters
     public static final String PARAM_FINGERPRINT = "fingerprint";   // Bundle parameter name for fingerprint
     public static final String PARAM_LOCATION = "lastLocation";     // Bundle parameter name for last known location
-    public static final String PARAM_SCAN_LENGTH = "mScanLength";   // Bundle parameter name for length of the scan
 
     // States of this scanner
     private final int TASK_STATE_NONE = 0;            // Nothing is happening
@@ -72,12 +82,11 @@ public class FingerprintScanner extends JobService {
             fingerprint = mGson.fromJson(json, Fingerprint.class);
         }
 
-        long scanLength = mJobParams.getExtras().getLong(PARAM_SCAN_LENGTH);            // Load scan length from parameters
         double[] lastLocation = mJobParams.getExtras().getDoubleArray(PARAM_LOCATION);  // Load last known location from parameters
 
         // If there is some fingerprint data we start the task
         if (fingerprint != null) {
-            mScannerTask = new ScannerTask(fingerprint, scanLength, lastLocation);
+            mScannerTask = new ScannerTask(fingerprint, fingerprint.getScanLength(), lastLocation);
             mScannerTask.execute();
             return true;
         }
@@ -231,9 +240,16 @@ public class FingerprintScanner extends JobService {
 
         @Override
         protected void onPostExecute(Fingerprint fingerprint) {
-            if (fingerprint != null) {
-                // TODO: send data to te phone here
+            // Change scan state
+            if(mFingerprint == null) {
+                mState = TASK_STATE_NONE;
+            } else {
+                mState = TASK_STATE_DONE;
             }
+
+            // Update view and mobile device
+            sendScanData();         // Sends scan data back to the mobile device
+            publishProgress();      // Publish progress after scan is done
 
             // Unbinding the scanner service
             Context context = getApplicationContext();          // Load context to unregister received
@@ -241,10 +257,6 @@ public class FingerprintScanner extends JobService {
             context.unregisterReceiver(mWifiScanner);           // Unregister wifi receiver
             mSensorManager.unregisterListener(mSensorScanner);  // Unregister scanner receiver
             mBLEScannerManager.handleDestroy();                        // Destroy ble scanner
-
-            // Change and publish progress
-            mState = TASK_STATE_DONE;    // Scan is done
-            publishProgress();      // Publish progress after scan is done
 
             // Finish this job
             FingerprintScanner.this.jobFinished(mJobParams, false);
@@ -322,6 +334,28 @@ public class FingerprintScanner extends JobService {
                 default:
                     return 0;
             }
+        }
+
+        /**
+         * Sends Fingerprint data back to the phone.
+         */
+        private void sendScanData() {
+            PutDataMapRequest dataMapRequest = PutDataMapRequest.create(DataLayerListenerService.SCAN_PATH_COMPLETE);
+
+            DataMap dataMap = dataMapRequest.getDataMap();
+            dataMap.putInt(DataLayerListenerService.SCAN_STATUS_KEY, mState);
+            if(mFingerprint != null) {
+                ParcelableUtils.putParcelable(dataMap, DataLayerListenerService.SCAN_DATA, mFingerprint);
+            }
+
+            PutDataRequest request = dataMapRequest.asPutDataRequest();
+            request.setUrgent();
+
+            Task<DataItem> dataItemTask = Wearable.getDataClient(getApplicationContext()).putDataItem(request);
+
+            dataItemTask.addOnFailureListener(e -> {
+                Toast.makeText(FingerprintScanner.this, R.string.am_scan_data_send_error, Toast.LENGTH_SHORT).show();
+            });
         }
 
         /**

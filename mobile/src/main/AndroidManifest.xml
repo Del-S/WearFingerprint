@@ -39,9 +39,16 @@
         <activity android:name=".activities.scan.ScanActivity" />
 
         <service
-            android:name=".model.tasks.bluetoothConnection.BluetoothConnectionService"
+            android:name=".utils.wearCommunication.DataLayerListenerService" >
+            <intent-filter>
+                <!-- listeners receive events that match the action and data filters -->
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/scan-complete"/>
+            </intent-filter>
+        </service>
+        <service
+            android:name=".utils.bluetoothConnection.BluetoothConnectionService"
             android:exported="false" />
-
         <service
             android:name=".model.tasks.FingerprintScanner"
             android:permission="android.permission.BIND_JOB_SERVICE" />

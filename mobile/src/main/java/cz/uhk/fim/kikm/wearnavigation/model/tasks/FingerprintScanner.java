@@ -54,7 +54,6 @@ public class FingerprintScanner extends JobService {
     // Parameters send to this job as JobParameters
     public static final String PARAM_FINGERPRINT = "fingerprint";   // Bundle parameter name for fingerprint
     public static final String PARAM_LOCATION = "lastLocation";     // Bundle parameter name for last known location
-    public static final String PARAM_SCAN_LENGTH = "mScanLength";   // Bundle parameter name for length of the scan
 
     // States of this scanner
     private final int TASK_STATE_NONE = 0;            // Nothing is happening
@@ -77,12 +76,11 @@ public class FingerprintScanner extends JobService {
             fingerprint = mGson.fromJson(json, Fingerprint.class);
         }
 
-        long scanLength = mJobParams.getExtras().getLong(PARAM_SCAN_LENGTH);            // Load scan length from parameters
         double[] lastLocation = mJobParams.getExtras().getDoubleArray(PARAM_LOCATION);  // Load last known location from parameters
 
         // If there is some fingerprint data we start the task
         if (fingerprint != null) {
-            mScannerTask = new ScannerTask(fingerprint, scanLength, lastLocation);
+            mScannerTask = new ScannerTask(fingerprint, fingerprint.getScanLength(), lastLocation);
             mScannerTask.execute();
             return true;
         }

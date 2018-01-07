@@ -8,9 +8,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.internal.BottomNavigationItemView;
@@ -26,10 +24,7 @@ import android.view.View;
 import android.view.Window;
 import android.widget.Toast;
 
-import com.google.android.gms.wearable.CapabilityClient;
-import com.google.android.gms.wearable.CapabilityInfo;
 import com.google.android.gms.wearable.DataClient;
-import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.MessageClient;
 import com.google.android.gms.wearable.MessageEvent;
@@ -40,11 +35,12 @@ import java.lang.reflect.Field;
 import cz.uhk.fim.kikm.wearnavigation.activities.devices.ShowDevicesActivity;
 import cz.uhk.fim.kikm.wearnavigation.activities.scan.ScanActivity;
 import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
-import cz.uhk.fim.kikm.wearnavigation.model.database.Fingerprint;
+import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseCRUD;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.ScanProgress;
 import cz.uhk.fim.kikm.wearnavigation.utils.AnimationHelper;
 import cz.uhk.fim.kikm.wearnavigation.utils.SimpleDialogHelper;
+import cz.uhk.fim.kikm.wearnavigation.utils.wearCommunication.DataLayerListenerService;
 import cz.uhk.fim.kikm.wearnavigation.utils.wearCommunication.WearDataSender;
 
 public abstract class BaseActivity extends AppCompatActivity implements
@@ -55,20 +51,16 @@ public abstract class BaseActivity extends AppCompatActivity implements
     // Log tag
     private static final String TAG = "BaseActivity";
 
-    private static final String DATA_ACTIVITY_STARTED = "/start-activity-complete";
-
-    // Global variable for Bottom navigation
-    protected BottomNavigationView navigationView;
-    // Bluetooth check request code
-    private final int REQUEST_ENABLE_BT = 1000;
-    // Request access to coarse location
-    private final int REQUEST_ACCESS_LOCATION = 1001;
-    // App wide configuration class
-    protected Configuration mConfiguration;
+    protected BottomNavigationView navigationView;      // Global variable for Bottom navigation
+    private final int REQUEST_ENABLE_BT = 1000;         // Bluetooth check request code
+    private final int REQUEST_ACCESS_LOCATION = 1001;   // Request access to coarse location
+    protected Configuration mConfiguration;             // App wide configuration class
 
     protected JobInfo.Builder jobBuilder;       // Job builder for FingerprintScanner
     private ScannerProgressReceiver mReceiver;  // Scanner receiver instance
     protected WearDataSender mWearDataSender;
+
+    private DatabaseCRUD mDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,6 +86,7 @@ public abstract class BaseActivity extends AppCompatActivity implements
         mConfiguration = ((WearApplication) getApplicationContext()).getConfiguration();
         jobBuilder = ((WearApplication) getApplicationContext()).getFingerprintJob();
         mWearDataSender = new WearDataSender(this);
+        mDatabase = new DatabaseCRUD(this);
 
         checkBluetooth();           // Bluetooth check
         checkLocationPermissions(); // Location permission check
@@ -330,21 +323,13 @@ public abstract class BaseActivity extends AppCompatActivity implements
     @Override
     public void onDataChanged(DataEventBuffer dataEvents) {
         Log.d(TAG, "onDataChanged: " + dataEvents);
-
-        for (DataEvent event : dataEvents) {
-            if (event.getType() == DataEvent.TYPE_CHANGED) {
-                Log.d(TAG,"DataItem Changed: " + event.getDataItem().toString());
-            } else if (event.getType() == DataEvent.TYPE_DELETED) {
-                Log.d(TAG,"DataItem Deleted" + event.getDataItem().toString());
-            }
-        }
     }
 
     @Override
     public void onMessageReceived(MessageEvent event) {
         Log.d(TAG, "onMessageReceived: " + event);
 
-        if(event.getPath().equals(DATA_ACTIVITY_STARTED)) {
+        if(event.getPath().equals(DataLayerListenerService.ACTIVITY_STARTED_PATH)) {
             // Notify wearable device that it should start a scan after a second of delay
             new Handler().postDelayed(() -> mWearDataSender.sendScanStart(), 1000);
         }

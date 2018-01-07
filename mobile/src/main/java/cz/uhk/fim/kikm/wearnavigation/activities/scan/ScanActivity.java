@@ -238,7 +238,6 @@ public class ScanActivity extends BaseActivity implements
                 CoordinateTranslater ct = mMap.getCoordinateTranslater();
                 int realX = (int) ct.translateAndScaleAbsoluteToRelativeX(x, mMap.getScale());
                 int realY = (int) ct.translateAndScaleAbsoluteToRelativeY(y, mMap.getScale());
-                //Toast.makeText(ScanActivity.this, "You tapped at position: " + realX + ":" + realY, Toast.LENGTH_SHORT).show();
 
                 // Round both numbers to tens to make the steps little easier
                 int roundedX = (int) Math.round(realX/10.0) * 10;
@@ -316,6 +315,8 @@ public class ScanActivity extends BaseActivity implements
         Fingerprint fingerprint = new Fingerprint();
         // TODO: have a setter for building and floor
         fingerprint.setLocationEntry(new LocationEntry("J3NP"));
+        // TODO: Have a parameter for that
+        fingerprint.setScanLength(20000);
         fingerprint.setX(posX);
         fingerprint.setY(posY);
 
@@ -339,15 +340,11 @@ public class ScanActivity extends BaseActivity implements
             lastKnownLocation[1] = location.getLongitude();
         }
 
-        // TODO: Have a parameter for that
-        long scanLength = 60000;    // Length of the scan
-
         // Create instance of scanner and start it with execute
         String jsonFinger = gson.toJson(fingerprint);
         PersistableBundle bundle = new PersistableBundle();
         bundle.putString(FingerprintScanner.PARAM_FINGERPRINT, jsonFinger);
         bundle.putDoubleArray(FingerprintScanner.PARAM_LOCATION, lastKnownLocation);
-        bundle.putLong(FingerprintScanner.PARAM_SCAN_LENGTH, scanLength);
 
         // Run the job
         jobBuilder.setExtras(bundle);                   // Set extra bundle data

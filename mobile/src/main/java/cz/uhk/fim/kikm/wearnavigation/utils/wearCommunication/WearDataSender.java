@@ -28,13 +28,6 @@ public class WearDataSender {
     private Context mContext;
     private Fingerprint mFingerprint;
 
-    private static final String START_ACTIVITY_PATH = "/start-activity";
-    private static final String SCAN_PATH = "/scan";
-    private static final String SCAN_STATUS_KEY = "scanStatus";
-    private static final String SCAN_DATA = "scanData";
-
-    private static final int STATUS_START = 0;
-
     public WearDataSender(Context context) {
         mContext = context.getApplicationContext();
     }
@@ -48,12 +41,10 @@ public class WearDataSender {
 
     public void sendScanStart() {
         if(mFingerprint != null) {
-            PutDataMapRequest dataMapRequest = PutDataMapRequest.create(SCAN_PATH);
+            PutDataMapRequest dataMapRequest = PutDataMapRequest.create(DataLayerListenerService.SCAN_PATH);
 
             DataMap dataMap = dataMapRequest.getDataMap();
-            dataMap.putInt(SCAN_STATUS_KEY, STATUS_START);
-            dataMap.putLong("time", new Date().getTime());
-            ParcelableUtils.putParcelable(dataMap, SCAN_DATA, mFingerprint);
+            ParcelableUtils.putParcelable(dataMap, DataLayerListenerService.SCAN_DATA, mFingerprint);
 
             PutDataRequest request = dataMapRequest.asPutDataRequest();
             request.setUrgent();
@@ -95,7 +86,7 @@ public class WearDataSender {
         private void sendStartActivityMessage(String node) {
 
             Task<Integer> sendMessageTask =
-                    Wearable.getMessageClient(mContext).sendMessage(node, START_ACTIVITY_PATH, new byte[0]);
+                    Wearable.getMessageClient(mContext).sendMessage(node, DataLayerListenerService.START_ACTIVITY_PATH, new byte[0]);
 
             try {
                 // Block on a task and get the result synchronously (because this is on a background
