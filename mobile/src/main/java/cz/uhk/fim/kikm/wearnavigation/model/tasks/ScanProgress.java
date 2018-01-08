@@ -19,7 +19,7 @@ public class ScanProgress implements Parcelable {
     private int cellularCount;      // Cellular entries
     private int sensorCount;        // Sensor entries
 
-    ScanProgress() {
+    public ScanProgress() {
     }
 
     private ScanProgress(Parcel in) {

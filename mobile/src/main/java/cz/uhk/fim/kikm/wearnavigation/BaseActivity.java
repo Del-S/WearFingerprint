@@ -38,7 +38,7 @@ import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
 import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseCRUD;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.ScanProgress;
-import cz.uhk.fim.kikm.wearnavigation.utils.AnimationHelper;
+import cz.uhk.fim.kikm.wearnavigation.utils.animations.AnimationHelper;
 import cz.uhk.fim.kikm.wearnavigation.utils.SimpleDialogHelper;
 import cz.uhk.fim.kikm.wearnavigation.utils.wearCommunication.DataLayerListenerService;
 import cz.uhk.fim.kikm.wearnavigation.utils.wearCommunication.WearDataSender;
@@ -48,29 +48,26 @@ public abstract class BaseActivity extends AppCompatActivity implements
         DataClient.OnDataChangedListener,
         MessageClient.OnMessageReceivedListener {
 
-    // Log tag
-    private static final String TAG = "BaseActivity";
+    private static final String TAG = "BaseActivity";   // Logging tag
 
     protected BottomNavigationView navigationView;      // Global variable for Bottom navigation
     private final int REQUEST_ENABLE_BT = 1000;         // Bluetooth check request code
     private final int REQUEST_ACCESS_LOCATION = 1001;   // Request access to coarse location
     protected Configuration mConfiguration;             // App wide configuration class
 
+    protected WearDataSender mWearDataSender;   // Send information into the nodes
     protected JobInfo.Builder jobBuilder;       // Job builder for FingerprintScanner
     private ScannerProgressReceiver mReceiver;  // Scanner receiver instance
-    protected WearDataSender mWearDataSender;
+    protected AnimationHelper mAnimationHelper; // Animation helper
 
-    private DatabaseCRUD mDatabase;
+    private DatabaseCRUD mDatabase;     // Database holder used to save Fingerprints
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Remove title from the app
-        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-
-        // Sets view based on child activity
-        setContentView(getContentViewId());
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE); // Remove title from the app
+        setContentView(getContentViewId()); // Sets view based on child activity
 
         // Load bottom navigation
         navigationView = findViewById(R.id.bottom_menu);
@@ -83,10 +80,12 @@ public abstract class BaseActivity extends AppCompatActivity implements
         invalidateOptionsMenu();
 
         // Load configuration from the application
-        mConfiguration = ((WearApplication) getApplicationContext()).getConfiguration();
-        jobBuilder = ((WearApplication) getApplicationContext()).getFingerprintJob();
-        mWearDataSender = new WearDataSender(this);
-        mDatabase = new DatabaseCRUD(this);
+        mConfiguration = ((WearApplication) getApplicationContext()).getConfiguration();    // Load configuration from Application
+        jobBuilder = ((WearApplication) getApplicationContext()).getFingerprintJob();       // Load JobBuilder from Application
+        mWearDataSender = new WearDataSender(this); // Initiate WearDataSender
+        mDatabase = new DatabaseCRUD(this);         // Initiate Database connection
+
+        mAnimationHelper = new AnimationHelper();   // Initialize animation helper
 
         checkBluetooth();           // Bluetooth check
         checkLocationPermissions(); // Location permission check
@@ -116,8 +115,8 @@ public abstract class BaseActivity extends AppCompatActivity implements
     @Override
     protected void onPause() {
         super.onPause();
-        // Disables transitions between activities (for bottom menu)
-        overridePendingTransition(0, 0);
+        overridePendingTransition(0, 0);    // Disables transitions between activities (for bottom menu)
+
         // Unregister scanner receiver
         if(mReceiver != null) {
             try {
@@ -127,6 +126,7 @@ public abstract class BaseActivity extends AppCompatActivity implements
             }
         }
 
+        // Remove listeners on activity pause
         Wearable.getDataClient(this).removeListener(this);
         Wearable.getMessageClient(this).removeListener(this);
     }
@@ -348,15 +348,14 @@ public abstract class BaseActivity extends AppCompatActivity implements
                 if(intent.getExtras() != null) {
                     scanProgress = intent.getExtras().getParcelable(FingerprintScanner.ACTION_DATA);
                     // Hide this view after completion (5 seconds)
-                    if(scanProgress.getState() == FingerprintScanner.TASK_STATE_DONE) {
+                    if(scanProgress != null && scanProgress.getState() == FingerprintScanner.TASK_STATE_DONE) {
                         updateUI();
                     }
                 }
-                AnimationHelper.displayScanStatus(BaseActivity.this, scanProgress, View.VISIBLE, 800);
+                mAnimationHelper.displayScanStatus(BaseActivity.this, scanProgress, View.VISIBLE, 800);
             }
         }
     }
-
 
     /**
      * Update UI function that updates the screen

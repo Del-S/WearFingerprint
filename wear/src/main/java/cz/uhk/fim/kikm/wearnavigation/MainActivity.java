@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.PersistableBundle;
 import android.os.Vibrator;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.wearable.activity.WearableActivity;
@@ -47,7 +48,7 @@ public class MainActivity extends WearableActivity implements
         DataClient.OnDataChangedListener,
         MessageClient.OnMessageReceivedListener {
 
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "MainActivity";   // Logging tag
 
     // Request permissions parameters
     private final int REQUEST_ENABLE_BT = 1000;         // Bluetooth check request code
@@ -58,7 +59,7 @@ public class MainActivity extends WearableActivity implements
     private TextView mProgressStatus;           // Status of scanning
     private ProgressBar mProgressBar;           // Progress bar of scanning
     private TextView mProgressPercent;          // Progress in percentage
-    private ProgressBarAnimation mProgressAnimation;
+    private ProgressBarAnimation mProgressAnimation;    // ProgressBar animation class
 
     // Scanner variables
     private JobScheduler jobScheduler;          // JobScheduler used to run FingerprintScanner
@@ -66,30 +67,28 @@ public class MainActivity extends WearableActivity implements
     private ScannerProgressReceiver mReceiver;  // Scanner receiver instance
     private final Gson gson = new Gson();       // Class to json (and reverse) parser
     private LocationManager locationManager;    // Location manager to get location from the network
-    GoogleApiClient mGoogleApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
+        setAmbientEnabled();    // Enables Always-on
 
-        // Enables Always-on
-        setAmbientEnabled();
-
-        // Run fingerprint scanner job
+        // Lad fingerprint scanner job instances
         jobBuilder = ((WearApplication) getApplicationContext()).getFingerprintJob();   // Load scanner job from Application
         // Load system services
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);    // Load location manager
         jobScheduler = (JobScheduler) getSystemService( Context.JOB_SCHEDULER_SERVICE );        // Load JobScheduler
 
         // Load displays
-        mIntro = findViewById(R.id.am_intro);
-        mProgressContent = findViewById(R.id.am_progress_content);
-        mProgressStatus = findViewById(R.id.am_progress_status);
-        mProgressBar = findViewById(R.id.am_progress);
-        mProgressPercent = findViewById(R.id.am_progress_percent);
+        mIntro = findViewById(R.id.am_intro);                       // Find view with into text
+        mProgressContent = findViewById(R.id.am_progress_content);  // Find view containing all progress widgets
+        mProgressStatus = findViewById(R.id.am_progress_status);    // Find view with scan status
+        mProgressBar = findViewById(R.id.am_progress);              // Find view with progress bar
+        mProgressPercent = findViewById(R.id.am_progress_percent);  // Find view with progress percent
 
-        // Set progress bar animation
+        // Initiate progress bar animation
         mProgressAnimation = new ProgressBarAnimation(mProgressBar, 1000);
 
         checkBluetooth();           // Bluetooth check
@@ -131,28 +130,35 @@ public class MainActivity extends WearableActivity implements
             }
         }
 
+        // Remove all listeners for GoogleApis
         Wearable.getDataClient(this).removeListener(this);
         Wearable.getMessageClient(this).removeListener(this);
     }
 
     @Override
-    public void onMessageReceived(MessageEvent event) {
+    public void onMessageReceived(@NonNull MessageEvent event) {
         Log.d(TAG, "onMessageReceived: " + event);
     }
 
     @Override
-    public void onDataChanged(DataEventBuffer dataEvents) {
+    public void onDataChanged(@NonNull DataEventBuffer dataEvents) {
         Log.d(TAG, "onDataChanged(): " + dataEvents);
 
+        // Check all dataEvents if there are some to be handled
         for (DataEvent event : dataEvents) {
+            // Working only with changed dataEvents
             if (event.getType() == DataEvent.TYPE_CHANGED) {
-                String path = event.getDataItem().getUri().getPath();
-                if (DataLayerListenerService.SCAN_PATH.equals(path)) {
-                    DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
+                // Run scan only if proper dataEvent was changed
+                String path = event.getDataItem().getUri().getPath();   // Get path of the event
+                if (DataLayerListenerService.SCAN_PATH.equals(path)) {  // If the path is scan path
+                    // Load data from dataMap
+                    DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());    // Get data map from event
+                    // Load fingerprint data from DataMap via Parcel
                     Fingerprint fingerprint = ParcelableUtils.getParcelable(dataMapItem.getDataMap(),
                             DataLayerListenerService.SCAN_DATA,
                             Fingerprint.CREATOR);
 
+                    // Schedule new Fingerprint scan
                     runFingerprintScanner(fingerprint);
                 } else {
                     Log.d(TAG, "Unrecognized path: " + path);
@@ -172,6 +178,7 @@ public class MainActivity extends WearableActivity implements
      * @param fingerprint to save scan data to
      */
     private void runFingerprintScanner(Fingerprint fingerprint) {
+        // Check if job is already running or scheduled (do not run a new one)
         if(jobScheduler.getPendingJob(FingerprintScanner.JOB_ID) != null) {
             Toast.makeText(this, R.string.am_scan_already_running, Toast.LENGTH_SHORT).show();
             return;
@@ -213,13 +220,15 @@ public class MainActivity extends WearableActivity implements
      */
     private void displayScanView(boolean show) {
         if(show) {
+            // Hide Intro and show Progress
             mIntro.setVisibility(View.GONE);
             mProgressContent.setVisibility(View.VISIBLE);
         } else {
+            // Hide Progress and show Intro
             mIntro.setVisibility(View.VISIBLE);
             mProgressContent.setVisibility(View.GONE);
 
-            // Set values to default
+            // Reset values to default
             mProgressStatus.setText(R.string.am_status_creating);
             mProgressBar.setMax(100);
             mProgressBar.setProgress(0);
@@ -240,11 +249,14 @@ public class MainActivity extends WearableActivity implements
                     // Get scan progress from intent
                     ScanProgress scanProgress = intent.getExtras().getParcelable(FingerprintScanner.ACTION_DATA);
 
+                    // If scan progress is not empty we can work with it
                     if (scanProgress != null) {
+                        // Calculate display numbers
                         int progressMax = scanProgress.getScanLength();
                         int progressCurrent = scanProgress.getCurrentTime();
                         int progressPercent = (int) (((double) progressCurrent / (double) progressMax) * 100);
 
+                        // Display new status information
                         mProgressStatus.setText(scanProgress.getStateString());
                         mProgressBar.setMax(progressMax);
                         mProgressAnimation.setProgress(progressCurrent);
@@ -260,7 +272,6 @@ public class MainActivity extends WearableActivity implements
                             int w = scanProgress.getWirelessCount();
                             int c = scanProgress.getCellularCount();
                             int s = scanProgress.getSensorCount();
-
                             Toast.makeText(MainActivity.this, "Found (b,w,c,s): " + bl + ", " + w + ", " + c + ", " + s, Toast.LENGTH_LONG).show();
 
                             // Rest view for next scan
@@ -308,7 +319,6 @@ public class MainActivity extends WearableActivity implements
             finish();
         }
     }
-
 
     /**
      * Asks for permission to access Coarse and Fine location

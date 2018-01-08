@@ -264,7 +264,7 @@ public class FingerprintScanner extends JobService {
 
         @Override
         protected void onProgressUpdate(Void... values) {
-            // Get scanLength as int
+            // Get scanLength (ms) as int
             int maxTime = (int) mScanLength;
 
             // Create ScanProgress instance if it does not exist
@@ -275,8 +275,8 @@ public class FingerprintScanner extends JobService {
             // Set current variables into the ScanProgress
             mScanProgress.setState(mState);                          // Set current state
             mScanProgress.setStateString( getStateAsString() );      // Set current state (string) of this job
-            mScanProgress.setScanLength(maxTime);          // Set length of the scan (usually stays the same)
-            mScanProgress.setCurrentTime( getCurrentTime(maxTime) );     // Set current time in the scan
+            mScanProgress.setScanLength( maxTime );                  // Set length of the scan (usually stays the same)
+            mScanProgress.setCurrentTime( getCurrentTime(maxTime) ); // Set current time in the scan
             // Set entries count
             mScanProgress.setBeaconCount( mFingerprint.getBeaconEntries().size() );         // Sets beacon count
             mScanProgress.setWirelessCount( mFingerprint.getWirelessEntries().size() );     // Sets wireless counts

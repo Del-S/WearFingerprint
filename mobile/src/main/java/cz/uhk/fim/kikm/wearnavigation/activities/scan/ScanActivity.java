@@ -19,6 +19,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.fasterxml.jackson.databind.ser.VirtualBeanPropertyWriter;
 import com.google.gson.Gson;
 import com.qozix.tileview.TileView;
 import com.qozix.tileview.geom.CoordinateTranslater;
@@ -34,6 +35,7 @@ import cz.uhk.fim.kikm.wearnavigation.model.database.LocationEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseDataInterface;
 import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseDataLoader;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
+import cz.uhk.fim.kikm.wearnavigation.model.tasks.ScanProgress;
 import cz.uhk.fim.kikm.wearnavigation.utils.wearCommunication.WearDataSender;
 
 /**
@@ -330,6 +332,8 @@ public class ScanActivity extends BaseActivity implements
      * @param fingerprint to save scan data to
      */
     private void runLocalFingerprintScanner(Fingerprint fingerprint) {
+        displayScanProgressOverlay();   // Displays scan overlay to show that scan is scheduling
+
         // Getting last knows location from Network
         double[] lastKnownLocation = {0, 0};
         if (locationManager != null &&
@@ -352,14 +356,28 @@ public class ScanActivity extends BaseActivity implements
     }
 
     /**
+     * Display scan status before scan is started to show it is being scheduled.
+     */
+    private void displayScanProgressOverlay() {
+        // Create instance of scanProgress and set proper variables
+        ScanProgress scanProgress = new ScanProgress();
+        scanProgress.setStateString(getResources().getString(R.string.spo_status_creating));  // Set state to scheduling
+        scanProgress.setScanLength(100);    // Scan length to 100 so progress bar would not be 0 max.
+
+        // Display scan status via BaseActivity AnimationHelper
+        mAnimationHelper.displayScanStatus(this, scanProgress, View.VISIBLE, 1000);
+    }
+
+    /**
      * Check if there is a scan running.
      *
      * @return true/false scan running.
      */
     private boolean isScanRunning() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            return jobScheduler.getPendingJob(FingerprintScanner.JOB_ID) != null;
+            return jobScheduler.getPendingJob(FingerprintScanner.JOB_ID) != null;   // Check if job is pending based on id
         } else {
+            // Check all the jobs and if one of the ids is the same then it is running
             List<JobInfo> jobs = jobScheduler.getAllPendingJobs();
             for (JobInfo job : jobs) {
                 if (job.getId() == FingerprintScanner.JOB_ID)

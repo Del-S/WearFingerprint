@@ -259,8 +259,8 @@ public class FingerprintScanner extends JobService {
 
         @Override
         protected void onProgressUpdate(Void... values) {
-            // Calculate scan length into seconds for display
-            int scanLengthSeconds = (int) (mScanLength / 1000);
+            // Get scanLength (ms) as int
+            int maxTime = (int) mScanLength;
 
             // Create ScanProgress instance if it does not exist
             if(mScanProgress == null) {
@@ -270,8 +270,8 @@ public class FingerprintScanner extends JobService {
             // Set current variables into the ScanProgress
             mScanProgress.setState(mState);                          // Set current state
             mScanProgress.setStateString( getStateAsString() );      // Set current state (string) of this job
-            mScanProgress.setScanLength(scanLengthSeconds);          // Set length of the scan (usually stays the same)
-            mScanProgress.setCurrentTime( getCurrentTimeAsSeconds(scanLengthSeconds) );     // Set current time in the scan
+            mScanProgress.setScanLength( maxTime );                  // Set length of the scan (usually stays the same)
+            mScanProgress.setCurrentTime( getCurrentTime(maxTime) ); // Set current time in the scan
             // Set entries count
             mScanProgress.setBeaconCount( mFingerprint.getBeaconEntries().size() );         // Sets beacon count
             mScanProgress.setWirelessCount( mFingerprint.getWirelessEntries().size() );     // Sets wireless counts
@@ -310,18 +310,18 @@ public class FingerprintScanner extends JobService {
         }
 
         /**
-         * Calculates the current time into seconds for display as progress.
+         * Calculates the current time based on status.
          * Used in progress bar to display progress.
          *
          * @param maxTime so we don't move over it
-         * @return int seconds of current time
+         * @return int milliseconds of current time
          */
-        private int getCurrentTimeAsSeconds(int maxTime) {
+        private int getCurrentTime(int maxTime) {
             switch (mState) {
                 case TASK_STATE_DONE:
                     return maxTime;
                 case TASK_STATE_RUNNING:
-                    int currentTime = (int) ((System.currentTimeMillis() - mStartTime) / 1000);  // Calculate and set current time in seconds
+                    int currentTime = (int) (System.currentTimeMillis() - mStartTime);  // Calculate and set current time in milliseconds
                     if(currentTime > maxTime) {
                         currentTime = maxTime;
                     }
