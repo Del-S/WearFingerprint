@@ -2,4 +2,5 @@
 <resources>
     <color name="colorBackgroundActions">#313231</color>
     <color name="colorButtonActionMarker">@color/colorBackground</color>
+    <color name="colorButtonActionMarkerDisabled">#AAA9A5</color>
 </resources>

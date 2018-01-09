@@ -1,5 +1,8 @@
 package cz.uhk.fim.kikm.wearnavigation.model.database;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.Expose;
@@ -9,7 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @JsonIgnoreProperties(value = { "technology" })
-public class WirelessEntry {
+public class WirelessEntry implements Parcelable {
 
     // Database labels for database
     public final static String DB_TABLE = "wireless";
@@ -49,19 +52,52 @@ public class WirelessEntry {
     public WirelessEntry() {
     }
 
-    public WirelessEntry(Object object) {
-        Map<String, Object> wirelessRecord = (HashMap<String, Object>) object;
-        this.timestamp = Long.valueOf(wirelessRecord.get("timestamp").toString());
-        this.bssid = wirelessRecord.get("bssid").toString();
-        this.ssid = wirelessRecord.get("ssid").toString();
-        this.rssi = Integer.valueOf(wirelessRecord.get("rssi").toString());
-        this.distance = Float.valueOf(wirelessRecord.get("distance").toString());
-        this.scanTime = Long.valueOf(wirelessRecord.get("time").toString());
-        this.scanDifference = Long.valueOf(wirelessRecord.get("difference").toString());
-        this.frequency = Integer.valueOf(wirelessRecord.get("frequency").toString());
-        this.channel = Integer.valueOf(wirelessRecord.get("channel").toString());
+
+    @Override
+    public int describeContents() {
+        return 0;
     }
 
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
+        dest.writeInt(fingerprintId);
+        dest.writeString(ssid);
+        dest.writeString(bssid);
+        dest.writeInt(rssi);
+        dest.writeInt(frequency);
+        dest.writeInt(channel);
+        dest.writeFloat(distance);
+        dest.writeLong(timestamp);
+        dest.writeLong(scanTime);
+        dest.writeLong(scanDifference);
+    }
+
+    private WirelessEntry(Parcel in) {
+        id = in.readInt();
+        fingerprintId = in.readInt();
+        ssid = in.readString();
+        bssid = in.readString();
+        rssi = in.readInt();
+        frequency = in.readInt();
+        channel = in.readInt();
+        distance = in.readFloat();
+        timestamp = in.readLong();
+        scanTime = in.readLong();
+        scanDifference = in.readLong();
+    }
+
+    public static final Creator<WirelessEntry> CREATOR = new Creator<WirelessEntry>() {
+        @Override
+        public WirelessEntry createFromParcel(Parcel in) {
+            return new WirelessEntry(in);
+        }
+
+        @Override
+        public WirelessEntry[] newArray(int size) {
+            return new WirelessEntry[size];
+        }
+    };
 
     public int getId() {
         return id;

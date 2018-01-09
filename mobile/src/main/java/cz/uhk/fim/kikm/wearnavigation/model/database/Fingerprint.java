@@ -1,5 +1,7 @@
 package cz.uhk.fim.kikm.wearnavigation.model.database;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -14,7 +16,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @JsonIgnoreProperties(value = { "_rev", "user" })
-public class Fingerprint {
+public class Fingerprint implements Parcelable {
 
     // Database labels for database
     public final static String DB_TABLE = "fingerprint";
@@ -23,6 +25,7 @@ public class Fingerprint {
     public final static String DB_FINGERPRINT_SCAN_ID = "scanID";
     public final static String DB_X = "x";
     public final static String DB_Y = "y";
+    public final static String DB_SCAN_LENGTH = "scanLength";
     public final static String DB_SCAN_START = "scanStart";
     public final static String DB_SCAN_END = "scanEnd";
     public final static String DB_LEVEL = "level";
@@ -36,6 +39,7 @@ public class Fingerprint {
     private UUID id;                                // UUID of this scan
     private UUID scanID;                            // UUID to enable fingerprint grouping
     private int x,y;                                // Calculated X and Y locations
+    private long scanLength;                        // Length of the scan in ms
     @JsonProperty("timestamp")
     private long scanStart;                         // Timestamps of scan start
     @JsonProperty("finish")
@@ -72,78 +76,68 @@ public class Fingerprint {
 
         // Set device
         deviceEntry = DeviceEntry.createInstance();
+
+        // Default scan length is 60s
+        scanLength = 60000;
     }
 
-    /**
-     * Create instance of Fingerprint and set variables from Map.
-     * Reflection is useless because multiple variables have different names.
-     */
-    public Fingerprint(Map<String, Object> map) {
-        if(map.containsKey("_id")) {
-            this.id = UUID.fromString(map.get("_id").toString());
-        }
-
-        if(map.containsKey("scan_id")) {
-            this.scanID = UUID.fromString(map.get("scan_id").toString());
-        }
-
-        if(map.containsKey("x")) {
-            this.x = Integer.valueOf(map.get("x").toString());
-        }
-
-        if(map.containsKey("y")) {
-            this.y = Integer.valueOf(map.get("y").toString());
-        }
-
-        if(map.containsKey("timestamp")) {
-            this.scanStart = Long.valueOf(map.get("timestamp").toString());
-        }
-
-        if(map.containsKey("finish")) {
-            this.scanEnd = Long.valueOf(map.get("finish").toString());
-        }
-
-        // TODO: create location entry by locationRecords (not in the json yet)
-        if(map.containsKey("level")) {
-            this.locationEntry = new LocationEntry(map.get("level").toString());
-        }
-
-        if(map.containsKey("deviceRecord")) {
-            this.deviceEntry = new DeviceEntry(map.get("deviceRecord"));
-        }
-
-        if(map.containsKey("bluetoothRecords")) {
-            Object bluetoothRecords = map.get("bluetoothRecords");
-            List<BeaconEntry> beaconEntries = new ArrayList<>();
-            for (Object object : (List) bluetoothRecords) beaconEntries.add(new BeaconEntry(object));
-            this.beaconEntries = beaconEntries;
-        }
-
-        if(map.containsKey("wirelessRecords")) {
-            Object wirelessRecords = map.get("wirelessRecords");
-            List<WirelessEntry> wirelessEntries = new ArrayList<>();
-            for (Object object : (List) wirelessRecords) wirelessEntries.add(new WirelessEntry(object));
-            this.wirelessEntries = wirelessEntries;
-        }
-
-        if(map.containsKey("cellularRecords")) {
-            Object cellularRecords = map.get("cellularRecords");
-            Log.d("svdsvsvsdv", cellularRecords.toString());
-            List<CellularEntry> cellularEntries = new ArrayList<>();
-            for (Object object : (List) cellularRecords) cellularEntries.add(new CellularEntry(object));
-            this.cellularEntries = cellularEntries;
-        }
-
-        if(map.containsKey("sensorRecords")) {
-            Object sensorRecords = map.get("sensorRecords");
-            Log.d("svdsvsvsdv", sensorRecords.toString());
-            List<SensorEntry> sensorEntries = new ArrayList<>();
-            for (Object object : ((LinkedHashMap) sensorRecords).values()) sensorEntries.add(new SensorEntry(object));
-            this.sensorEntries = sensorEntries;
-        }
-
-
+    private Fingerprint(Parcel in) {
+        dbId = in.readInt();
+        id = UUID.fromString(in.readString());
+        scanID = UUID.fromString(in.readString());
+        x = in.readInt();
+        y = in.readInt();
+        scanLength = in.readLong();
+        scanStart = in.readLong();
+        scanEnd = in.readLong();
+        level = in.readString();
+        location_id = in.readLong();
+        locationEntry = in.readParcelable(LocationEntry.class.getClassLoader());
+        device_id = in.readLong();
+        deviceEntry = in.readParcelable(DeviceEntry.class.getClassLoader());
+        beaconEntries = in.createTypedArrayList(BeaconEntry.CREATOR);
+        wirelessEntries = in.createTypedArrayList(WirelessEntry.CREATOR);
+        cellularEntries = in.createTypedArrayList(CellularEntry.CREATOR);
+        sensorEntries = in.createTypedArrayList(SensorEntry.CREATOR);
     }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(dbId);
+        dest.writeString(id.toString());
+        dest.writeString(scanID.toString());
+        dest.writeInt(x);
+        dest.writeInt(y);
+        dest.writeLong(scanLength);
+        dest.writeLong(scanStart);
+        dest.writeLong(scanEnd);
+        dest.writeString(level);
+        dest.writeLong(location_id);
+        dest.writeParcelable(locationEntry, flags);
+        dest.writeLong(device_id);
+        dest.writeParcelable(deviceEntry, flags);
+        dest.writeTypedList(beaconEntries);
+        dest.writeTypedList(wirelessEntries);
+        dest.writeTypedList(cellularEntries);
+        dest.writeTypedList(sensorEntries);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<Fingerprint> CREATOR = new Creator<Fingerprint>() {
+        @Override
+        public Fingerprint createFromParcel(Parcel in) {
+            return new Fingerprint(in);
+        }
+
+        @Override
+        public Fingerprint[] newArray(int size) {
+            return new Fingerprint[size];
+        }
+    };
 
     public int getDbId() {
         return dbId;
@@ -183,6 +177,14 @@ public class Fingerprint {
 
     public void setY(int y) {
         this.y = y;
+    }
+
+    public long getScanLength() {
+        return scanLength;
+    }
+
+    public void setScanLength(long scanLength) {
+        this.scanLength = scanLength;
     }
 
     public long getScanStart() {
@@ -289,7 +291,7 @@ public class Fingerprint {
     }
 
     @Override
-    public boolean equals(java.lang.Object o) {
+    public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
@@ -302,6 +304,7 @@ public class Fingerprint {
                 Objects.equals(this.scanID, fingerprint.scanID) &&
                 Objects.equals(this.x, fingerprint.x) &&
                 Objects.equals(this.y, fingerprint.y) &&
+                Objects.equals(this.scanLength, fingerprint.scanLength) &&
                 Objects.equals(this.scanStart, fingerprint.scanStart) &&
                 Objects.equals(this.scanEnd, fingerprint.scanEnd) &&
                 Objects.equals(this.locationEntry, fingerprint.locationEntry) &&
@@ -327,14 +330,15 @@ public class Fingerprint {
                 "    scanID: " + toIndentedString(scanID) + "\n" +
                 "    x: " + toIndentedString(x) + "\n" +
                 "    y: " + toIndentedString(y) + "\n" +
+                "    scanLength: " + toIndentedString(scanLength) + "\n" +
                 "    scanStart: " + toIndentedString(scanStart) + "\n" +
                 "    scanEnd: " + toIndentedString(scanEnd) + "\n" +
                 "    locationEntry: " + toIndentedString(locationEntry) + "\n" +
                 "    deviceEntry: " + toIndentedString(deviceEntry) + "\n" +
-                //"    beaconEntries: " + toIndentedString(beaconEntries.size()) + "\n" +
-                //"    wirelessEntries: " + toIndentedString(wirelessEntries.size()) + "\n" +
-                //"    cellularEntries: " + toIndentedString(cellularEntries.size()) + "\n" +
-                //"    sensorEntries: " + toIndentedString(sensorEntries.size()) + "\n" +
+                "    beaconEntriesCount: " + toIndentedString(beaconEntries.size()) + "\n" +
+                "    wirelessEntriesCount: " + toIndentedString(wirelessEntries.size()) + "\n" +
+                "    cellularEntriesCount: " + toIndentedString(cellularEntries.size()) + "\n" +
+                "    sensorEntriesCount: " + toIndentedString(sensorEntries.size()) + "\n" +
                 "}";
     }
 
@@ -342,7 +346,7 @@ public class Fingerprint {
      * Convert the given object to string with each line indented by 4 spaces
      * (except the first line).
      */
-    private String toIndentedString(java.lang.Object o) {
+    private String toIndentedString(Object o) {
         if (o == null) {
             return "null";
         }

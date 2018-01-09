@@ -128,7 +128,6 @@ public class BlDevicesAdapter extends RecyclerView.Adapter {
         // Disable button to prevent multiple clicks
         deviceViewHolder.action.setEnabled(false);
         // Make status information visible
-        Log.d("svs", "Visible for: " + device.getName());
         deviceViewHolder.status.setVisibility(VISIBLE);
 
         // Change status test based on bond state

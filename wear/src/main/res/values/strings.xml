@@ -9,4 +9,20 @@
     <!-- Main activity -->
     <string name="am_bluetooth_not_enabled">This application does not work without bluetooth.\nShutting down.</string>
     <string name="am_bluetooth_le_support">This app requires Bluetooth Low Energy to work.\nThis device does not support it.\nShutting down.</string>
+    <string name="am_intro">Waiting for scan data to arrive\u2026</string>
+    <string name="am_scan_already_running">There is a scan running at this moment.</string>
+    <string name="am_scan_data_send_error">Error while sending data back to the phone.</string>
+
+    <!-- *********************** -->
+    <!-- Fingerprint scan status -->
+    <!-- *********************** -->
+    <string name="am_status_none">N/A</string>
+    <string name="am_status_creating">Scheduling</string>
+    <string name="am_status_starting">Starting</string>
+    <string name="am_status_running">Scanning</string>
+    <string name="am_status_done">Complete</string>
+
+    <!-- Scan status data -->
+    <string name="am_progress_percent_default">0%</string>
+    <string name="am_progress_percent">%1$d%%</string>
 </resources>

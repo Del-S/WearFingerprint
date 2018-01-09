@@ -4,8 +4,8 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * This class is used to post progress oft he scan via Broadcast.
- * This classed is parsed to json and then send as a Broadcast.
+ * This class is used to post progress of the scan via Broadcast.
+ * This classed is passed in the bundle as Parcelable.
  */
 public class ScanProgress implements Parcelable {
     private int state;             // State of current scan
@@ -19,7 +19,7 @@ public class ScanProgress implements Parcelable {
     private int cellularCount;      // Cellular entries
     private int sensorCount;        // Sensor entries
 
-    ScanProgress() {
+    public ScanProgress() {
     }
 
     private ScanProgress(Parcel in) {

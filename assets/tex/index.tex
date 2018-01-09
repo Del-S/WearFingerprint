@@ -22,6 +22,7 @@
 \usepackage[left=3cm,top=2.5cm,right=2.5cm,bottom=2.5cm]{geometry}
 \usepackage{breakurl}
 \usepackage{indentfirst}
+\usepackage[nottoc,notlot,notlof]{tocbibind}
 
 % Cut words in half
 %\hyphenation{Word-cut}
@@ -212,7 +213,7 @@ pdfkeywords={Fingerprint, Android, Wear}%
 \vspace{15mm}
 
 
-\textsf{\LARGE Radio Fingerprint Acquisition Using a SmartWatch}{\LARGE \par}
+\textsf{\LARGE Radio Fingerprint Acquisition Using a Smartwatch}{\LARGE \par}
 
 \vspace{10mm}
 
@@ -231,14 +232,12 @@ pdfkeywords={Fingerprint, Android, Wear}%
 \item [{{\large Supervisor:}}] \noindent \textsf{\large Ing. Pavel Kříž, Ph.D.}
 
 {\large \bigskip{}
-}\noindent {\large{} Hradec Králové \hspace{\fill}April 2018}\\
+}\noindent {\large{}Hradec Králové \hspace{\fill}April 2018}\\
 {\large{}
 }{\large \par}
 
 \end{description}
 \clearpage{}
-
-%{\small \thispagestyle{plain}\addcontentsline{toc}{chapter}{Abstrakt} }{\small \par}
 
 \newpage{}\thispagestyle{empty}
 
@@ -264,7 +263,7 @@ pdfkeywords={Fingerprint, Android, Wear}%
 
 % Sign text
 {\small \bigskip{}
-}\noindent {\small{} Hradec Králové day 26th of April 2018\hspace{\fill}Bc. David Sucharda}\\
+}\noindent {\small{}Hradec Králové day 26th of April 2018\hspace{\fill}Bc. David Sucharda}\\
 {\small{} % doplňte patřičné datum, jméno a příjmení
 }{\small \par}
 
@@ -300,20 +299,13 @@ pdfkeywords={Fingerprint, Android, Wear}%
 ~}{\small \par}
 
 \paragraph{Anotace}
-\noindent\textbf{\small \\Název práce: Sběr ráriových fingerprintů pomocí chytrých hodinek}{\small \par}
-\noindent \\Text.
+\noindent\textbf{\small \\Název práce: Sběr rádiových fingerprintů pomocí chytrých hodinek}{\small \par}
+\noindent \\Diplomová práce se zabývá možnostmi sběru rádiových otisků (fingerprintů) za pomoci chytrých hodinek. Tyto otisky se používají k lokalizaci uvnitř budovy. Hlavním cílem této práce je prozkoumat možnosti sběru otisků a návrh aplikace která bude tento sběr umožňovat. V první části práce je potřeba zjistit, jestli je tento sběr na hodinkách vůbec možný. V další části je zpracování aplikace na mobil a hodinky. A jako poslední část této práce je sběr otisků a jejich analýza. Jeden z osobních cílů je zpracovat tuto aplikaci aby byla co nejvíce uživatelky přívětivá.
 
 \paragraph{Annotation}
-\noindent \\Text
+\noindent \\The Master's thesis deals with possibilities of collecting radio fingerprints with the help of smart watches. These prints are used in indoor localization. Main aim of this thesis is to explore possibilities of fingerprint collection and creation of application that will allow it. First part is to figure out if this collection is even possible using smart watch. Next part deals with creation of such application not only for watch but also for the phone. And at the end part there is testing of fingerprint collection and data analysis. One of the personal goal is to make this application as user friendly as possible.
 
 \cleardoublepage{}
-
-%\thispagestyle{empty}~{\small \addcontentsline{toc}{chapter}{Zadání
-%práce} }{\small \par}
-
-{\small %%%   Výtisk pak na tomto míste nezapomeňte PODEPSAT!
-%%%                                         *********
-}{\small \par}
 
 \cleardoublepage{}\thispagestyle{empty}{\small
 %\setcounter{secnumdepth}{3}
@@ -326,12 +318,15 @@ pdfkeywords={Fingerprint, Android, Wear}%
 \thispagestyle{empty}
 
 \include{tex/chap01}
-
+\include{tex/chap02}
+\include{tex/chap03}
+\include{tex/chap04}
+\include{tex/chap05}
+\include{tex/chap06}
 
 \include{tex/_bib}
 
-
-\addcontentsline{toc}{chapter}{Literature}
+\addcontentsline{toc}{chapter}{Bibliography}
 \cleardoublepage{}
 
 %\include{prilohy}

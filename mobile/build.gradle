@@ -61,8 +61,8 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.2'
     implementation 'com.couchbase.lite:couchbase-lite-android:1.4.1'
     implementation 'com.qozix:tileview:2.2.8'
+    implementation 'com.google.android.gms:play-services-wearable:11.8.0'
     wearApp project(':wear')
-    implementation 'com.google.android.gms:play-services-wearable:+'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'org.mockito:mockito-android:2.7.22'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'

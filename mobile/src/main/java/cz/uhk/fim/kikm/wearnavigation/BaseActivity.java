@@ -8,8 +8,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.internal.BottomNavigationItemView;
 import android.support.design.internal.BottomNavigationMenuView;
@@ -24,42 +24,50 @@ import android.view.View;
 import android.view.Window;
 import android.widget.Toast;
 
+import com.google.android.gms.wearable.DataClient;
+import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.MessageClient;
+import com.google.android.gms.wearable.MessageEvent;
+import com.google.android.gms.wearable.Wearable;
+
 import java.lang.reflect.Field;
 
 import cz.uhk.fim.kikm.wearnavigation.activities.devices.ShowDevicesActivity;
 import cz.uhk.fim.kikm.wearnavigation.activities.scan.ScanActivity;
 import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
-import cz.uhk.fim.kikm.wearnavigation.model.database.Fingerprint;
+import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseCRUD;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.ScanProgress;
-import cz.uhk.fim.kikm.wearnavigation.utils.AnimationHelper;
+import cz.uhk.fim.kikm.wearnavigation.utils.animations.AnimationHelper;
 import cz.uhk.fim.kikm.wearnavigation.utils.SimpleDialogHelper;
+import cz.uhk.fim.kikm.wearnavigation.utils.wearCommunication.DataLayerListenerService;
+import cz.uhk.fim.kikm.wearnavigation.utils.wearCommunication.WearDataSender;
 
-public abstract class BaseActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener {
+public abstract class BaseActivity extends AppCompatActivity implements
+        BottomNavigationView.OnNavigationItemSelectedListener,
+        DataClient.OnDataChangedListener,
+        MessageClient.OnMessageReceivedListener {
 
-    // Log tag
-    private static final String TAG = "BaseActivity";
-    // Global variable for Bottom navigation
-    protected BottomNavigationView navigationView;
-    // Bluetooth check request code
-    private final int REQUEST_ENABLE_BT = 1000;
-    // Request access to coarse location
-    private final int REQUEST_ACCESS_LOCATION = 1001;
-    // App wide configuration class
-    protected Configuration mConfiguration;
+    private static final String TAG = "BaseActivity";   // Logging tag
 
+    protected BottomNavigationView navigationView;      // Global variable for Bottom navigation
+    private final int REQUEST_ENABLE_BT = 1000;         // Bluetooth check request code
+    private final int REQUEST_ACCESS_LOCATION = 1001;   // Request access to coarse location
+    protected Configuration mConfiguration;             // App wide configuration class
+
+    protected WearDataSender mWearDataSender;   // Send information into the nodes
     protected JobInfo.Builder jobBuilder;       // Job builder for FingerprintScanner
     private ScannerProgressReceiver mReceiver;  // Scanner receiver instance
+    protected AnimationHelper mAnimationHelper; // Animation helper
+
+    private DatabaseCRUD mDatabase;     // Database holder used to save Fingerprints
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Remove title from the app
-        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-
-        // Sets view based on child activity
-        setContentView(getContentViewId());
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE); // Remove title from the app
+        setContentView(getContentViewId()); // Sets view based on child activity
 
         // Load bottom navigation
         navigationView = findViewById(R.id.bottom_menu);
@@ -72,13 +80,15 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
         invalidateOptionsMenu();
 
         // Load configuration from the application
-        mConfiguration = ((WearApplication) getApplicationContext()).getConfiguration();
-        jobBuilder = ((WearApplication) getApplicationContext()).getFingerprintJob();
+        mConfiguration = ((WearApplication) getApplicationContext()).getConfiguration();    // Load configuration from Application
+        jobBuilder = ((WearApplication) getApplicationContext()).getFingerprintJob();       // Load JobBuilder from Application
+        mWearDataSender = new WearDataSender(this); // Initiate WearDataSender
+        mDatabase = new DatabaseCRUD(this);         // Initiate Database connection
 
-        // Bluetooth check
-        checkBluetooth();
-        // Cellular check
-        checkLocationPermissions();
+        mAnimationHelper = new AnimationHelper();   // Initialize animation helper
+
+        checkBluetooth();           // Bluetooth check
+        checkLocationPermissions(); // Location permission check
     }
 
     @Override
@@ -95,13 +105,18 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
         IntentFilter filter = new IntentFilter(FingerprintScanner.ACTION_POST_PROGRESS);
         mReceiver = new ScannerProgressReceiver();
         this.registerReceiver(mReceiver, filter);
+
+        // Instantiates clients without member variables, as clients are inexpensive to create and
+        // won't lose their listeners. (They are cached and shared between GoogleApi instances.)
+        Wearable.getDataClient(this).addListener(this);
+        Wearable.getMessageClient(this).addListener(this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        // Disables transitions between activities (for bottom menu)
-        overridePendingTransition(0, 0);
+        overridePendingTransition(0, 0);    // Disables transitions between activities (for bottom menu)
+
         // Unregister scanner receiver
         if(mReceiver != null) {
             try {
@@ -110,6 +125,10 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
                 Log.e(TAG, "Cannot unregister receiver.", e);
             }
         }
+
+        // Remove listeners on activity pause
+        Wearable.getDataClient(this).removeListener(this);
+        Wearable.getMessageClient(this).removeListener(this);
     }
 
     @Override
@@ -301,6 +320,25 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
         }
     }
 
+    @Override
+    public void onDataChanged(DataEventBuffer dataEvents) {
+        Log.d(TAG, "onDataChanged: " + dataEvents);
+    }
+
+    @Override
+    public void onMessageReceived(MessageEvent event) {
+        Log.d(TAG, "onMessageReceived: " + event);
+
+        if(event.getPath().equals(DataLayerListenerService.ACTIVITY_STARTED_PATH)) {
+            // Notify wearable device that it should start a scan after a second of delay
+            new Handler().postDelayed(() -> mWearDataSender.sendScanStart(), 1000);
+        }
+    }
+
+    /**
+     * This receiver gets information from currently running Fingerprint scan and displays it.
+     * Display is handled via AnimationHelper.
+     */
     public class ScannerProgressReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(final Context context, final Intent intent) {
@@ -309,12 +347,15 @@ public abstract class BaseActivity extends AppCompatActivity implements BottomNa
                 ScanProgress scanProgress = null;
                 if(intent.getExtras() != null) {
                     scanProgress = intent.getExtras().getParcelable(FingerprintScanner.ACTION_DATA);
+                    // Hide this view after completion (5 seconds)
+                    if(scanProgress != null && scanProgress.getState() == FingerprintScanner.TASK_STATE_DONE) {
+                        updateUI();
+                    }
                 }
-                AnimationHelper.displayScanStatus(BaseActivity.this, scanProgress, View.VISIBLE, 800);
+                mAnimationHelper.displayScanStatus(BaseActivity.this, scanProgress, View.VISIBLE, 800);
             }
         }
     }
-
 
     /**
      * Update UI function that updates the screen

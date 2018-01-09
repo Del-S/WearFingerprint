@@ -1,6 +1,8 @@
 package cz.uhk.fim.kikm.wearnavigation.model.database;
 
 import android.os.Build;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -12,7 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @JsonIgnoreProperties(value = { "board", "bootloader", "host", "product", "tags", "telephone", "user" })
-public class DeviceEntry {
+public class DeviceEntry implements Parcelable {
 
     // Database labels for database
     public final static String DB_TABLE = "device";
@@ -50,32 +52,62 @@ public class DeviceEntry {
     private String os;                  // CODENAME-RELEASE = The current development codename and the user-visible version string.
     private int api;                    // The user-visible SDK version of the framework; its possible values are defined in Build.VERSION_CODES.
 
-    // Creates instance of this class with current device information
-    public static DeviceEntry createInstance() {
-        return new DeviceEntry(true);
-    }
-
     // Default constructor used for Gson
     public DeviceEntry() {}
 
-    /**
-     * Create instance of Fingerprint and set variables from Map.
-     * Reflection is useless because multiple variables have different names.
-     */
-    public DeviceEntry(Object object) {
-        Map<String, Object> deviceRecord = (HashMap<String, Object>) object;
-        this.deviceId = deviceRecord.get("id").toString();
-        this.brand = deviceRecord.get("brand").toString();
-        this.deviceName = deviceRecord.get("device").toString();
-        this.display = deviceRecord.get("display").toString();
-        this.deviceFingerprint = deviceRecord.get("fingerprint").toString();
-        this.hardware = deviceRecord.get("hardware").toString();
-        this.manufacturer = deviceRecord.get("manufacturer").toString();
-        this.model = deviceRecord.get("model").toString();
-        this.serialNumber = deviceRecord.get("serial").toString();
-        this.type = deviceRecord.get("type").toString();
-        this.os = deviceRecord.get("os").toString();
-        this.api = Integer.valueOf(deviceRecord.get("api").toString());
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(dbId);
+        dest.writeString(type);
+        dest.writeString(deviceId);
+        dest.writeString(deviceName);
+        dest.writeString(model);
+        dest.writeString(brand);
+        dest.writeString(manufacturer);
+        dest.writeString(display);
+        dest.writeString(hardware);
+        dest.writeString(serialNumber);
+        dest.writeString(deviceFingerprint);
+        dest.writeString(os);
+        dest.writeInt(api);
+    }
+
+    private DeviceEntry(Parcel in) {
+        dbId = in.readInt();
+        type = in.readString();
+        deviceId = in.readString();
+        deviceName = in.readString();
+        model = in.readString();
+        brand = in.readString();
+        manufacturer = in.readString();
+        display = in.readString();
+        hardware = in.readString();
+        serialNumber = in.readString();
+        deviceFingerprint = in.readString();
+        os = in.readString();
+        api = in.readInt();
+    }
+
+    public static final Creator<DeviceEntry> CREATOR = new Creator<DeviceEntry>() {
+        @Override
+        public DeviceEntry createFromParcel(Parcel in) {
+            return new DeviceEntry(in);
+        }
+
+        @Override
+        public DeviceEntry[] newArray(int size) {
+            return new DeviceEntry[size];
+        }
+    };
+
+    // Creates instance of this class with current device information
+    public static DeviceEntry createInstance() {
+        return new DeviceEntry(true);
     }
 
     // Constructor that creates class with data from this device

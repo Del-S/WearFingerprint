@@ -71,14 +71,13 @@
             android:layout_marginEnd="8dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
-            android:background="@color/colorTransparent"
+            android:background="@drawable/action_marker_button_add"
             android:contentDescription="@string/am_create_description"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/amn_guide"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/amn_position"
-            app:layout_constraintHorizontal_bias="0.8"
-            app:srcCompat="@drawable/ic_marker_add_30dp" />
+            app:layout_constraintHorizontal_bias="0.8" />
 
         <ImageButton
             android:id="@+id/amn_cancel"

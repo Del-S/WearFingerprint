@@ -3,16 +3,14 @@ package cz.uhk.fim.kikm.wearnavigation.activities.scan;
 import android.Manifest;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.v4.app.ActivityCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageButton;
@@ -21,6 +19,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.fasterxml.jackson.databind.ser.VirtualBeanPropertyWriter;
 import com.google.gson.Gson;
 import com.qozix.tileview.TileView;
 import com.qozix.tileview.geom.CoordinateTranslater;
@@ -36,13 +35,16 @@ import cz.uhk.fim.kikm.wearnavigation.model.database.LocationEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseDataInterface;
 import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseDataLoader;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
+import cz.uhk.fim.kikm.wearnavigation.model.tasks.ScanProgress;
+import cz.uhk.fim.kikm.wearnavigation.utils.wearCommunication.WearDataSender;
 
 /**
  * Displays map with fingerprints and enables different actions with them.
  * - See information about selected fingerprints (based on location)
  * - Create a new fingerprint
  */
-public class ScanActivity extends BaseActivity implements DatabaseDataInterface<List<Fingerprint>> {
+public class ScanActivity extends BaseActivity implements
+        DatabaseDataInterface<List<Fingerprint>> {
 
     // Map stuff
     private TileView mMap;                      // Map view
@@ -53,11 +55,9 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
     private final int MAP_WIDTH = 3000;
     private final int MAP_HEIGHT = 3000;
 
-    private Gson gson = new Gson();             // Class to json (and reverse) parser
+    private final Gson gson = new Gson();       // Class to json (and reverse) parser
     private JobScheduler jobScheduler;          // JobScheduler used to run FingerprintScanner
-
-    // Location manager to get location from the network
-    private LocationManager locationManager;
+    private LocationManager locationManager;    // Location manager to get location from the network
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -196,8 +196,15 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
         buttonCreate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                runFingerprintScanner(posX, posY);          // Triggers a fingerprint scanner job
-                mMap.getCalloutLayout().removeAllViews();   // Remove single does not work :(
+                // Run a new scan only if there is no other running.
+                if(!isScanRunning()) {
+                    Fingerprint fingerprint = buildFingerprint(posX, posY);     // Build fingerprint to save scan data to
+                    mWearDataSender.initiateScanStart(fingerprint);             // Triggers scan on wear device
+                    runLocalFingerprintScanner(fingerprint);                    // Triggers a fingerprint scanner job on the phone
+                    mMap.getCalloutLayout().removeAllViews();                   // Remove single does not work :(
+                } else {
+                    Toast.makeText(ScanActivity.this, R.string.am_scan_already_running, Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -210,6 +217,13 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
                 mMap.getCalloutLayout().removeAllViews();
             }
         });
+
+        // Disable button if there is a scan running.
+        if(isScanRunning()) {
+            buttonCreate.setEnabled(false);
+        } else {
+            buttonCreate.setEnabled(true);
+        }
 
         return calloutView;
     }
@@ -226,7 +240,6 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
                 CoordinateTranslater ct = mMap.getCoordinateTranslater();
                 int realX = (int) ct.translateAndScaleAbsoluteToRelativeX(x, mMap.getScale());
                 int realY = (int) ct.translateAndScaleAbsoluteToRelativeY(y, mMap.getScale());
-                //Toast.makeText(ScanActivity.this, "You tapped at position: " + realX + ":" + realY, Toast.LENGTH_SHORT).show();
 
                 // Round both numbers to tens to make the steps little easier
                 int roundedX = (int) Math.round(realX/10.0) * 10;
@@ -261,8 +274,14 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
         buttonCreate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                runFingerprintScanner(posX, posY);          // Triggers a fingerprint scanner job
-                mMap.getCalloutLayout().removeAllViews();   // Remove single does not work :(
+                if(!isScanRunning()) {
+                    Fingerprint fingerprint = buildFingerprint(posX, posY);     // Build fingerprint to save scan data to
+                    mWearDataSender.initiateScanStart(fingerprint);             // Triggers scan on wear device
+                    runLocalFingerprintScanner(fingerprint);                    // Triggers a fingerprint scanner job on the phone
+                    mMap.getCalloutLayout().removeAllViews();                   // Remove single does not work :(
+                } else {
+                    Toast.makeText(ScanActivity.this, R.string.am_scan_already_running, Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -276,23 +295,44 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
             }
         });
 
+        // Disable button if there is a scan running.
+        if(isScanRunning()) {
+            buttonCreate.setEnabled(false);
+        } else {
+            buttonCreate.setEnabled(true);
+        }
+
         return calloutView;
+    }
+
+    /**
+     * Creates fingerprint for scanning. Sets all necessary data for scanning.
+     *
+     * @param posX of fingerprint
+     * @param posY of fingerprint
+     * @return Fingerprint to add scan data to
+     */
+    private Fingerprint buildFingerprint(int posX, int posY) {
+        // Create fingerprint for scanning
+        Fingerprint fingerprint = new Fingerprint();
+        // TODO: have a setter for building and floor
+        fingerprint.setLocationEntry(new LocationEntry("J3NP"));
+        // TODO: Have a parameter for that
+        fingerprint.setScanLength(20000);
+        fingerprint.setX(posX);
+        fingerprint.setY(posY);
+
+        return fingerprint;
     }
 
     /**
      * Builds and runs the FingerprintScanner job.
      * Creates Fingerprint based on position in the map and sends it into the scanner.
      *
-     * @param posX in the map
-     * @param posY in the map
+     * @param fingerprint to save scan data to
      */
-    private void runFingerprintScanner(int posX, int posY) {
-        // Create fingerprint for scanning
-        Fingerprint fingerprint = new Fingerprint();
-        // TODO: have a setter for building and floor
-        fingerprint.setLocationEntry(new LocationEntry("J3NP"));
-        fingerprint.setX(posX);
-        fingerprint.setY(posY);
+    private void runLocalFingerprintScanner(Fingerprint fingerprint) {
+        displayScanProgressOverlay();   // Displays scan overlay to show that scan is scheduling
 
         // Getting last knows location from Network
         double[] lastKnownLocation = {0, 0};
@@ -304,19 +344,48 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
             lastKnownLocation[1] = location.getLongitude();
         }
 
-        // TODO: Have a parameter for that
-        long scanLength = 60000;    // Length of the scan
-
         // Create instance of scanner and start it with execute
         String jsonFinger = gson.toJson(fingerprint);
         PersistableBundle bundle = new PersistableBundle();
         bundle.putString(FingerprintScanner.PARAM_FINGERPRINT, jsonFinger);
         bundle.putDoubleArray(FingerprintScanner.PARAM_LOCATION, lastKnownLocation);
-        bundle.putLong(FingerprintScanner.PARAM_SCAN_LENGTH, scanLength);
 
         // Run the job
         jobBuilder.setExtras(bundle);                   // Set extra bundle data
         jobScheduler.schedule(jobBuilder.build());      // Schedule job to run
+    }
+
+    /**
+     * Display scan status before scan is started to show it is being scheduled.
+     */
+    private void displayScanProgressOverlay() {
+        // Create instance of scanProgress and set proper variables
+        ScanProgress scanProgress = new ScanProgress();
+        scanProgress.setStateString(getResources().getString(R.string.spo_status_creating));  // Set state to scheduling
+        scanProgress.setScanLength(100);    // Scan length to 100 so progress bar would not be 0 max.
+
+        // Display scan status via BaseActivity AnimationHelper
+        mAnimationHelper.displayScanStatus(this, scanProgress, View.VISIBLE, 1000);
+    }
+
+    /**
+     * Check if there is a scan running.
+     *
+     * @return true/false scan running.
+     */
+    private boolean isScanRunning() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            return jobScheduler.getPendingJob(FingerprintScanner.JOB_ID) != null;   // Check if job is pending based on id
+        } else {
+            // Check all the jobs and if one of the ids is the same then it is running
+            List<JobInfo> jobs = jobScheduler.getAllPendingJobs();
+            for (JobInfo job : jobs) {
+                if (job.getId() == FingerprintScanner.JOB_ID)
+                    return true;
+            }
+
+            return false;
+        }
     }
 
     /**
@@ -334,6 +403,7 @@ public class ScanActivity extends BaseActivity implements DatabaseDataInterface<
 
     @Override
     protected void updateUI() {
+        // TODO: update map
     }
 
     @Override

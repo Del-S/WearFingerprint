@@ -20,6 +20,7 @@ import cz.uhk.fim.kikm.wearnavigation.model.database.WirelessEntry;
 
 public class DatabaseCRUD {
 
+    private final static String TAG = "DatabaseCRUD";
     private final DatabaseHelper dbHelper;
     private Context c;
 
@@ -61,7 +62,7 @@ public class DatabaseCRUD {
             try {
                 db.beginTransaction();  // Start transaction
                 // Check if fingerprint already exists in the database by its UUID
-                if(fingerprint.getId() != null && !doesFingerprintExist(db, fingerprint.getId().toString())) {
+                if (fingerprint.getId() != null && !doesFingerprintExist(db, fingerprint.getId().toString())) {
                     boolean error = false;  // Check if there was some error
 
                     long locationId = saveLocationEntry(db, fingerprint.getLocationEntry());    // Save location and get its id
@@ -84,10 +85,16 @@ public class DatabaseCRUD {
 
                     // If there was no error we mark transaction as successful
                     if (!error) {
-                        Log.i("DatabaseCRUD", "Transaction successful in saveFingerprint().");
+                        Log.i(TAG,"Transaction successful in saveFingerprint().");
                         db.setTransactionSuccessful();
+                    } else {
+                        Log.e(TAG, "Transaction error in saveFingerprint().");
                     }
+                } else {
+                    Log.e(TAG, "Error in saveFingerprint(). Fingerprint already exists.");
                 }
+            } catch (Exception e) {
+                Log.e(TAG, "Exception in saveFingerprint().", e);
             } finally {
                 db.endTransaction();
                 if(close) {
@@ -137,6 +144,7 @@ public class DatabaseCRUD {
         values.put(Fingerprint.DB_FINGERPRINT_SCAN_ID, fingerprint.getScanID().toString());
         values.put(Fingerprint.DB_X, fingerprint.getX());
         values.put(Fingerprint.DB_Y, fingerprint.getY());
+        values.put(Fingerprint.DB_SCAN_LENGTH, fingerprint.getScanLength());
         values.put(Fingerprint.DB_SCAN_START, fingerprint.getScanStart());
         values.put(Fingerprint.DB_SCAN_END, fingerprint.getScanEnd());
         values.put(Fingerprint.DB_LEVEL, fingerprint.getLevel());
@@ -357,7 +365,7 @@ public class DatabaseCRUD {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
         String[] fingerprintColumns = {Fingerprint.DB_ID, Fingerprint.DB_FINGERPRINT_ID, Fingerprint.DB_FINGERPRINT_SCAN_ID, Fingerprint.DB_X,
-                Fingerprint.DB_Y, Fingerprint.DB_SCAN_START, Fingerprint.DB_SCAN_END, Fingerprint.DB_LEVEL,
+                Fingerprint.DB_Y, Fingerprint.DB_SCAN_LENGTH, Fingerprint.DB_SCAN_START, Fingerprint.DB_SCAN_END, Fingerprint.DB_LEVEL,
                 Fingerprint.DB_LOCATION_ID, Fingerprint.DB_DEVICE_ID };
 
         Cursor cursor = db.query(Fingerprint.DB_TABLE, fingerprintColumns, null, null, null, null, null);
@@ -369,6 +377,7 @@ public class DatabaseCRUD {
                 fingerprint.setScanID(UUID.fromString( cursor.getString(cursor.getColumnIndex(Fingerprint.DB_FINGERPRINT_SCAN_ID))));
                 fingerprint.setX(cursor.getInt(cursor.getColumnIndex(Fingerprint.DB_X)));
                 fingerprint.setY(cursor.getInt(cursor.getColumnIndex(Fingerprint.DB_Y)));
+                fingerprint.setScanLength(cursor.getLong(cursor.getColumnIndex(Fingerprint.DB_SCAN_LENGTH)));
                 fingerprint.setScanStart(cursor.getLong(cursor.getColumnIndex(Fingerprint.DB_SCAN_START)));
                 fingerprint.setScanEnd(cursor.getLong(cursor.getColumnIndex(Fingerprint.DB_SCAN_END)));
                 fingerprint.setLevel(cursor.getString(cursor.getColumnIndex(Fingerprint.DB_LEVEL)));

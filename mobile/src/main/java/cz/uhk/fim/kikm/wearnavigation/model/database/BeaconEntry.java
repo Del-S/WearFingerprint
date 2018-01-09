@@ -1,5 +1,8 @@
 package cz.uhk.fim.kikm.wearnavigation.model.database;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.Expose;
 
@@ -7,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class BeaconEntry {
+public class BeaconEntry implements Parcelable {
 
     // Database labels for database
     public final static String DB_TABLE = "beacon";
@@ -41,19 +44,49 @@ public class BeaconEntry {
     public BeaconEntry() {
     }
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(id);
+        dest.writeInt(fingerprintId);
+        dest.writeString(bssid);
+        dest.writeFloat(distance);
+        dest.writeInt(rssi);
+        dest.writeLong(timestamp);
+        dest.writeLong(scanTime);
+        dest.writeLong(scanDifference);
+    }
+
+    private BeaconEntry(Parcel in) {
+        id = in.readLong();
+        fingerprintId = in.readInt();
+        bssid = in.readString();
+        distance = in.readFloat();
+        rssi = in.readInt();
+        timestamp = in.readLong();
+        scanTime = in.readLong();
+        scanDifference = in.readLong();
+    }
+
+    public static final Creator<BeaconEntry> CREATOR = new Creator<BeaconEntry>() {
+        @Override
+        public BeaconEntry createFromParcel(Parcel in) {
+            return new BeaconEntry(in);
+        }
+
+        @Override
+        public BeaconEntry[] newArray(int size) {
+            return new BeaconEntry[size];
+        }
+    };
+
     // Default constructor used for Gson
     public BeaconEntry(String bssid) {
         this.bssid = bssid;
-    }
-
-    public BeaconEntry(Object object) {
-        Map<String, Object> bluetoothRecord = (HashMap<String, Object>) object;
-        this.timestamp = Long.valueOf(bluetoothRecord.get("timestamp").toString());
-        this.bssid = bluetoothRecord.get("bssid").toString();
-        this.rssi = Integer.valueOf(bluetoothRecord.get("rssi").toString());
-        this.distance = Float.valueOf(bluetoothRecord.get("distance").toString());
-        this.scanTime = Long.valueOf(bluetoothRecord.get("time").toString());
-        this.scanDifference = Long.valueOf(bluetoothRecord.get("difference").toString());
     }
 
     public long getId() {

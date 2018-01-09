@@ -54,32 +54,33 @@ public class FingerprintScanner extends JobService {
     // Parameters send to this job as JobParameters
     public static final String PARAM_FINGERPRINT = "fingerprint";   // Bundle parameter name for fingerprint
     public static final String PARAM_LOCATION = "lastLocation";     // Bundle parameter name for last known location
-    public static final String PARAM_SCAN_LENGTH = "mScanLength";   // Bundle parameter name for length of the scan
 
     // States of this scanner
     private final int TASK_STATE_NONE = 0;            // Nothing is happening
     private final int TASK_STATE_STARTING = 1;        // Starting scan
     private final int TASK_STATE_RUNNING = 2;         // Scan is running
-    public static final int TASK_STATE_DONE = 3;             // Scan finished
+    public static final int TASK_STATE_DONE = 3;      // Scan finished
 
-    private Gson mGson = new Gson();                                // Json to Class parser
-    private ScannerTask mScannerTask;                               // Task that will run in this job
+    private Gson mGson = new Gson();       // Json to Class parser
+    private ScannerTask mScannerTask;      // Task that will run in this job
+    private JobParameters mJobParams;      // Saving job params to cancel it in the future
 
     @Override
     public boolean onStartJob(JobParameters params) {
+        mJobParams = params;        // Save job params
+
         // Parse json data into Fingerprint class
-        String json = params.getExtras().getString(PARAM_FINGERPRINT);
+        String json = mJobParams.getExtras().getString(PARAM_FINGERPRINT);
         Fingerprint fingerprint = null;
         if (json != null && !json.isEmpty()) {
             fingerprint = mGson.fromJson(json, Fingerprint.class);
         }
 
-        long scanLength = params.getExtras().getLong(PARAM_SCAN_LENGTH);            // Load scan length from parameters
-        double[] lastLocation = params.getExtras().getDoubleArray(PARAM_LOCATION);  // Load last known location from parameters
+        double[] lastLocation = mJobParams.getExtras().getDoubleArray(PARAM_LOCATION);  // Load last known location from parameters
 
         // If there is some fingerprint data we start the task
         if (fingerprint != null) {
-            mScannerTask = new ScannerTask(fingerprint, scanLength, lastLocation);
+            mScannerTask = new ScannerTask(fingerprint, fingerprint.getScanLength(), lastLocation);
             mScannerTask.execute();
             return true;
         }
@@ -122,7 +123,12 @@ public class FingerprintScanner extends JobService {
         private SensorScanner mSensorScanner;        // Scanner to parse data into ScannerEntries
         private List<Sensor> sensors;                // List of collected sensors
 
-        private int mState = TASK_STATE_NONE;             // Current state variable
+        private int mState = TASK_STATE_NONE;          // Current state variable
+
+        private int mThreadUpdateDelay = 1000;      // This job will post scan progress every 1 seconds
+        // Delays for Wireless and Sensor scans
+        private final int mSensorScanDelay = 5000;     // Every sensor will be added every 5second
+        private final int mWirelessDelay = 4000;       // Wireless time delay in ms (4s = 4000ms). Connected to mThreadUpdateDelay.
 
         ScannerTask(Fingerprint fingerprint, long scanLength, double[] location) {
             Context context = getApplicationContext();      // Load application context to bind listeners, get managers, etc.
@@ -200,14 +206,25 @@ public class FingerprintScanner extends JobService {
             mStartTime = System.currentTimeMillis();            // Set current time as start time
             mState = TASK_STATE_RUNNING;                             // Change state to running
 
-            // Until the scan time is up the thread will be put to sleep
+            // Handles Thread sleeps so the job would wait until the scanTime is up
+            // Also publishes the progress and start wireless scans in specific intervals
+            int currentWirelessDelay = mWirelessDelay + mThreadUpdateDelay;     // Set first run delay
             while (System.currentTimeMillis() < mStartTime + mScanLength) {
-                if (!isCancelled()) {               // If this task is cancelled
+                // If this task was not cancelled
+                if (!isCancelled()) {
                     try {
-                        publishProgress();          // Update progress information
-                        Thread.sleep(2000);   // Pause thread for a second
+                        // Runs a new Wireless scan that should run every X seconds
+                        currentWirelessDelay -= mThreadUpdateDelay; // Remove time from current delay
+                        if(currentWirelessDelay <= 0) {
+                            mWifiManager.startScan();               // Start the scan again. Disabled at onPostExecute.
+                            currentWirelessDelay = mWirelessDelay;  // Reset the delay
+                        }
+
+                        publishProgress();                  // Update progress information
+                        Thread.sleep(mThreadUpdateDelay);   // Pause thread for a second
                     } catch (InterruptedException e) {
                         Log.e("FingerprintScanner", "Cannot run sleep() in interrupted thread", e);
+                        mBLEScannerManager.cancelScan();   // Cancel scan if the task was canceled
                         return null;
                     }
                 } else {
@@ -222,25 +239,28 @@ public class FingerprintScanner extends JobService {
         @Override
         protected void onPostExecute(Fingerprint fingerprint) {
             if (fingerprint != null) {
-                // TODO: enable this when done
-                //mDatabase.saveFingerprint(fingerprint, null);
+                mDatabase.saveFingerprint(fingerprint, null);
             }
 
             // Unbinding the scanner service
             Context context = getApplicationContext();          // Load context to unregister received
+            context.unregisterReceiver(mBeaconScanner);         // Unregister beacon receiver
             context.unregisterReceiver(mWifiScanner);           // Unregister wifi receiver
             mSensorManager.unregisterListener(mSensorScanner);  // Unregister scanner receiver
-            mBLEScannerManager.handleDestroy();                        // Destroy ble scanner
+            mBLEScannerManager.handleDestroy();                 // Destroy ble scanner
 
             // Change and publish progress
             mState = TASK_STATE_DONE;    // Scan is done
             publishProgress();      // Publish progress after scan is done
+
+            // Finish this job
+            FingerprintScanner.this.jobFinished(mJobParams, false);
         }
 
         @Override
         protected void onProgressUpdate(Void... values) {
-            // Calculate scan length into seconds for display
-            int scanLengthSeconds = (int) (mScanLength / 1000);
+            // Get scanLength (ms) as int
+            int maxTime = (int) mScanLength;
 
             // Create ScanProgress instance if it does not exist
             if(mScanProgress == null) {
@@ -250,8 +270,8 @@ public class FingerprintScanner extends JobService {
             // Set current variables into the ScanProgress
             mScanProgress.setState(mState);                          // Set current state
             mScanProgress.setStateString( getStateAsString() );      // Set current state (string) of this job
-            mScanProgress.setScanLength(scanLengthSeconds);          // Set length of the scan (usually stays the same)
-            mScanProgress.setCurrentTime( getCurrentTimeAsSeconds(scanLengthSeconds) );     // Set current time in the scan
+            mScanProgress.setScanLength( maxTime );                  // Set length of the scan (usually stays the same)
+            mScanProgress.setCurrentTime( getCurrentTime(maxTime) ); // Set current time in the scan
             // Set entries count
             mScanProgress.setBeaconCount( mFingerprint.getBeaconEntries().size() );         // Sets beacon count
             mScanProgress.setWirelessCount( mFingerprint.getWirelessEntries().size() );     // Sets wireless counts
@@ -290,18 +310,18 @@ public class FingerprintScanner extends JobService {
         }
 
         /**
-         * Calculates the current time into seconds for display as progress.
+         * Calculates the current time based on status.
          * Used in progress bar to display progress.
          *
          * @param maxTime so we don't move over it
-         * @return int seconds of current time
+         * @return int milliseconds of current time
          */
-        private int getCurrentTimeAsSeconds(int maxTime) {
+        private int getCurrentTime(int maxTime) {
             switch (mState) {
                 case TASK_STATE_DONE:
                     return maxTime;
                 case TASK_STATE_RUNNING:
-                    int currentTime = (int) ((System.currentTimeMillis() - mStartTime) / 1000);  // Calculate and set current time in seconds
+                    int currentTime = (int) (System.currentTimeMillis() - mStartTime);  // Calculate and set current time in milliseconds
                     if(currentTime > maxTime) {
                         currentTime = maxTime;
                     }
@@ -309,63 +329,6 @@ public class FingerprintScanner extends JobService {
                 default:
                     return 0;
             }
-        }
-
-        /**
-         * Create BeaconEntry from beacon.
-         *
-         * @param beacon        found beacon to get data from
-         * @param currentMillis to calculate scanTime
-         * @return BeaconEntry
-         */
-        private BeaconEntry createBeaconEntry(Beacon beacon, long currentMillis) {
-            // Calculate time variables
-            String bssid = beacon.getBluetoothAddress();
-            long scanTime = currentMillis - mStartTime;
-            long scanDifference = calculateBeaconScanDifference(scanTime, bssid);
-
-            // Create new BeaconEntry and set data into it
-            BeaconEntry newBeacon = new BeaconEntry();
-            newBeacon.setBssid(bssid);
-            newBeacon.setDistance((float) beacon.getDistance());
-            newBeacon.setRssi(beacon.getRssi());
-            newBeacon.setTimestamp(currentMillis);
-            newBeacon.setScanTime(scanTime);
-            newBeacon.setScanDifference(scanDifference);
-
-            // Return new BeaconEntry
-            return newBeacon;
-        }
-
-        /**
-         * Calculates beacon scanDifference based on max scanTime and current scan time.
-         *
-         * @param scanTime actual scan time
-         * @param bssid    beacon bssid
-         * @return long scanDifference
-         */
-        private long calculateBeaconScanDifference(long scanTime, String bssid) {
-            List<BeaconEntry> beacons = mFingerprint.getBeaconEntries();        // Load list of current beacons
-            BeaconEntry tempBeacon = new BeaconEntry(bssid);                    // Create beacon with bssid
-            long scanDifference = 0;                                            // Scan time that will be calculated
-
-            // We get data only from a specific beacon
-            if (beacons != null && beacons.contains(tempBeacon)) {
-                long beaconScanTime = 0;
-
-                for (BeaconEntry beacon : beacons) {
-                    if (!beacon.equals(tempBeacon))
-                        continue;                                 // Ignore different beacons
-                    if (beacon.getScanTime() > beaconScanTime)
-                        beaconScanTime = beacon.getScanTime();    // Higher scanTime gets saved
-                }
-
-                // Calculate actual scanDifference
-                scanDifference = scanTime - beaconScanTime;
-            }
-
-            // Return scanTimeDifference
-            return scanDifference;
         }
 
         /**
@@ -399,6 +362,63 @@ public class FingerprintScanner extends JobService {
                         }
                     }
                 }
+            }
+
+            /**
+             * Create BeaconEntry from beacon.
+             *
+             * @param beacon        found beacon to get data from
+             * @param currentMillis to calculate scanTime
+             * @return BeaconEntry
+             */
+            private BeaconEntry createBeaconEntry(Beacon beacon, long currentMillis) {
+                // Calculate time variables
+                String bssid = beacon.getBluetoothAddress();
+                long scanTime = currentMillis - mStartTime;
+                long scanDifference = calculateBeaconScanDifference(scanTime, bssid);
+
+                // Create new BeaconEntry and set data into it
+                BeaconEntry newBeacon = new BeaconEntry();
+                newBeacon.setBssid(bssid);
+                newBeacon.setDistance((float) beacon.getDistance());
+                newBeacon.setRssi(beacon.getRssi());
+                newBeacon.setTimestamp(currentMillis);
+                newBeacon.setScanTime(scanTime);
+                newBeacon.setScanDifference(scanDifference);
+
+                // Return new BeaconEntry
+                return newBeacon;
+            }
+
+            /**
+             * Calculates beacon scanDifference based on max scanTime and current scan time.
+             *
+             * @param scanTime actual scan time
+             * @param bssid    beacon bssid
+             * @return long scanDifference
+             */
+            private long calculateBeaconScanDifference(long scanTime, String bssid) {
+                List<BeaconEntry> beacons = mFingerprint.getBeaconEntries();        // Load list of current beacons
+                BeaconEntry tempBeacon = new BeaconEntry(bssid);                    // Create beacon with bssid
+                long scanDifference = 0;                                            // Scan time that will be calculated
+
+                // We get data only from a specific beacon
+                if (beacons != null && beacons.contains(tempBeacon)) {
+                    long beaconScanTime = 0;
+
+                    for (BeaconEntry beacon : beacons) {
+                        if (!beacon.equals(tempBeacon))
+                            continue;                                 // Ignore different beacons
+                        if (beacon.getScanTime() > beaconScanTime)
+                            beaconScanTime = beacon.getScanTime();    // Higher scanTime gets saved
+                    }
+
+                    // Calculate actual scanDifference
+                    scanDifference = scanTime - beaconScanTime;
+                }
+
+                // Return scanTimeDifference
+                return scanDifference;
             }
         }
 
@@ -443,8 +463,6 @@ public class FingerprintScanner extends JobService {
                 }
 
                 mCellularScanner.scanForCellular(currentMillis, scanTime);      // Trigger scan for Cellular towers
-
-                mWifiManager.startScan();   // Start the scan again. Disabled at onPostExecute.
             }
 
             /**
@@ -507,14 +525,15 @@ public class FingerprintScanner extends JobService {
             @Override
             public final void onSensorChanged(SensorEvent event) {
                 int sensorType = event.sensor.getType();    // Get sensor type
-                if (sensorTimer.get(sensorType) <= 0) {
-                    // This ensured that new sensor record will be handled every 5seconds
-                    // onSensorChanged is called every 200ms so 200 * 25 = 5000ms = 5s
-                    sensorTimer.put(sensorType, 25);
 
-                    // Calculate time variables
-                    long timestamp = System.currentTimeMillis();
-                    long scanTime = timestamp - mStartTime;
+                // Calculate time variables
+                long timestamp = System.currentTimeMillis();
+                int currentScanTime = (int) (timestamp - mStartTime);
+                int addedScanTime = sensorTimer.get(sensorType);
+
+                if (addedScanTime == 0 || (currentScanTime - addedScanTime) >= mSensorScanDelay) {
+                    // This ensured that new sensor record will be handled every 5seconds
+                    sensorTimer.put(sensorType, currentScanTime);
 
                     // Create new SensorEntry and set its data
                     List<SensorEntry> sensorEntries = mFingerprint.getSensorEntries();
@@ -524,8 +543,8 @@ public class FingerprintScanner extends JobService {
                     sensorEntry.setY(event.values[1]);
                     sensorEntry.setZ(event.values[2]);
                     sensorEntry.setTimestamp(timestamp);
-                    sensorEntry.setScanTime(scanTime);
-                    sensorEntry.setScanDifference(calculateSensorScanDifference(scanTime, sensorEntry));
+                    sensorEntry.setScanTime(currentScanTime);
+                    sensorEntry.setScanDifference(calculateSensorScanDifference(currentScanTime, sensorEntry));
 
                     // Add sensorEntry into the list
                     sensorEntries.add(sensorEntry);

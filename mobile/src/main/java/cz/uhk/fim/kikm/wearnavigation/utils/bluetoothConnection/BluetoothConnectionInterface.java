@@ -1,4 +1,4 @@
-package cz.uhk.fim.kikm.wearnavigation.model.tasks.bluetoothConnection;
+package cz.uhk.fim.kikm.wearnavigation.utils.bluetoothConnection;
 
 import android.bluetooth.BluetoothDevice;
 

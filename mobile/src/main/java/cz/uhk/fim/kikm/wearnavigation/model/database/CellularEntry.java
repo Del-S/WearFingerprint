@@ -2,6 +2,8 @@ package cz.uhk.fim.kikm.wearnavigation.model.database;
 
 import android.database.Cursor;
 import android.os.Build;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.telephony.CellIdentityGsm;
 import android.telephony.CellIdentityLte;
 import android.telephony.CellIdentityWcdma;
@@ -21,7 +23,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @JsonIgnoreProperties(value = { "psc", "user", "type" })
-public class CellularEntry {
+public class CellularEntry implements Parcelable {
 
     // Database labels for database
     public final static String DB_TABLE = "cellular";
@@ -58,21 +60,50 @@ public class CellularEntry {
     // Default constructor used for Gson
     public CellularEntry() {}
 
-    /**
-     * Create this object from a map.
-     *
-     * @param object Map of variables
-     */
-    public CellularEntry(Object object) {
-        Map<String, Object> cellularRecord = (HashMap<String, Object>) object;
-        this.timestamp = Long.valueOf(cellularRecord.get("timestamp").toString());
-        this.cid = Integer.valueOf(cellularRecord.get("cid").toString());
-        this.lac = Integer.valueOf(cellularRecord.get("lac").toString());
-        this.rssi = Integer.valueOf(cellularRecord.get("rssi").toString());
-        this.distance = Float.valueOf(cellularRecord.get("distance").toString());
-        this.scanTime = Long.valueOf(cellularRecord.get("time").toString());
-        this.scanDifference = Long.valueOf(cellularRecord.get("difference").toString());
+
+    @Override
+    public int describeContents() {
+        return 0;
     }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
+        dest.writeInt(fingerprintId);
+        dest.writeInt(bsic);
+        dest.writeInt(cid);
+        dest.writeInt(lac);
+        dest.writeInt(rssi);
+        dest.writeFloat(distance);
+        dest.writeLong(timestamp);
+        dest.writeLong(scanTime);
+        dest.writeLong(scanDifference);
+    }
+
+    private CellularEntry(Parcel in) {
+        id = in.readInt();
+        fingerprintId = in.readInt();
+        bsic = in.readInt();
+        cid = in.readInt();
+        lac = in.readInt();
+        rssi = in.readInt();
+        distance = in.readFloat();
+        timestamp = in.readLong();
+        scanTime = in.readLong();
+        scanDifference = in.readLong();
+    }
+
+    public static final Creator<CellularEntry> CREATOR = new Creator<CellularEntry>() {
+        @Override
+        public CellularEntry createFromParcel(Parcel in) {
+            return new CellularEntry(in);
+        }
+
+        @Override
+        public CellularEntry[] newArray(int size) {
+            return new CellularEntry[size];
+        }
+    };
 
     /**
      * Create instance of CellularEntry from NeighboringCellInfo.
