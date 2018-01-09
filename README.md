@@ -14,11 +14,16 @@ Smart parts
 - Tile floor map.
 - Database of fingerprints.
 - Scanning for new fingerprints.
+- Fingerprint scanner for Wear part.
+- Passing scanner data between Mobile and Wear part.
 
 ### Next features
 
-- Fingerprint scanner for Wear part.
-- Passinf scanner data between Mobile and Wear part.
+- Save fingerprints on the server.
+- Display fingerprint in specific location.
+- Text for the thesis.
+- Floor, building and scan time changes.
+
 
 ### Postponed features
 
