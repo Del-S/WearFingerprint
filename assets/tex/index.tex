@@ -23,6 +23,8 @@
 \usepackage{breakurl}
 \usepackage{indentfirst}
 \usepackage[nottoc,notlot,notlof]{tocbibind}
+\usepackage{refcount}
+\usepackage{xstring}
 
 % Cut words in half
 %\hyphenation{Word-cut}
@@ -178,12 +180,17 @@ pdfkeywords={Fingerprint, Android, Wear}%
     {Ž}{{\v{Z}}}1
 }
 
+% Add command to reference Figures
+\newcommand\fref[1]{\IfRefUndefinedExpandable{#1}{??}{Figure~\ref{#1}}}
+\newcommand\addrefending[1]{\StrBehind{\getrefnumber{#1}}{.}[\fignumber]%
+	\ifcase\fignumber\relax\or de\or se\else te\fi}
+
 \begin{document}
-\renewcommand{\figurename}{Picture}
+\renewcommand{\figurename}{Figure}
 \renewcommand{\tablename}{Table}
 \renewcommand{\contentsname}{Content}
 \renewcommand{\bibname}{Literature}
-\renewcommand{\listfigurename}{List of pictures}
+\renewcommand{\listfigurename}{List of figures}
 \renewcommand{\listtablename}{List of tables}
 %~\thispagestyle{empty}{\small ~\vfill{}
 %}{\small \par}
