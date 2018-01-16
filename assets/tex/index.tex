@@ -84,7 +84,7 @@
 pdftitle={Radio Fingerprint Acquisition Using Smartwatch},%
 pdfauthor={Bc. David Sucharda},%
 pdfsubject={},%
-pdfkeywords={Fingerprint, Android, Wear}%
+pdfkeywords={Fingerprint, Android, Wear, RSS}%
 }
 \usepackage{multicol}
 
@@ -92,7 +92,6 @@ pdfkeywords={Fingerprint, Android, Wear}%
 
 
 %<-----------------------------volání stylů----------------------------------------->
-% (znak % je označení komentáře: co je za ním, není aktivní)
 %<------------------------------------písmo----------------------------------------->
 %\usepackage{pkg/bc-latinmodern}
 %\usepackage{pkg/bc-times}
@@ -180,10 +179,8 @@ pdfkeywords={Fingerprint, Android, Wear}%
     {Ž}{{\v{Z}}}1
 }
 
-% Add command to reference Figures
+% Add command (\fref) to reference Figures
 \newcommand\fref[1]{\IfRefUndefinedExpandable{#1}{??}{Figure~\ref{#1}}}
-\newcommand\addrefending[1]{\StrBehind{\getrefnumber{#1}}{.}[\fignumber]%
-	\ifcase\fignumber\relax\or de\or se\else te\fi}
 
 \begin{document}
 \renewcommand{\figurename}{Figure}

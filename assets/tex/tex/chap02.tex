@@ -2,13 +2,11 @@
 This chapter describes most common techniques and methods for indoor localization using radio signal strength (RSS).
 
 \section{Triangulation}\label{sec:Triangulation}
-Methods based on Triangulation use geometric properties of triangles to determine target position. This can further be divided into lateration and angulation. \cite{RAinWILTaS} There are multiple sources of data these methods can use like distance estimation between device and specific transmitters, measurements of the signal propagation-time (TOA: Time Of Arrival and TDOA: Time Difference of Arrival\cite{LTinWSN}) and the direction of received
+Methods based on Triangulation use geometric properties of triangles to determine target position. This can further be divided into Lateration and Angulation. \cite{RAinWILTaS} There are multiple sources of data these methods can use like distance estimation between device and specific transmitters, measurements of the signal propagation-time (TOA: Time Of Arrival and TDOA: Time Difference of Arrival\cite{LTinWSN}) and the direction of received
 signal (AOA: Angle of Arrival\cite{AoALforWSN}).
 
 \subsection{Lateration}\label{sec:Lateration}
-Lateration refers to the technique of determining position based on distance measurement. There are two main types of lateration and those are Trilateration and Multilateration. 
-
-\subparagraph{Trilateration} uses distance data from multiple reference points, at least 3 in particular as "tri" in the name suggests.\cite{RAinWILTaS} This technique can be used in 2D and 3D plane. 
+Lateration refers to the technique of determining position based on distance measurements that are calculated using specific devices that know their own position.  Mainly used types of Lateration and are Trilateration and Multilateration. 
 
 \begin{figure}[h!]
 	\begin{centering}
@@ -19,10 +17,19 @@ Lateration refers to the technique of determining position based on distance mea
 	\label{fig2}
 \end{figure}
 
-\fref{fig2} illustrates usage of Trilateration in 2D and 3D environment. While working in 2D plane will result with only one specific location point. Moving to the 3D plane creates a problem because signal is send in a sphere which will result in two positions instead of one. That is the reason why there is the need to add fourth data source for single position calculation.
+Trilateration uses distance measurements from at least three devices in particular as "tri" in the name suggests.\cite{RAinWILTaS} \fref{fig2} illustrates usage of Trilateration in 2D and 3D environment. While working in 2D plane will result with only one specific location point. Moving to the 3D plane can create a problem because signal is send in a sphere which could result in more than one position. That is the reason why some systems use at least four signal sources, example of such system is GPS.\cite{GNSSGPS} One down side of this approach is that all devices must have synchronized clock.\cite{RAinWILTaS}
 
-Multilateration
+Multilateration also known as hyperbolic positioning is using Time Difference of Arrival (TDoA) instead of Time Of Arrival (ToA) used in previous case. This approach involves the intersections of hyperbolas rather than circles as shown in \fref{fig3}. Main advantage of this method is that only receiving devices must have synchronized clock instead of all.\cite{PLTaA} Multilateration was developed for tracking aircraft position and it is widely used.
 
+\begin{figure}[h!]
+	\begin{centering}
+		\includegraphics[width=0.6\textwidth]{img/multilateration}
+		\par\end{centering}
+	\caption{Multilateration (source: \cite{HPwAA})\label{fig:Multilateration}}
+	\label{fig3}
+\end{figure}
+
+Note: At this time term Multilateration is not as strict as it used to be. It can now refer Lateration with more than three devices.
 
 \subsection{Angulation}\label{sec:Angulation}
 
