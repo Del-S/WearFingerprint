@@ -1,5 +1,5 @@
-\chapter{RSS Indoor localization}\label{sec:RSSIndoorLocalization}
-This chapter describes most common techniques and methods for indoor localization using radio signal strength (RSS).
+\chapter{RSS localization}\label{sec:RSSLocalization}
+This chapter describes most common techniques and methods for localization using radio signal strength (RSS).
 
 \section{Triangulation}\label{sec:Triangulation}
 Methods based on Triangulation use geometric properties of triangles to determine target position. This can further be divided into Lateration and Angulation. \cite{RAinWILTaS} There are multiple sources of data these methods can use like distance estimation between device and specific transmitters, measurements of the signal propagation-time (TOA: Time Of Arrival and TDOA: Time Difference of Arrival\cite{LTinWSN}) and the direction of received
@@ -45,14 +45,35 @@ There are few disadvantages of this approach since it needs complex hardware set
 \end{figure}
 
 \section{Fingerprinting}\label{sec:Fingerprinting}
-This method is a part of already mentioned Signal Strength Fingerprint Maps (SSFM) type. Main point of this method is using previously recorded data to figure out location inside the building. Hence fingerprint term in the name. There is multiple kinds of data that can be recorded like magnetic field strength or light signals but as it was already mentioned this topic is focused RSS. There are also multiple sources of radio signals like bluetooth, wireless or cellular devices and networks.
+This method is a part of Signal Strength Fingerprint Maps (SSFM) type. Main point of this approach is using previously recorded data to figure out device location. Hence fingerprint term in the name. There is multiple kinds of radio signal sources like bluetooth, wireless or cellular devices that can be recorded.
 
-This method has two main stages where the first one is fingerprint maps construction also called offline stage. They are created using collecting Received Signal Strength (RSS) at different positions with specific coordinates of this place. All fingerprints are saved in the database and this is called fingerprint map. The other part is localization stage also known as online stage where client device measures data and compares them with fingerprint maps to approximate position. \cite{LocalizationApproaches}\cite{IndoorLocalizationWithoutThePain}
+Fingerprinting has two main phases where the first one is fingerprint maps construction also called offline phase. They are created by collecting Received Signal Strength (RSS) and optional extra features in known locations. All these values are saved in the database and it is called fingerprint map. The second phase is localization itself also known as online phase where the device measures RSS values and compares them with fingerprint maps to approximate position using suitable method. \cite{LocalizationApproaches}\cite{ILWTP} Most used algorithms or methods to approximate position are \cite{IILUBLEB}
+
+\begin{itemize}
+	\item probabilistic methods,
+	\item k-Nearest Neighbors,
+	\item neural networks,
+	\item support vector machine,
+	\item smallest M-vertex polygon.
+\end{itemize}
+
+There are multiple advantages of this approach and the most important is that it does not need any additional or specialized hardware. Next one is no need for time synchronization between the stations. Both of these advantages make it simple and cost effective method for localization. On the other hand building of the map is very time consuming and needs heavy calibration. It is also susceptible to changes in environment like people presence, object movement or relative humidity.\cite{IILUBLEB}\cite{RSSFofIFD}
 
 \section{Proximity}\label{sec:Proximity}
-Proximity detection also knows as connectivity based positioning is one of the simplest method to implement.
+Proximity detection also known as connectivity based positioning calculates only approximate location. Position is determined by cell of origin (CoO) method with known position and limited range.\cite{RAinWILTaS} Specific device location is based on cell of the connected device ("associated access point" in Wi-Fi 802.11 systems) as shown in \fref{fig5}.\cite{WiFiLBS}
 
-\section{Other techniques}
+\begin{figure}[h!]
+	\begin{centering}
+		\includegraphics[width=0.6\textwidth]{img/cell_of_origin}
+		\par\end{centering}
+	\caption{Cell of Origin (source: \cite{WiFiLBS})\label{fig:CellOfOrigin}}
+	\label{fig5}
+\end{figure}
+
+Primary advantage of this approach is very easy implementation and no need for complicated algorithms and thus making calculations fast. However, for various reasons devices can be associated to cells that are not in close physical proximity. Such errors can happen for example in multi-floor buildings where floor cells overlap. There are additional methods that can be used to improve localization such as using received signal strength indication (RSSI), manual method (human search) or connecting to device with highest signal strength.\cite{WiFiLBS}\cite{RAinWILTaS}
+
+\section{Non-RSS techniques}
+Scene analysis, Dead Reckoning, Map Matching
 %\section{Dead Reckoning}\label{sec:DeadReckoning}
 
 %\section{K neighbors}\label{sec:KNeighbors}
