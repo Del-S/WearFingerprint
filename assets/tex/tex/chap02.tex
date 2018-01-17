@@ -19,6 +19,8 @@ Lateration refers to the technique of determining position based on distance mea
 
 \textbf{Trilateration} uses distance measurements from at least three devices in particular as "tri" in the name suggests.\cite{RAinWILTaS} \fref{fig2} illustrates usage of Trilateration in 2D and 3D environment. While working in 2D plane will result with only one specific location point. Moving to the 3D plane can create a problem because signal is send in a sphere which could result in more than one position. That is the reason why some systems use at least four signal sources, example of such system is GPS.\cite{GNSSGPS} Advantage is easy implementation and simple calculations. One down side of this approach is that all devices must have synchronized clock.\cite{RAinWILTaS}
 
+\medskip
+
 \textbf{Multilateration} also known as hyperbolic positioning is using Time Difference of Arrival (TDoA) instead of Time Of Arrival (ToA) used in previous case. This approach involves the intersections of hyperbolas rather than circles as shown in \fref{fig3}. Main advantage of this method is that only receiving devices must have synchronized clock instead of all.\cite{PLTaA} Multilateration was developed for tracking aircraft position and it is widely used.
 
 \begin{figure}[h!]
@@ -74,5 +76,7 @@ Primary advantage of this approach is very easy implementation and no need for c
 
 \section{Other techniques}
 \textbf{Scene analysis} is a pattern recognition method that uses features of a scene observed from a particular vantage point to draw conclusions about the location of the observer or of objects in the scene also.\cite{LSfUC} This approach has been used in many applications, such as image and speech recognition, as well as location.\cite{LSAWIFI} The advantage is that the location of objects can be inferred using passive observation and features. The disadvantage is that the observer needs to have access to the features of environment against which it will compare its observed scenes.\cite{LSfUC}
+
+\medskip
 
 \textbf{Dead Reckoning} refers to a position solution that is obtained by measuring or deducing displacements from a known starting point in accordance with motion of the user.\cite{DRNS} Basically calculate new position based on starting point, travel distance and angle of movement. Because new position calculations are dependent on previous ones there is the need for high accuracy of data since it makes errors cumulative.\cite{IDRAIP}
