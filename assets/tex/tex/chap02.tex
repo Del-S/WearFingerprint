@@ -1,5 +1,5 @@
-\chapter{RSS localization}\label{sec:RSSLocalization}
-This chapter describes most common techniques and methods for localization using radio signal strength (RSS).
+\chapter{Localization techniques}\label{sec:LocalizationTechniques}
+This chapter describes most common techniques and methods for localization. Most of these approaches have multiple implementations and can be also used in parallel. Fingerprinting for example can be used to increase accuracy of other methods.
 
 \section{Triangulation}\label{sec:Triangulation}
 Methods based on Triangulation use geometric properties of triangles to determine target position. This can further be divided into Lateration and Angulation. \cite{RAinWILTaS} There are multiple sources of data these methods can use like distance estimation between device and specific transmitters, measurements of the signal propagation-time (TOA: Time Of Arrival and TDOA: Time Difference of Arrival\cite{LTinWSN}) and the direction of received
@@ -17,9 +17,9 @@ Lateration refers to the technique of determining position based on distance mea
 	\label{fig2}
 \end{figure}
 
-Trilateration uses distance measurements from at least three devices in particular as "tri" in the name suggests.\cite{RAinWILTaS} \fref{fig2} illustrates usage of Trilateration in 2D and 3D environment. While working in 2D plane will result with only one specific location point. Moving to the 3D plane can create a problem because signal is send in a sphere which could result in more than one position. That is the reason why some systems use at least four signal sources, example of such system is GPS.\cite{GNSSGPS} Advantage is easy implementation and simple calculations. One down side of this approach is that all devices must have synchronized clock.\cite{RAinWILTaS}
+\textbf{Trilateration} uses distance measurements from at least three devices in particular as "tri" in the name suggests.\cite{RAinWILTaS} \fref{fig2} illustrates usage of Trilateration in 2D and 3D environment. While working in 2D plane will result with only one specific location point. Moving to the 3D plane can create a problem because signal is send in a sphere which could result in more than one position. That is the reason why some systems use at least four signal sources, example of such system is GPS.\cite{GNSSGPS} Advantage is easy implementation and simple calculations. One down side of this approach is that all devices must have synchronized clock.\cite{RAinWILTaS}
 
-Multilateration also known as hyperbolic positioning is using Time Difference of Arrival (TDoA) instead of Time Of Arrival (ToA) used in previous case. This approach involves the intersections of hyperbolas rather than circles as shown in \fref{fig3}. Main advantage of this method is that only receiving devices must have synchronized clock instead of all.\cite{PLTaA} Multilateration was developed for tracking aircraft position and it is widely used.
+\textbf{Multilateration} also known as hyperbolic positioning is using Time Difference of Arrival (TDoA) instead of Time Of Arrival (ToA) used in previous case. This approach involves the intersections of hyperbolas rather than circles as shown in \fref{fig3}. Main advantage of this method is that only receiving devices must have synchronized clock instead of all.\cite{PLTaA} Multilateration was developed for tracking aircraft position and it is widely used.
 
 \begin{figure}[h!]
 	\begin{centering}
@@ -72,10 +72,7 @@ Proximity detection also known as connectivity based positioning calculates only
 
 Primary advantage of this approach is very easy implementation and no need for complicated algorithms and thus making calculations fast. However, for various reasons devices can be associated to cells that are not in close physical proximity. Such errors can happen for example in multi-floor buildings where floor cells overlap. There are additional methods that can be used to improve localization such as using received signal strength indication (RSSI), manual method (human search) or connecting to device with highest signal strength.\cite{WiFiLBS}\cite{RAinWILTaS}
 
-\section{Non-RSS techniques}
-Scene analysis, Dead Reckoning, Map Matching
-%\section{Dead Reckoning}\label{sec:DeadReckoning}
+\section{Other techniques}
+\textbf{Scene analysis} is a pattern recognition method that uses features of a scene observed from a particular vantage point to draw conclusions about the location of the observer or of objects in the scene also.\cite{LSfUC} This approach has been used in many applications, such as image and speech recognition, as well as location.\cite{LSAWIFI} The advantage is that the location of objects can be inferred using passive observation and features. The disadvantage is that the observer needs to have access to the features of environment against which it will compare its observed scenes.\cite{LSfUC}
 
-%\section{K neighbors}\label{sec:KNeighbors}
-
-%\section{Compressive sensing}\label{sec:CompressiveSensing}
+\textbf{Dead Reckoning} refers to a position solution that is obtained by measuring or deducing displacements from a known starting point in accordance with motion of the user.\cite{DRNS} Basically calculate new position based on starting point, travel distance and angle of movement. Because new position calculations are dependent on previous ones there is the need for high accuracy of data since it makes errors cumulative.\cite{IDRAIP}
