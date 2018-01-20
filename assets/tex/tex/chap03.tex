@@ -36,7 +36,29 @@ There are three main point to note with watch devices. First of all is small bat
 \subsection{Android Wear}\label{sec:AndroidWear}
 Android Wear is a version of Android OS tailored to small-screen wearable devices. There are not too many changes from system for smart phone but one of the main differences can be seen in UI since system had to be adjusted for watch size \cite{CSUITW}. Due to scaled down processing power of watches Android Wear wirelessly offloads data to the smart phone for heavy computing tasks, e.g., voice recognition \cite{UCAW}.
 
-%Even thought this system got into top three wear systems it's first version was met with a lot of problems. Two types of wear apps
+\begin{figure}[H]
+	\begin{centering}
+		\includegraphics[width=0.6\textwidth]{img/wear_market_share}
+		\par\end{centering}
+	\caption{Smartwatch OS market share (source: \cite{TOAW})\label{fig:SmartwatchOSMarketShare}}
+	\label{fig7}
+\end{figure}
+
+Android Wear is one of the most popular smartwatch systems but comes with it is own set of problems. Most notable and annoying one is being unable to pair wear with specific mobile device. It can be caused by combination of things like system compatibility, custom hardware or phone type but it is more common then it should be \cite{AWPaS}. Having phone connected to Android Wear can also cause phone to drain battery way faster. Few other problems can be update issues, notifications not coming through to the watch, not being able to connect to Wi-Fi and system crashes \cite{WAWP}.
+
+Even with all these problems it is popular system and in early 2017 it got an update to version 2.0 that brought numerous improvements and features \cite{AW2UG}\cite{AW2WN}\cite{AW2N}. Few of the most notable ones will be described.
+
+\subsubsection{Standalone applications}\label{sec:StandaloneApplications}
+This feature is crucial change and it means that watch applications do not need mobile phone to function. Before this version it was needed to have connected phone with Android Wear support to use applications. Being forced to have Android phone proved as an obstacle for iPhone users since they could not use any applications on the watch \cite{AW2UG}\cite{AW2WN}.
+
+Part of this feature is also enabling watch to use wireless and cellular networks on their own since most standalone applications really need this feature. The other part of this update was improving and securing communication with phone. This is now done via Wearable Data Layer API that is used in almost all Google applications and it is also pretty easy to use as a developer \cite{AW2UG}.
+
+%Google Play Store in stand alone appls
+
+% subsubsection - UI
+% subsubsection - Google Assistant
+% Laso maybe other
+%Second main addition of this version is stand alone Google Play Store so there is no need to install applications through mobile phone. And last but not least is new UI such as implementation of Android's Material design and new watch faces (clock )
 
 \section{Other wear technologies}\label{sec:OtherWearTechnologies}
 Tizen, Pebble, Apple, Microsoft ...
