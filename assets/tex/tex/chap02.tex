@@ -36,7 +36,7 @@ Note: At this time term Multilateration is not as strict as it used to be. It ca
 \subsection{Angulation}\label{sec:Angulation}
 This technique uses Angle of Arrival (AoA) of radio signals to determine location. It uses highly directional antennas or antenna arrays. Same as Lateration these antennas are placed in known location and basic AoA requires at least two of them to determine position on 2D plane but more of them can be used to improve accuracy \cite{RAinWILTaS}. That makes it an advantage over Trilateration. Second advantage of this approach is no need for synchronization between devices.
 
-There are few disadvantages of this approach since it needs complex hardware setup due to the use of antennas. Other problem is with multipath locations since it can cause signal reflection making it not useful for indoor localization. And final one to mention is the decrease of accuracy when mobile target moves further from the antennas \cite{AoA}\cite{RofAoA}.
+There are few disadvantages of this approach since it needs complex hardware setup due to the use of antennas. Other problem is with multipath locations since it can cause signal reflection making it not useful for indoor localization. And final one to mention is the decrease of accuracy when mobile target moves further from the antennas \cite{AoA, RofAoA}.
 
 \begin{figure}[h!]
 	\begin{centering}
@@ -49,7 +49,7 @@ There are few disadvantages of this approach since it needs complex hardware set
 \section{Fingerprinting}\label{sec:Fingerprinting}
 This method is a part of Signal Strength Fingerprint Maps (SSFM) type. Main point of this approach is using previously recorded data to figure out device location. Hence fingerprint term in the name. There is multiple kinds of radio signal sources like bluetooth, wireless or cellular devices that can be recorded.
 
-Fingerprinting has two main phases where the first one is fingerprint maps construction also called offline phase. They are created by collecting Received Signal Strength (RSS) and optional extra features in known locations. All these values are saved in the database and it is called fingerprint map. The second phase is localization itself also known as online phase where the device measures RSS values and compares them with fingerprint maps to approximate position using suitable method \cite{LocalizationApproaches}\cite{ILWTP}. Most used algorithms or methods to approximate position are \cite{IILUBLEB}
+Fingerprinting has two main phases where the first one is fingerprint maps construction also called offline phase. They are created by collecting Received Signal Strength (RSS) and optional extra features in known locations. All these values are saved in the database and it is called fingerprint map. The second phase is localization itself also known as online phase where the device measures RSS values and compares them with fingerprint maps to approximate position using suitable method \cite{LocalizationApproaches, ILWTP}. Most used algorithms or methods to approximate position are \cite{IILUBLEB}
 
 \begin{itemize}
 	\item probabilistic methods,
@@ -59,7 +59,7 @@ Fingerprinting has two main phases where the first one is fingerprint maps const
 	\item smallest M-vertex polygon.
 \end{itemize}
 
-There are multiple advantages of this approach and the most important is that it does not need any additional or specialized hardware. Next one is no need for time synchronization between the stations. Both of these advantages make it simple and cost effective method for localization. On the other hand building of the map is very time consuming and needs heavy calibration. It is also susceptible to changes in environment like people presence, object movement or relative humidity \cite{IILUBLEB}\cite{RSSFofIFD}.
+There are multiple advantages of this approach and the most important is that it does not need any additional or specialized hardware. Next one is no need for time synchronization between the stations. Both of these advantages make it simple and cost effective method for localization. On the other hand building of the map is very time consuming and needs heavy calibration. It is also susceptible to changes in environment like people presence, object movement or relative humidity \cite{IILUBLEB, RSSFofIFD}.
 
 \section{Proximity}\label{sec:Proximity}
 Proximity detection also known as connectivity based positioning calculates only approximate location. Position is determined by cell of origin (CoO) method with known position and limited range \cite{RAinWILTaS}. Specific device location is based on cell of the connected device ("associated access point" in Wi-Fi 802.11 systems) as shown in \fref{fig5} \cite{WiFiLBS}.
@@ -72,7 +72,7 @@ Proximity detection also known as connectivity based positioning calculates only
 	\label{fig5}
 \end{figure}
 
-Primary advantage of this approach is very easy implementation and no need for complicated algorithms and thus making calculations fast. However, for various reasons devices can be associated to cells that are not in close physical proximity. Such errors can happen for example in multi-floor buildings where floor cells overlap. There are additional methods that can be used to improve localization such as using received signal strength indication (RSSI), manual method (human search) or connecting to device with highest signal strength \cite{WiFiLBS}\cite{RAinWILTaS}.
+Primary advantage of this approach is very easy implementation and no need for complicated algorithms and thus making calculations fast. However, for various reasons devices can be associated to cells that are not in close physical proximity. Such errors can happen for example in multi-floor buildings where floor cells overlap. There are additional methods that can be used to improve localization such as using received signal strength indication (RSSI), manual method (human search) or connecting to device with highest signal strength \cite{WiFiLBS, RAinWILTaS}.
 
 \section{Other techniques}
 \textbf{Scene analysis} is a pattern recognition method that uses features of a scene observed from a particular vantage point to draw conclusions about the location of the observer or of objects in the scene also \cite{LSfUC}. This approach has been used in many applications, such as image and speech recognition, as well as location \cite{LSAWIFI}. The advantage is that the location of objects can be inferred using passive observation and features. The disadvantage is that the observer needs to have access to the features of environment against which it will compare its observed scenes \cite{LSfUC}.
