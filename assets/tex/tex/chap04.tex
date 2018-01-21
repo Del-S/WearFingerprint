@@ -1,11 +1,31 @@
 \chapter{Analysis, design and implementation}\label{sec:AnalysisDesignAndImplementation}
 This chapter describes all important information about created application. One of the main parts are hardware and software used for developing and testing of the application. Other part is structure and description of core parts used in the application. 
 
-\section{Hardware}
-\label{sec:Hardware}
+\section{Hardware}\label{sec:Hardware}
+There are three main Hardware components used and those are smartphone, smartwatch and BLE beacons. Main requirements for both hardwares is support for scanning Bluetooth Low Energy beacons that is supported from Bluetooth 4.0. As a secondary requirements are Wi-Fi, GSM and LTE modules to be able to scan more types of devices than just BLE beacons.  
 
-\subsection{Smart Watch}
-\label{subsec:SmartWatch}
+\subsection{Smartphone}\label{subsec:Smartphone}
+Main part of the application will be developed and tested on Redmi Note 4 from Chinese company Xiaomi. It is running customized version of Android 6.0 called MIUI. Even thought system was customized in core it is still Android so there are no problems in that regard  \cite{XRN4LTE}. This phone has Bluetooth 4.1 with LE support so main requirement for the hardware is met. This device also met all the secondary requirements with Wi-Fi 802.11 a/b/g/n, GSM, and LTE support like most modern smartphones would \cite{XRN4FPS}.
+
+\subsection{Smartwatch}\label{subsec:Smartwatch}
+As already mentioned this thesis is using smartwatch with support of Android Wear 2.0 which makes it harder to select proper wear device since there not so many options at this time. There was around twenty of watches with 2.0 system and only five of them were selected to closer inspection based on few articles \cite{BAWW, BAWW18, BAWW17}.
+
+\begin{table}[h]
+	\begin{center}
+		\resizebox{\textwidth}{!}{
+		\begin{tabular}{| m{3.5cm} | p{2.2cm} | p{2.5cm} | l |}
+			\hline
+			\rowcolor[HTML]{EFEFEF}
+			Watch & BLE / Wi-fi support & Sold in Czech Republic & Problems \\ \hline
+			LG W280 Sport & Yes / Yes & No & \begin{tabular}[c]{@{}l@{}} Battery life is one day or less. \\ Too big in size. \end{tabular} \\ \hline
+			LG W270 Titanium Style & Yes / Yes & Yes & Battery life is one day or less. \\ \hline
+			Huawei Watch 2 & Yes / Yes & Yes & \begin{tabular}[c]{@{}l@{}} First update can take a long time. \\ Slight Bluetooth pairing. \end{tabular} \\ \hline
+			Polar M600 & Yes / Yes & Yes & \begin{tabular}[c]{@{}l@{}} Polar support complains. \\ Phone synchronization. \\ GPS location. \end{tabular} \\ \hline
+			ASUS ZenWatch 3 & Yes / Yes & No &  \begin{tabular}[c]{@{}l@{}} Strap breaks fast. \\ AW 2.0 update can break the watch. \\ Asus support complains. \end{tabular} \\ \hline
+		\end{tabular}}
+		\caption{Smartwatch comparison (sources: \cite{BAWW, })}
+	\end{center}
+\end{table}
 
 \section{Software}
 \label{sec:Software}
