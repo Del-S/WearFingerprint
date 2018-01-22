@@ -178,9 +178,6 @@ pdfkeywords={Fingerprint, Android, Wear, RSS}%
     {Ž}{{\v{Z}}}1
 }
 
-% Add command (\fref) to reference Figures
-\newcommand\fref[1]{\IfRefUndefinedExpandable{#1}{??}{Figure~\ref{#1}}}
-
 \begin{document}
 \renewcommand{\figurename}{Figure}
 \renewcommand{\tablename}{Table}
@@ -190,6 +187,11 @@ pdfkeywords={Fingerprint, Android, Wear, RSS}%
 \renewcommand{\listtablename}{List of tables}
 %~\thispagestyle{empty}{\small ~\vfill{}
 %}{\small \par}
+
+% Add command (\fref) to reference Figures
+\newcommand\fref[1]{\IfRefUndefinedExpandable{#1}{??}{\figurename~\ref{#1}}}
+% Add command (\fref) to reference Tables
+\newcommand\tref[1]{\IfRefUndefinedExpandable{#1}{??}{\tablename~\ref{#1}}}
 
 %~\thispagestyle{empty}\vfill{}
 %Tato stránka je tzv. protititul a je graficky součástí titulní stránky.

@@ -19,25 +19,31 @@ As already mentioned this thesis is using smartwatch with support of Android Wea
 			Watch & BLE / Wi-fi support & Sold in Czech Republic & Problems \\ \hline
 			LG W280 Sport & Yes / Yes & No & \begin{tabular}[c]{@{}l@{}} Battery life is one day or less. \\ Too big in size. \end{tabular} \\ \hline
 			LG W270 Titanium Style & Yes / Yes & Yes & Battery life is one day or less. \\ \hline
-			Huawei Watch 2 & Yes / Yes & Yes & \begin{tabular}[c]{@{}l@{}} First update can take a long time. \\ Slight Bluetooth pairing. \end{tabular} \\ \hline
-			Polar M600 & Yes / Yes & Yes & \begin{tabular}[c]{@{}l@{}} Polar support complains. \\ Phone synchronization. \\ GPS location. \end{tabular} \\ \hline
-			ASUS ZenWatch 3 & Yes / Yes & No &  \begin{tabular}[c]{@{}l@{}} Strap breaks fast. \\ AW 2.0 update can break the watch. \\ Asus support complains. \end{tabular} \\ \hline
+			Huawei Watch 2 & Yes / Yes & Yes & \begin{tabular}[c]{@{}l@{}} First update can take a long time. \\ Slight Bluetooth pairing issues. \end{tabular} \\ \hline
+			Polar M600 & Yes / Yes & Yes & \begin{tabular}[c]{@{}l@{}} Polar support complains. \\ Phone synchronization issues. \\ GPS location malfunctions. \end{tabular} \\ \hline
+			ASUS ZenWatch 3 & Yes / Yes & No &  \begin{tabular}[c]{@{}l@{}} Strap breaks fast. \\ AW 2.0 update can break the watch. \\ ASUS support complains. \end{tabular} \\ \hline
 		\end{tabular}}
-		\caption{Smartwatch comparison (sources: \cite{BAWW, })}
+		\caption{Smartwatch comparison (sources: \cite{LGWSP, LGWST, HW2, PM600, AZW3})}
+		\label{tab1}
 	\end{center}
 \end{table}
 
-\section{Software}
-\label{sec:Software}
+There were funds only for one watch device out of five which is displayed in \tref{tab1} with selection parameters. First requirement for the wear device is support of BLE and Wi-Fi which all have. Second information considered was being able to buy it in Czech Republic (CR) since it is easier for prices, shipping and reclamations. Only three of five devices were sold in CR at that time so others are out of the question. Final decision was made based on extensive research of customer reviews in shopping sites (Amazon, CZC, Heureka, Alza), wear official websites \cite{LGWSP, LGWST, HW2, PM600, AZW3} and other tech sites \cite{BAWW, BAWW18, BAWW17}. And selected device is Huawei Watch 2 since there were not too many problems in reviews and other requirements were met. 
 
-\subsection{Android}
-\label{subsec:Android}
+Initial setup of the wear device was composed of two main parts. First one was update wear system that took about one to two hours. Second task was copy Google account into the wear device where problem was discovered. Copying of accounts from Redmi Note 4 ti the watch hanged nd never completed. To fix this problem another smartphone was used to copy the account but as it was already mentioned only single device can be connected to smartwatch and connecting a new one requires factory reset that would remove all the data. So there was the need to pair wear with phone without factory reset which was handled via debugging following this \cite{HtPAWW} article.
 
-\subsubsection{Android Wear}
-\label{subsec:AndroidWear}
+\subsection{BLE beacons}\label{subsec:BLEBeacons}
+Some info about beacons.
 
-\subsection{AltBeacon Library}
-\label{subsec:AltBeaconLibrary}
+\section{Software}\label{sec:Software}
+Smart phone and wear use Android system which was already described in \hyperref[sec:Android]{Chapter 3}. This section will provide basic information about libraries, technologies and systems used in the application or supporting it.
+
+\subsection{AltBeacon Library}\label{subsec:AltBeaconLibrary}
+There are multiple solutions that can be used to scan for BLE beacons as for example Estimote SDK \cite{ESDKfA} which was already used in previous thesis \cite{PMRIL}. To change things up BLE beacons are found via AltBeacon Library \cite{ABL}.
+
+Since there is no open and interoperable specification for proximity beacons, Radius Networks has authored the AltBeacon specification as a proposal for how to solve this problem. It is a open and free specification for Bluetooth Low Energy beacons with focus to create an open, competitive market for proximity beacon implementations \cite{AltB}.
+
+
 
 \subsection{SQLite database}
 \label{subsec:SQLiteDatabase}
