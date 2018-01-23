@@ -4,6 +4,8 @@ This chapter describes all important information about created application. One 
 \section{Hardware}\label{sec:Hardware}
 There are three main Hardware components used and those are smartphone, smartwatch and BLE beacons. Main requirements for both hardwares is support for scanning Bluetooth Low Energy beacons that is supported from Bluetooth 4.0. As a secondary requirements are Wi-Fi, GSM and LTE modules to be able to scan more types of devices than just BLE beacons.  
 
+% Maybe add beacons server information?
+
 \subsection{Smartphone}\label{subsec:Smartphone}
 Main part of the application will be developed and tested on Redmi Note 4 from Chinese company Xiaomi. It is running customized version of Android 6.0 called MIUI. Even thought system was customized in core it is still Android so there are no problems in that regard  \cite{XRN4LTE}. This phone has Bluetooth 4.1 with LE support so main requirement for the hardware is met. This device also met all the secondary requirements with Wi-Fi 802.11 a/b/g/n, GSM, and LTE support like most modern smartphones would \cite{XRN4FPS}.
 
@@ -13,7 +15,7 @@ As already mentioned this thesis is using smartwatch with support of Android Wea
 \begin{table}[h]
 	\begin{center}
 		\resizebox{\textwidth}{!}{
-		\begin{tabular}{| m{3.5cm} | p{2.2cm} | p{2.5cm} | l |}
+		\begin{tabular}{| m{3.5cm} | m{2.2cm} | m{2.5cm} | l |}
 			\hline
 			\rowcolor[HTML]{EFEFEF}
 			Watch & BLE / Wi-fi support & Sold in Czech Republic & Problems \\ \hline
@@ -43,13 +45,44 @@ There are multiple solutions that can be used to scan for BLE beacons as for exa
 
 Since there is no open and interoperable specification for proximity beacons, Radius Networks has authored the AltBeacon specification as a proposal for how to solve this problem. It is a open and free specification for Bluetooth Low Energy beacons with focus to create an open, competitive market for proximity beacon implementations \cite{AltB}.
 
+This library enables Android devices to scan for iBeacons based on previously mentioned AltBreacon standard but it can be customized to support different kinds of beacons. It also supports Eddystone which is Google's open source beacon format and calculation of range between the devices which will help with localization \cite{ABL, EDDF}.
 
+\subsection{Database}\label{subsec:Database}
+Database is needed to keep all the Fingerprint data for calculations and there are two types of databases used for this application. First one is SQLite database that is used in Android application to save Fingerprints. This database is default and most used solution in Android applications and there is no need to use other ones. Another type of database used is Couchbase which is implemented on \verb|beacons.uhk.cz| server to keep all Fingerprint data on one place for multiple applications.
 
-\subsection{SQLite database}
-\label{subsec:SQLiteDatabase}
+\subsubsection{Couchbase database}\label{subsec:CouchbaseDatabase}
 
-\subsection{Couchbase database}
-\label{subsec:CouchbaseDatabase}
+\subsubsection{SQLite database}\label{subsec:SQLiteDatabase}
+SQL (Structured Query Language) is a standard language for storing, manipulating and retrieving data in databases. It is a type of Relational Database that means all data is saved into tables with rows and columns \cite{ItSQL}. These tables usually have set amount of rows with specific names that protect from adding wrong data as en example you cannot add data \verb|Person(name, surname, eye color)| into table \verb|Person(name, surname)| because there is no column named \verb|eye color| in the table.
+
+Advantages of these databases are structured data which makes calculation faster but uses more storage space. Data can be only saved once since they can be connected to each other. It supports complex queries for creating, reading, updating and removing data (CRUD) and better security with user and table management. Some disadvantages of this system can be with complexity and inflexibility of database scheme because it can be hard to setup and it does not allow other data then is defined in the tables \cite{ERDMS}.
+
+Since SQL with all the features can consume a lot of hardware resources for a smartphone that is not as fast as a server Android decided to implement SQLite. SQLite has the following noticeable features: self-contained, serverless, zero-configuration, transactional \cite{WISQLITE}.
+
+\begin{itemize}
+	\item Serverless = does not need second process for the server.
+	\item Self-Contained = requires minimal support from operating system.
+	\item Zero-configuration = no need for installation or any configuration.
+	\item Transactional = data are protected against failed changes (application crashes, power failure, ...).
+\end{itemize}
+
+This solution was tested against Couchbase database for Android and it proved as better solution. Not only it takes less storage space it is also able to load data faster. As \tref{tab2} shows SQL lite takes less data space and is almost three times faster in loading all the documents.
+
+\begin{table}[h]
+	\begin{center}
+		\resizebox{\textwidth}{!}{
+		\begin{tabular}{| l | l | m{3.5cm} |}
+			\hline
+			\rowcolor[HTML]{EFEFEF}
+			Database type & Data size & Loading speed (315 documents) \\ \hline
+			SQLite & 15MB & 23 second \\ \hline
+			Couchbase without views & 31MB & 65 seconds \\ \hline
+			Couchbase with views & 91MB & 65 seconds \\ \hline
+		\end{tabular}}
+		\caption{Couchbase vs SQLite (sources: \cite{LGWSP, LGWST, HW2, PM600, AZW3})}
+		\label{tab2}
+	\end{center}
+\end{table}
 
 \subsection{TileView}
 \label{subsec:TileView}
