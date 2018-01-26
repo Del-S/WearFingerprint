@@ -84,23 +84,37 @@ This solution was tested against Couchbase database for Android and it proved as
 	\end{center}
 \end{table}
 
-\subsection{TileView}
-\label{subsec:TileView}
+\subsection{TileView}\label{subsec:TileView}
+There are multiple ways to display map image in Android but the main ones have problems while displaying a big image because they will run out of memory. So it is usually better to try custom library or widget created specifically for displaying big image. There is multiple 2D and 3D libraries to display such an image but most of them display image as a whole meaning one big image file. 
 
-\section{Application structure}
-\label{sec:ApplicationStructure}
+There is another way introduced by Google Maps where map is displayed using small images so called \verb|tiles|. Image is cut into small pieces which is better for device memory management than one big image. Depending on how big the cuts are it can also display multiple zoom levels keeping the map quality high with high and low levels.
 
-\subsection{Mobile application}
-\label{subsec:MobileApplication}
+% Example of this and how to do it
 
-\subsubsection{Activities}
-\label{subsec:Activities}
+\section{Application structure}\label{sec:ApplicationStructure}
+This section describes structure of the applications and since there are two parts of this application (mobile and wear) both of them will be described.
 
-\subsubsection{Model}
-\label{subsec:Model}
+\subsection{Mobile application}\label{subsec:MobileApplication}
+Mobile application is the bigger and more complex part that handles scanning, map display and synchronization with the server.
 
-\subsubsection{Utilities}
-\label{subsec:Utilities}
+\subsubsection{Activities}\label{subsec:Activities}
+Activities are visible screens of the application. They serve as the entry point for a user's interaction with an application, and are also central to how a user navigates within an application (as with the Back button) or between apps (as with the Recents button) \cite{AD}.
 
-\subsection{Wear application}
-\label{subsec:WearApplication}
+Main activity for this application is called \verb|ScanActivity|. It displays map with proper building, floor and found Fingerprint in that specific location. It enables users to scan for new beacons and thus create new Fingerprints. Map and controls are implemented using TileView widget that was described in previous section. 
+
+\subsubsection{Model}\label{subsec:Model}
+Model package contains most important classes of the application and it's split into four parts called: adapters, configuration, database and tasks.
+
+Adapters...
+
+Configuration classes contain settings of the application. It uses Android's shared preferences that are key-value (xml) files to save small amount of application data. Each SharedPreferences file is managed by the framework and can be private or shared. One thing to note is that these files are not encrypted so it is not good to save user sensitive data in them.
+
+Database package contains all classes needed for communication between application and SQL database. First part of this package are Fingerprints classes that correspond with tables and columns of the database. Second part are so called database helpers that handle communication between the application and SQLite database such as tables creation, selects, inserts, updates and deletions.
+
+Tasks contain the most complex classes of this application and that is the Fingerprint scanner that has multiple sub-classes to parse all the necessary data from the scan. Tasks also contain connection with the server for data synchronization and Fingerprint transfers.
+
+\subsubsection{Utilities}\label{subsec:Utilities}
+Utilities contain classes not fit to any other category or classified as support ones which usually means classes for animations or warning messages but since this application communicates with the wear device this package also contains classes that handle such communication.
+
+\subsection{Wear application}\label{subsec:WearApplication}
+Wear application is simplified version of its smartphone counterpart. It handles only scanning, display of scanning progress and sending the data to the phone. 
