@@ -1,4 +1,4 @@
-\chapter{Analysis, design and implementation}\label{sec:AnalysisDesignAndImplementation}
+\chapter{Application design and implementation}\label{sec:ApplicationDesingAndImplementation}
 This chapter describes all important information about created application. One of the main parts are hardware and software used for developing and testing of the application. Other part is structure and description of core parts used in the application. 
 
 \section{Hardware}\label{sec:Hardware}
@@ -35,7 +35,19 @@ There were funds only for one watch device out of five which is displayed in \tr
 Initial setup of the wear device was composed of two main parts. First one was update wear system that took about one to two hours. Second task was copy Google account into the wear device where problem was discovered. Copying of accounts from Redmi Note 4 ti the watch hanged nd never completed. To fix this problem another smartphone was used to copy the account but as it was already mentioned only single device can be connected to smartwatch and connecting a new one requires factory reset that would remove all the data. So there was the need to pair wear with phone without factory reset which was handled via debugging following this \cite{HtPAWW} article.
 
 \subsection{BLE beacons}\label{subsec:BLEBeacons}
-Some info about beacons.
+Beacons are small devices that can be easily placed in almost any environment. The only thing they do is send their information packets using bluetooth and are used in museums, airports and as of late in indoor localization \cite{10TABB}. Beacons have their own battery that can last around a year without charging because of the new Bluetooth Low Energy (BLE) standard that consumes little to no energy \cite{IPSBOBLE}. 
+
+There are multiple beacon manufacturers with their own quality, signal strength, battery life and other hardware differences. There are also multiple software (packet) specifications for beacons meaning that data they send have different format but they does not mean other systems cannot see them. Beacons are usually platform independent and work with multiple platforms \cite{IPSBOBLE, 10TABB}.
+
+\begin{figure}[H]
+	\begin{centering}
+		\includegraphics[width=0.6\textwidth]{img/estimote_beacon}
+		\par\end{centering}
+	\caption{Parts of Estimote beacon (source: \cite{RMPFEB})\label{fig:PartsOfEstimoteBeacon}}
+	\label{fig10}
+\end{figure}
+
+Another important thing to note it that Beacons are not connected to the Internet and do not collect any data from devices around. Meaning all the data have to be processed in another device like smartphone and it also makes Beacon safe to use because there is no need to worry about sensitive data theft \cite{10TABB}.
 
 \section{Software}\label{sec:Software}
 Smart phone and wear use Android system which was already described in \hyperref[sec:Android]{Chapter 3}. This section will provide basic information about libraries, technologies and systems used in the application or supporting it.
@@ -51,6 +63,13 @@ This library enables Android devices to scan for iBeacons based on previously me
 Database is needed to keep all the Fingerprint data for calculations and there are two types of databases used for this application. First one is SQLite database that is used in Android application to save Fingerprints. This database is default and most used solution in Android applications and there is no need to use other ones. Another type of database used is Couchbase which is implemented on \verb|beacons.uhk.cz| server to keep all Fingerprint data on one place for multiple applications.
 
 \subsubsection{Couchbase database}\label{subsec:CouchbaseDatabase}
+Since SQL based databases can be complex to implement, scale and consuming more data storage space there was a drive to create so called NoSQL databases. Their most important feature is not having a scheme, that makes them easy to scale, and easy to replicate between multiple devices. There are around 225 NoSQL databases at this time and Couchbase is one of them \cite{NOSQLDB}.
+
+Couchbase is distributed, document-based database with its own querying language called N1QL. It is a database focused on simple server configuration and easy use for clients and with built in caching layer and distribution system it does not require any changes in the application. There can be either one server instance of Couchbase or multiple of them can be connected and create a database cluster that holds all the data in multiple location (nodes) \cite{GSWCBS}.
+
+Since SQL is used for decades and it became standard for working with data in databases this approach was extended for usage with JSON and called N1QL. It has all features of the SQL with only difference of being focused on JSON files that has no structure and it is used in Couchebase \cite{WINQL}.
+
+There is a version of Couchbase for mobile called Lite that provides APIs to work with the documents and synchronize with the server instance. Problem of this solution is that Lite version does not implement N1QL and maps data as document views that have to instanced and usually use more data, at least on Android. 
 
 \subsubsection{SQLite database}\label{subsec:SQLiteDatabase}
 SQL (Structured Query Language) is a standard language for storing, manipulating and retrieving data in databases. It is a type of Relational Database that means all data is saved into tables with rows and columns \cite{ItSQL}. These tables usually have set amount of rows with specific names that protect from adding wrong data as en example you cannot add data \verb|Person(name, surname, eye color)| into table \verb|Person(name, surname)| because there is no column named \verb|eye color| in the table.
@@ -66,7 +85,8 @@ Since SQL with all the features can consume a lot of hardware resources for a sm
 	\item Transactional = data are protected against failed changes (application crashes, power failure, ...).
 \end{itemize}
 
-This solution was tested against Couchbase database for Android and it proved as better solution. Not only it takes less storage space it is also able to load data faster. As \tref{tab2} shows SQL lite takes less data space and is almost three times faster in loading all the documents.
+\subsubsection{Comparison}\label{subsec:Comparison}
+Both of these database solutions were tested on Android and SQL proved as a better solution. Not only it takes less storage space it is also able to load data faster. As \tref{tab2} shows SQL lite takes less data space and is almost three times faster in loading all the documents.
 
 \begin{table}[h]
 	\begin{center}
@@ -83,6 +103,8 @@ This solution was tested against Couchbase database for Android and it proved as
 		\label{tab2}
 	\end{center}
 \end{table}
+
+As shown SQL comes up better but it does not support any data synchronization so there must be custom solution created. If Couchbase Lite would have faster query time it would be preferable solution but it is not at this time.
 
 \subsection{TileView}\label{subsec:TileView}
 There are multiple ways to display map image in Android but the main ones have problems while displaying a big image because they will run out of memory. So it is usually better to try custom library or widget created specifically for displaying big image. There is multiple 2D and 3D libraries to display such an image but most of them display image as a whole meaning one big image file. 
@@ -105,12 +127,16 @@ Main activity for this application is called \verb|ScanActivity|. It displays ma
 \subsubsection{Model}\label{subsec:Model}
 Model package contains most important classes of the application and it's split into four parts called: adapters, configuration, database and tasks.
 
-Adapters...
+\paragraph{Adapters}\label{subsec:Adapters}\mbox{} \\
+Adapters information. 
 
+\paragraph{Configuration}\label{subsec:Configuration}\mbox{} \\
 Configuration classes contain settings of the application. It uses Android's shared preferences that are key-value (xml) files to save small amount of application data. Each SharedPreferences file is managed by the framework and can be private or shared. One thing to note is that these files are not encrypted so it is not good to save user sensitive data in them.
 
+\paragraph{Database}\label{subsec:Database}\mbox{} \\
 Database package contains all classes needed for communication between application and SQL database. First part of this package are Fingerprints classes that correspond with tables and columns of the database. Second part are so called database helpers that handle communication between the application and SQLite database such as tables creation, selects, inserts, updates and deletions.
 
+\paragraph{Tasks}\label{subsec:Tasks}\mbox{} \\
 Tasks contain the most complex classes of this application and that is the Fingerprint scanner that has multiple sub-classes to parse all the necessary data from the scan. Tasks also contain connection with the server for data synchronization and Fingerprint transfers.
 
 \subsubsection{Utilities}\label{subsec:Utilities}

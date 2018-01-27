@@ -26,6 +26,7 @@
 \usepackage[nottoc,notlot,notlof]{tocbibind}
 \usepackage{refcount}
 \usepackage{xstring} 
+\usepackage{enumerate}
 
 
 % Cut words in half
@@ -34,6 +35,10 @@
 \makeatletter
 
 \usepackage[font=small,labelfont=bf]{caption} %captiony
+
+% Enable break url with "_" (underscore)
+\expandafter\def\expandafter\UrlBreaks\expandafter{\UrlBreaks%  save the current one
+	\do\_}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
 \providecommand{\LyX}{L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
@@ -313,7 +318,7 @@ pdfkeywords={Fingerprint, Android, Wear, RSS}%
 \cleardoublepage{}
 
 \cleardoublepage{}\thispagestyle{empty}{\small
-%\setcounter{secnumdepth}{3}
+\setcounter{secnumdepth}{3}
 \setcounter{tocdepth}{3}%hloubla obsahu
 \pagenumbering{gobble}
 \tableofcontents{}% vkládá automaticky generovaný obsah dokumentu
@@ -331,12 +336,13 @@ pdfkeywords={Fingerprint, Android, Wear, RSS}%
 
 \include{tex/_bib}
 
-\addcontentsline{toc}{chapter}{Bibliography}
+%\addcontentsline{toc}{chapter}{Bibliography}
 \cleardoublepage{}
 
-%\include{prilohy}
+% Include attachments
+\include{tex/_attachments}
 
 % Include pdf scan of Thesis entry
-%\includepdf[pages={1}]{zadani.pdf}
+\includepdf[pages={1}]{assignment.pdf}
 
 \end{document}
