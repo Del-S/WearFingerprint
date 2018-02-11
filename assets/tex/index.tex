@@ -4,6 +4,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
+\usepackage[table]{xcolor} 
 \usepackage{array}
 \usepackage{float}
 \usepackage{longtable}
@@ -23,6 +24,10 @@
 \usepackage{breakurl}
 \usepackage{indentfirst}
 \usepackage[nottoc,notlot,notlof]{tocbibind}
+\usepackage{refcount}
+\usepackage{xstring} 
+\usepackage{enumerate}
+
 
 % Cut words in half
 %\hyphenation{Word-cut}
@@ -30,6 +35,10 @@
 \makeatletter
 
 \usepackage[font=small,labelfont=bf]{caption} %captiony
+
+% Enable break url with "_" (underscore)
+\expandafter\def\expandafter\UrlBreaks\expandafter{\UrlBreaks%  save the current one
+	\do\_}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
 \providecommand{\LyX}{L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
@@ -79,18 +88,14 @@
 %\usepackage{hypernat}%interakce mezi hyperref a natbib
 %\newcommand{\BibTeX}{{\sc Bib}\TeX}%BibTeX logo
 \hypersetup{   % Nastavení polí PDF dokumentu
-pdftitle={Radio Fingerprint Acquisition Using a SmartWatch},%
+pdftitle={Radio Fingerprint Acquisition Using Smartwatch},%
 pdfauthor={Bc. David Sucharda},%
 pdfsubject={},%
-pdfkeywords={Fingerprint, Android, Wear}%
+pdfkeywords={Fingerprint, Android, Wear, RSS}%
 }
 \usepackage{multicol}
 
-
-
-
 %<-----------------------------volání stylů----------------------------------------->
-% (znak % je označení komentáře: co je za ním, není aktivní)
 %<------------------------------------písmo----------------------------------------->
 %\usepackage{pkg/bc-latinmodern}
 %\usepackage{pkg/bc-times}
@@ -179,14 +184,19 @@ pdfkeywords={Fingerprint, Android, Wear}%
 }
 
 \begin{document}
-\renewcommand{\figurename}{Picture}
+\renewcommand{\figurename}{Figure}
 \renewcommand{\tablename}{Table}
 \renewcommand{\contentsname}{Content}
 \renewcommand{\bibname}{Literature}
-\renewcommand{\listfigurename}{List of pictures}
+\renewcommand{\listfigurename}{List of figures}
 \renewcommand{\listtablename}{List of tables}
 %~\thispagestyle{empty}{\small ~\vfill{}
 %}{\small \par}
+
+% Add command (\fref) to reference Figures
+\newcommand\fref[1]{\IfRefUndefinedExpandable{#1}{??}{\figurename~\ref{#1}}}
+% Add command (\fref) to reference Tables
+\newcommand\tref[1]{\IfRefUndefinedExpandable{#1}{??}{\tablename~\ref{#1}}}
 
 %~\thispagestyle{empty}\vfill{}
 %Tato stránka je tzv. protititul a je graficky součástí titulní stránky.
@@ -213,7 +223,7 @@ pdfkeywords={Fingerprint, Android, Wear}%
 \vspace{15mm}
 
 
-\textsf{\LARGE Radio Fingerprint Acquisition Using a Smartwatch}{\LARGE \par}
+\textsf{\LARGE Radio Fingerprint Acquisition Using\\Smartwatch}{\LARGE \par}
 
 \vspace{10mm}
 
@@ -308,7 +318,7 @@ pdfkeywords={Fingerprint, Android, Wear}%
 \cleardoublepage{}
 
 \cleardoublepage{}\thispagestyle{empty}{\small
-%\setcounter{secnumdepth}{3}
+\setcounter{secnumdepth}{3}
 \setcounter{tocdepth}{3}%hloubla obsahu
 \pagenumbering{gobble}
 \tableofcontents{}% vkládá automaticky generovaný obsah dokumentu
@@ -326,12 +336,13 @@ pdfkeywords={Fingerprint, Android, Wear}%
 
 \include{tex/_bib}
 
-\addcontentsline{toc}{chapter}{Bibliography}
+%\addcontentsline{toc}{chapter}{Bibliography}
 \cleardoublepage{}
 
-%\include{prilohy}
+% Include attachments
+\include{tex/_attachments}
 
 % Include pdf scan of Thesis entry
-%\includepdf[pages={1}]{zadani.pdf}
+\includepdf[pages={1}]{assignment.pdf}
 
 \end{document}
