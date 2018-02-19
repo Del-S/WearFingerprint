@@ -11,6 +11,7 @@
     <string name="app_menu_home">Home</string>
     <string name="app_menu_scan">Scanner</string>
     <string name="app_menu_show_devices">Show devices</string>
+    <string name="app_menu_synchronization">Show synchronization</string>
 
     <!-- Main activity -->
     <string name="am_bluetooth_not_enabled">This application does not work without bluetooth.\nShutting down.</string>

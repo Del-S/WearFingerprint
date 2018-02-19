@@ -2,7 +2,6 @@ package cz.uhk.fim.kikm.wearnavigation.model.database.helpers;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.util.Log;
 
 public class DatabaseDataLoader<T> extends AsyncTask<Integer, Void, T> {
 
@@ -12,7 +11,7 @@ public class DatabaseDataLoader<T> extends AsyncTask<Integer, Void, T> {
     // Database crud to get access to the data in the SQL
     private DatabaseCRUD mDatabase;
     // Interface to communicate with the context
-    private DatabaseDataInterface databaseDataInterface;
+    private DatabaseDataInterface mInterface;
     // Mode of the running download
     private Integer mMode = -1;
 
@@ -24,7 +23,7 @@ public class DatabaseDataLoader<T> extends AsyncTask<Integer, Void, T> {
     public DatabaseDataLoader(Context context) {
         // Checks and loads the interface
         try {
-            databaseDataInterface = (DatabaseDataInterface) context;
+            mInterface = (DatabaseDataInterface) context;
         } catch (Exception e) {
             throw new ClassCastException(context.getClass()
                     + " must implement IndividualResultListener");
@@ -51,16 +50,16 @@ public class DatabaseDataLoader<T> extends AsyncTask<Integer, Void, T> {
             switch (mMode) {
                 case MODE_FINGERPRINT:
                     // Return all fingerprints from the database
-                    databaseDataInterface.allFingerprintsLoaded(result);
+                    mInterface.allFingerprintsLoaded(result);
                     break;
                 default:
                     // If mode was not set correctly then return error
-                    databaseDataInterface.loadError();
+                    mInterface.loadError();
                     break;
             }
         } else {
             // If there is no result then return error
-            databaseDataInterface.loadError();
+            mInterface.loadError();
         }
     }
 }

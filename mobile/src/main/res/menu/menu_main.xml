@@ -23,4 +23,11 @@
         app:showAsAction="always"
         android:visible="false"/>
 
+    <item
+        android:id="@+id/action_show_synchronization"
+        android:icon="@drawable/ic_sync_24dp"
+        android:title="@string/app_menu_synchronization"
+        app:showAsAction="always"
+        android:visible="false"/>
+
 </menu>

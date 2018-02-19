@@ -21,7 +21,7 @@ public class ShowDevicesActivity extends BaseActivity implements BluetoothDevice
 
     // Bluetooth check request code
     private final int REQUEST_LOCATION_PERMISSION = 1;
-    // Configuration instance
+    // ApiConfiguration instance
     private Configuration mConfiguration;
 
     @Override

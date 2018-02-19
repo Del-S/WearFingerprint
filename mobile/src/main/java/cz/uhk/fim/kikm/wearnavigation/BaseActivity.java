@@ -34,8 +34,8 @@ import java.lang.reflect.Field;
 
 import cz.uhk.fim.kikm.wearnavigation.activities.devices.ShowDevicesActivity;
 import cz.uhk.fim.kikm.wearnavigation.activities.scan.ScanActivity;
+import cz.uhk.fim.kikm.wearnavigation.activities.configuration.ConfigurationActivity;
 import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
-import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseCRUD;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.ScanProgress;
 import cz.uhk.fim.kikm.wearnavigation.utils.animations.AnimationHelper;
@@ -52,15 +52,13 @@ public abstract class BaseActivity extends AppCompatActivity implements
 
     protected BottomNavigationView navigationView;      // Global variable for Bottom navigation
     private final int REQUEST_ENABLE_BT = 1000;         // Bluetooth check request code
-    private final int REQUEST_ACCESS_LOCATION = 1001;   // Request access to coarse location
+    private final int REQUEST_PERMISSIONS = 1001;   // Request access to coarse location
     protected Configuration mConfiguration;             // App wide configuration class
 
     protected WearDataSender mWearDataSender;   // Send information into the nodes
     protected JobInfo.Builder jobBuilder;       // Job builder for FingerprintScanner
     private ScannerProgressReceiver mReceiver;  // Scanner receiver instance
     protected AnimationHelper mAnimationHelper; // Animation helper
-
-    private DatabaseCRUD mDatabase;     // Database holder used to save Fingerprints
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,12 +81,11 @@ public abstract class BaseActivity extends AppCompatActivity implements
         mConfiguration = ((WearApplication) getApplicationContext()).getConfiguration();    // Load configuration from Application
         jobBuilder = ((WearApplication) getApplicationContext()).getFingerprintJob();       // Load JobBuilder from Application
         mWearDataSender = new WearDataSender(this); // Initiate WearDataSender
-        mDatabase = new DatabaseCRUD(this);         // Initiate Database connection
 
         mAnimationHelper = new AnimationHelper();   // Initialize animation helper
 
         checkBluetooth();           // Bluetooth check
-        checkLocationPermissions(); // Location permission check
+        checkPermissions(); // Location permission check
     }
 
     @Override
@@ -141,28 +138,29 @@ public abstract class BaseActivity extends AppCompatActivity implements
     @Override
     public boolean onNavigationItemSelected(@NonNull final MenuItem item) {
         // Starting activities in bottom menu
-        navigationView.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                int itemId = item.getItemId();
-                switch (itemId) {
-                    case R.id.action_show_main:
-                        // Shows main activity
-                        showActivity(MainActivity.class);
-                        break;
-                    case R.id.action_show_scan:
-                        // Shows scan activity
-                        showActivity(ScanActivity.class);
-                        break;
-                    case R.id.action_show_devices:
-                        // Shows devices activity
-                        showActivity(ShowDevicesActivity.class);
-                        break;
-                    default:
-                        // Shows main activity
-                        showActivity(MainActivity.class);
-                        break;
-                }
+        navigationView.postDelayed(() -> {
+            int itemId = item.getItemId();
+            switch (itemId) {
+                case R.id.action_show_main:
+                    // Shows main activity
+                    showActivity(MainActivity.class);
+                    break;
+                case R.id.action_show_scan:
+                    // Shows scan activity
+                    showActivity(ScanActivity.class);
+                    break;
+                case R.id.action_show_devices:
+                    // Shows devices activity
+                    showActivity(ShowDevicesActivity.class);
+                    break;
+                case R.id.action_show_synchronization:
+                    // Shows devices activity
+                    showActivity(ConfigurationActivity.class);
+                    break;
+                default:
+                    // Shows main activity
+                    showActivity(MainActivity.class);
+                    break;
             }
         }, 100);
         return true;
@@ -249,7 +247,6 @@ public abstract class BaseActivity extends AppCompatActivity implements
         }
     }
 
-
     /**
      * Checking if the device has bluetooth and if it is enabled.
      */
@@ -273,14 +270,15 @@ public abstract class BaseActivity extends AppCompatActivity implements
     }
 
     /**
-     * Asks for permission to access Coarse and Fine location
+     * Asks for permission to access location and telephone state
      */
-    protected void checkLocationPermissions() {
+    protected void checkPermissions() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
-                    REQUEST_ACCESS_LOCATION);
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.READ_PHONE_STATE},
+                    REQUEST_PERMISSIONS);
         }
     }
 
@@ -321,12 +319,12 @@ public abstract class BaseActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onDataChanged(DataEventBuffer dataEvents) {
+    public void onDataChanged(@NonNull DataEventBuffer dataEvents) {
         Log.d(TAG, "onDataChanged: " + dataEvents);
     }
 
     @Override
-    public void onMessageReceived(MessageEvent event) {
+    public void onMessageReceived(@NonNull MessageEvent event) {
         Log.d(TAG, "onMessageReceived: " + event);
 
         if(event.getPath().equals(DataLayerListenerService.ACTIVITY_STARTED_PATH)) {

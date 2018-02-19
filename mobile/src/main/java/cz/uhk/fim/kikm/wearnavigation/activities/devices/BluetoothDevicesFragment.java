@@ -437,11 +437,11 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
     public interface ActivityConnection {
 
         /**
-         * Returns an instance of app wide Configuration class.
+         * Returns an instance of app wide ApiConfiguration class.
          * It is used to keep track of the single Bluetooth connected device.
          * To this device BLE search results will be posted to save.
          *
-         * @return Configuration instance
+         * @return ApiConfiguration instance
          */
         Configuration getConfiguration();
     }

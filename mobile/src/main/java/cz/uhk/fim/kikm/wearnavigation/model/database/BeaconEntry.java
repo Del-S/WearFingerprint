@@ -5,6 +5,7 @@ import android.os.Parcelable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,12 +32,14 @@ public class BeaconEntry implements Parcelable {
     private float distance;     // Distance of the beacon from the device
     private int rssi;           // Signal strength of the beacon
     private long timestamp;      // Device was found at this timestamp
+    @SerializedName("time")
     @JsonProperty("time")
     private long scanTime;       // Device was found at this time during the scan (seconds)
     /**
      * Difference between scanTime and last scanDifference (device based by bssid).
      * Informs about the time difference between this entry and previous one.
      */
+    @SerializedName("difference")
     @JsonProperty("difference")
     private long scanDifference;
 

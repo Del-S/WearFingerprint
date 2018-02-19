@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -22,10 +23,10 @@ public class DatabaseCRUD {
 
     private final static String TAG = "DatabaseCRUD";
     private final DatabaseHelper dbHelper;
-    private Context c;
+    private Context context;
 
     public DatabaseCRUD(Context context) {
-        this.c = context;
+        this.context = context;
         dbHelper = new DatabaseHelper(context);
     }
 
@@ -34,15 +35,21 @@ public class DatabaseCRUD {
      * Each one is saved in separate transaction.
      *
      * @param fingerprints List to save
+     * @return int number of saved fingerprints
      */
-    public void saveMultipleFingerprints(List<Fingerprint> fingerprints) {
+    public int saveMultipleFingerprints(List<Fingerprint> fingerprints) {
+        int savedCount = 0;
+
         if(fingerprints != null && !fingerprints.isEmpty()) {
             SQLiteDatabase db = dbHelper.getWritableDatabase(); // Load sql database via helper
             for (Fingerprint fingerprint : fingerprints) {
-                saveFingerprint(fingerprint, db);
+                if(saveFingerprint(fingerprint, db))
+                    savedCount++;
             }
             db.close();
         }
+
+        return savedCount;
     }
 
     /**
@@ -50,8 +57,10 @@ public class DatabaseCRUD {
      * This is main function for saving.
      *
      * @param fingerprint to save into the database
+     * @return boolean if fingerprint was saved
      */
-    public void saveFingerprint(Fingerprint fingerprint, SQLiteDatabase db) {
+    public boolean saveFingerprint(Fingerprint fingerprint, SQLiteDatabase db) {
+        boolean saved = false;
         boolean close = false;
         if(db == null) {
             db = dbHelper.getWritableDatabase(); // Load sql database via helper
@@ -87,6 +96,7 @@ public class DatabaseCRUD {
                     if (!error) {
                         Log.i(TAG,"Transaction successful in saveFingerprint().");
                         db.setTransactionSuccessful();
+                        saved = true;
                     } else {
                         Log.e(TAG, "Transaction error in saveFingerprint().");
                     }
@@ -102,6 +112,8 @@ public class DatabaseCRUD {
                 }
             }
         }
+
+        return saved;
     }
 
     /**
@@ -141,7 +153,6 @@ public class DatabaseCRUD {
         // Creating db values
         ContentValues values = new ContentValues();
         values.put(Fingerprint.DB_FINGERPRINT_ID, fingerprint.getId().toString());
-        values.put(Fingerprint.DB_FINGERPRINT_SCAN_ID, fingerprint.getScanID().toString());
         values.put(Fingerprint.DB_X, fingerprint.getX());
         values.put(Fingerprint.DB_Y, fingerprint.getY());
         values.put(Fingerprint.DB_SCAN_LENGTH, fingerprint.getScanLength());
@@ -150,6 +161,12 @@ public class DatabaseCRUD {
         values.put(Fingerprint.DB_LEVEL, fingerprint.getLevel());
         values.put(Fingerprint.DB_LOCATION_ID, locationId);
         values.put(Fingerprint.DB_DEVICE_ID, deviceId);
+
+        // Set scan ID (only with new fingerprints)
+        UUID scanID = fingerprint.getScanID();
+        if(scanID != null) {
+            values.put(Fingerprint.DB_FINGERPRINT_SCAN_ID, scanID.toString());
+        }
         return db.insert(Fingerprint.DB_TABLE, null, values);
     }
 
@@ -162,37 +179,54 @@ public class DatabaseCRUD {
      * @return long location id
      */
     private long saveLocationEntry(SQLiteDatabase db, LocationEntry location) {
-        long result = -1;
+        // Check if location exists
+        long result = doesLocationExist(db, location);
 
-        // Check if the location already exists in the database
-        String selectQuery = "SELECT  " +
-                LocationEntry.DB_ID + ',' +
-                LocationEntry.DB_BUILDING + ',' +
-                LocationEntry.DB_FLOOR +
-                " FROM " + LocationEntry.DB_TABLE;
-
-        Cursor cursor = db.rawQuery(selectQuery, null);
-        if (cursor.moveToFirst()) {
-            LocationEntry locationEntry = new LocationEntry();
-            locationEntry.setId( cursor.getInt(cursor.getColumnIndex(LocationEntry.DB_ID)) );
-            locationEntry.setBuilding( cursor.getString(cursor.getColumnIndex(LocationEntry.DB_BUILDING)) );
-            locationEntry.setFloor( cursor.getInt(cursor.getColumnIndex(LocationEntry.DB_FLOOR)) );
-            if( locationEntry.equals(location) ) {
-                result = locationEntry.getId();
-            }
-        }
-        cursor.close();
-
-        // If the device does not exist we create it
+        // If the location does not exist we create it
         if(result == -1) {
             // Create content values for SQL
             ContentValues values = new ContentValues();
             values.put(LocationEntry.DB_BUILDING, location.getBuilding());
             values.put(LocationEntry.DB_FLOOR, location.getFloor());
+            values.put(LocationEntry.DB_LEVEL, location.getLevel());
 
             // Insert values into the database
             result = db.insert(LocationEntry.DB_TABLE, null, values);
         }
+
+        return result;
+    }
+
+    /**
+     * Checks if location already exists in the database
+     *
+     * @param db to check in
+     * @param location to search in the database
+     * @return long with location id or -1
+     */
+    private long doesLocationExist(SQLiteDatabase db, LocationEntry location) {
+        // Default value for non-existent location
+        long result = -1;
+
+        // SQL columns to select
+        String[] columns = { LocationEntry.DB_ID };
+        // SQL WHERE clause for location data
+        String selection = LocationEntry.DB_BUILDING + " = ?"
+                + " AND " + LocationEntry.DB_FLOOR + " = ?"
+                + " AND " + LocationEntry.DB_LEVEL + " = ?";
+        // WHERE clause parameters
+        String[] selectionArgs = new String[] {location.getBuilding(),
+                String.valueOf(location.getFloor()),
+                location.getLevel()};
+        String limit = "1";  // We can only select one row
+
+        // Try to load location from database
+        Cursor cursor = db.query(LocationEntry.DB_TABLE, columns, selection, selectionArgs, null, null, null, limit);
+        if(cursor.getCount() > 0 && cursor.moveToNext()) {
+            // Try to load location id
+            result = cursor.getLong(cursor.getColumnIndex(LocationEntry.DB_ID));
+        }
+        cursor.close();   // Close the cursor because we don't need it anymore
 
         return result;
     }
@@ -206,18 +240,8 @@ public class DatabaseCRUD {
      * @return long device id
      */
     private long saveDeviceEntry(SQLiteDatabase db, DeviceEntry device) {
-        long result = -1;
-
-        // Check if the device already exists in the database
-        String selectQuery = "SELECT  " +
-                DeviceEntry.DB_DEVICE_ID +
-                " FROM " + DeviceEntry.DB_TABLE;
-
-        Cursor cursor = db.rawQuery(selectQuery, null);
-        if (cursor.moveToFirst()) {
-            result = cursor.getLong(cursor.getColumnIndex(DeviceEntry.DB_DEVICE_ID));
-        }
-        cursor.close();
+        // Check if device exists
+        long result = doesDeviceExist(db, device);
 
         // If the device does not exist we create it
         if(result == -1) {
@@ -231,14 +255,49 @@ public class DatabaseCRUD {
             values.put(DeviceEntry.DB_MANUFACTURER, device.getManufacturer());
             values.put(DeviceEntry.DB_DISPLAY, device.getDisplay());
             values.put(DeviceEntry.DB_HARDWARE, device.getHardware());
-            values.put(DeviceEntry.DB_SERUAL_NUMBER, device.getSerialNumber());
-            values.put(DeviceEntry.DB_DEVIDE_FINGERPRINT, device.getDeviceFingerprint());
+            values.put(DeviceEntry.DB_SERIAL_NUMBER, device.getSerialNumber());
+            values.put(DeviceEntry.DB_TELEPHONE, device.getTelephone());
+            values.put(DeviceEntry.DB_DEVICE_FINGERPRINT, device.getDeviceFingerprint());
             values.put(DeviceEntry.DB_OS, device.getOs());
             values.put(DeviceEntry.DB_API, device.getApi());
 
             // Insert values into the database
             result = db.insert(DeviceEntry.DB_TABLE, null, values);
         }
+
+        return result;
+    }
+
+    /**
+     * Checks if device already exists in the database
+     *
+     * @param db to check in
+     * @param device to find in the database
+     * @return long with device id or -1
+     */
+    private long doesDeviceExist(SQLiteDatabase db, DeviceEntry device) {
+        // Default value for non-existent device
+        long result = -1;
+
+        // SQL columns to select
+        String[] columns = { DeviceEntry.DB_ID };
+        // SQL WHERE clause for location data
+        String selection = DeviceEntry.DB_TELEPHONE + " = ?"
+                + " OR " + DeviceEntry.DB_SERIAL_NUMBER + " = ?"
+                + " OR " + DeviceEntry.DB_DEVICE_FINGERPRINT + " = ?";
+        // WHERE clause parameters
+        String[] selectionArgs = new String[] {device.getTelephone(),
+                device.getSerialNumber(),
+                device.getDeviceFingerprint()};
+        String limit = "1";  // We can only select one row
+
+        // Try to load device from database
+        Cursor cursor = db.query(DeviceEntry.DB_TABLE, columns, selection, selectionArgs, null, null, null, limit);
+        if(cursor.getCount() > 0 && cursor.moveToNext()) {
+            // Try to load device id
+            result = cursor.getLong(cursor.getColumnIndex(DeviceEntry.DB_ID));
+        }
+        cursor.close();   // Close the cursor because we don't need it anymore
 
         return result;
     }
@@ -358,42 +417,59 @@ public class DatabaseCRUD {
             }
     }
 
+    /**
+     * Loads all fingerprints from the database
+     *
+     * @param loadChildren load beacons, wireless, cellular and sensor data
+     * @return List of Fingerprints
+     */
     public List<Fingerprint> getAllFingerprints(boolean loadChildren) {
         List<Fingerprint> fingerprints = new ArrayList<>();
 
         //Open connection to read only
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
+        // Select specific columns
         String[] fingerprintColumns = {Fingerprint.DB_ID, Fingerprint.DB_FINGERPRINT_ID, Fingerprint.DB_FINGERPRINT_SCAN_ID, Fingerprint.DB_X,
                 Fingerprint.DB_Y, Fingerprint.DB_SCAN_LENGTH, Fingerprint.DB_SCAN_START, Fingerprint.DB_SCAN_END, Fingerprint.DB_LEVEL,
                 Fingerprint.DB_LOCATION_ID, Fingerprint.DB_DEVICE_ID };
 
+        // Initiate cursor and query data
         Cursor cursor = db.query(Fingerprint.DB_TABLE, fingerprintColumns, null, null, null, null, null);
         if (cursor.moveToFirst()) {
             do {
-                Fingerprint fingerprint = new Fingerprint();
+                Fingerprint fingerprint = new Fingerprint(context);
                 fingerprint.setDbId(cursor.getInt(cursor.getColumnIndex(Fingerprint.DB_ID)));
                 fingerprint.setId(UUID.fromString( cursor.getString(cursor.getColumnIndex(Fingerprint.DB_FINGERPRINT_ID))));
-                fingerprint.setScanID(UUID.fromString( cursor.getString(cursor.getColumnIndex(Fingerprint.DB_FINGERPRINT_SCAN_ID))));
                 fingerprint.setX(cursor.getInt(cursor.getColumnIndex(Fingerprint.DB_X)));
                 fingerprint.setY(cursor.getInt(cursor.getColumnIndex(Fingerprint.DB_Y)));
                 fingerprint.setScanLength(cursor.getLong(cursor.getColumnIndex(Fingerprint.DB_SCAN_LENGTH)));
                 fingerprint.setScanStart(cursor.getLong(cursor.getColumnIndex(Fingerprint.DB_SCAN_START)));
                 fingerprint.setScanEnd(cursor.getLong(cursor.getColumnIndex(Fingerprint.DB_SCAN_END)));
                 fingerprint.setLevel(cursor.getString(cursor.getColumnIndex(Fingerprint.DB_LEVEL)));
-                fingerprint.setLocation_id(cursor.getLong(cursor.getColumnIndex(Fingerprint.DB_LOCATION_ID)));
-                fingerprint.setDevice_id(cursor.getLong(cursor.getColumnIndex(Fingerprint.DB_DEVICE_ID)));
+                fingerprint.setLocationDbId(cursor.getLong(cursor.getColumnIndex(Fingerprint.DB_LOCATION_ID)));
+                fingerprint.setDeviceDbId(cursor.getLong(cursor.getColumnIndex(Fingerprint.DB_DEVICE_ID)));
+
+                // Set scan id (only for new fingerprints)
+                String scanID = cursor.getString(cursor.getColumnIndex(Fingerprint.DB_FINGERPRINT_SCAN_ID));
+                if(scanID != null) {
+                    fingerprint.setScanID(UUID.fromString( scanID ));
+                }
 
                 fingerprints.add(fingerprint);
             } while (cursor.moveToNext());
         }
         cursor.close();
 
+        // Location and device is always loaded
+        for (Fingerprint fingerprint : fingerprints) {
+            fingerprint.setDeviceEntry(getDeviceById(db, fingerprint.getDeviceDbId()));
+            fingerprint.setLocationEntry(getLocationById(db, fingerprint.getLocationDbId()));
+        }
+
         // Loads all the sub-entries only if we want it to
         if(loadChildren) {
             for (Fingerprint fingerprint : fingerprints) {
-                fingerprint.setDeviceEntry(getDeviceById(db, fingerprint.getDevice_id()));
-                fingerprint.setLocationEntry(getLocationById(db, fingerprint.getLocation_id()));
                 fingerprint.setBeaconEntries(getBeaconsByFingerprintId(db, fingerprint.getDbId()));
                 fingerprint.setWirelessEntries(getWirelessByFingerprintId(db, fingerprint.getDbId()));
                 fingerprint.setCellularEntries(getCellularByFingerprintId(db, fingerprint.getDbId()));
@@ -406,14 +482,25 @@ public class DatabaseCRUD {
         return fingerprints;
     }
 
-    public DeviceEntry getDeviceById(SQLiteDatabase db, long deviceId) {
+    /**
+     * Loads specific device by id
+     *
+     * @param db database to load data from
+     * @param deviceId load device with this id
+     * @return DeviceEntry of specific device
+     */
+    private DeviceEntry getDeviceById(SQLiteDatabase db, long deviceId) {
+        // Selection columns
         String[] columns = {DeviceEntry.DB_ID, DeviceEntry.DB_TYPE, DeviceEntry.DB_DEVICE_ID, DeviceEntry.DB_DEVICE_NAME,
                 DeviceEntry.DB_MODEL, DeviceEntry.DB_BRAND, DeviceEntry.DB_MANUFACTURER, DeviceEntry.DB_DISPLAY,
-                DeviceEntry.DB_HARDWARE, DeviceEntry.DB_SERUAL_NUMBER, DeviceEntry.DB_DEVIDE_FINGERPRINT, DeviceEntry.DB_OS, DeviceEntry.DB_API };
+                DeviceEntry.DB_HARDWARE, DeviceEntry.DB_SERIAL_NUMBER, DeviceEntry.DB_TELEPHONE, DeviceEntry.DB_DEVICE_FINGERPRINT, DeviceEntry.DB_OS, DeviceEntry.DB_API };
+        // Where clause with parameters
         String selection = DeviceEntry.DB_ID + " = ?";
         String[] selectionArgs = new String[] {String.valueOf( deviceId )};
+        // Limit to only one row
         String limit = "1";
 
+        // Initiate and run database query
         DeviceEntry deviceEntry = new DeviceEntry();
         Cursor cursor = db.query(DeviceEntry.DB_TABLE, columns, selection, selectionArgs, null, null, limit);
         if (cursor.moveToFirst()) {
@@ -426,8 +513,9 @@ public class DatabaseCRUD {
             deviceEntry.setManufacturer(cursor.getString(cursor.getColumnIndex(DeviceEntry.DB_MANUFACTURER)));
             deviceEntry.setDisplay(cursor.getString(cursor.getColumnIndex(DeviceEntry.DB_DISPLAY)));
             deviceEntry.setHardware(cursor.getString(cursor.getColumnIndex(DeviceEntry.DB_HARDWARE)));
-            deviceEntry.setSerialNumber(cursor.getString(cursor.getColumnIndex(DeviceEntry.DB_SERUAL_NUMBER)));
-            deviceEntry.setDeviceFingerprint(cursor.getString(cursor.getColumnIndex(DeviceEntry.DB_DEVIDE_FINGERPRINT)));
+            deviceEntry.setSerialNumber(cursor.getString(cursor.getColumnIndex(DeviceEntry.DB_SERIAL_NUMBER)));
+            deviceEntry.setTelephone(cursor.getString(cursor.getColumnIndex(DeviceEntry.DB_TELEPHONE)));
+            deviceEntry.setDeviceFingerprint(cursor.getString(cursor.getColumnIndex(DeviceEntry.DB_DEVICE_FINGERPRINT)));
             deviceEntry.setOs(cursor.getString(cursor.getColumnIndex(DeviceEntry.DB_OS)));
             deviceEntry.setApi(cursor.getInt(cursor.getColumnIndex(DeviceEntry.DB_API)));
         }
@@ -436,12 +524,23 @@ public class DatabaseCRUD {
         return deviceEntry;
     }
 
-    public LocationEntry getLocationById(SQLiteDatabase db, long locationId) {
+    /**
+     * Get location by id from database
+     *
+     * @param db to load data from
+     * @param locationId find this location id
+     * @return LocationEntry of specific location
+     */
+    private LocationEntry getLocationById(SQLiteDatabase db, long locationId) {
+        // Selection columns
         String[] columns = {LocationEntry.DB_ID, LocationEntry.DB_BUILDING, LocationEntry.DB_FLOOR};
+        // Where clause with parameters
         String selection = LocationEntry.DB_ID + " = ?";
         String[] selectionArgs = new String[] {String.valueOf( locationId )};
+        // Limit to only one row
         String limit = "1";
 
+        // Initiate and run database query
         LocationEntry locationEntry = new LocationEntry();
         Cursor cursor = db.query(LocationEntry.DB_TABLE, columns, selection, selectionArgs, null, null, limit);
         if (cursor.moveToFirst()) {
@@ -454,12 +553,22 @@ public class DatabaseCRUD {
         return locationEntry;
     }
 
-    public List<BeaconEntry> getBeaconsByFingerprintId(SQLiteDatabase db, int fingerprintId) {
+    /**
+     * Load all BeaconEntries by fingerprint id
+     *
+     * @param db to load data from
+     * @param fingerprintId to find in the database
+     * @return List of BeaconEntries
+     */
+    private List<BeaconEntry> getBeaconsByFingerprintId(SQLiteDatabase db, int fingerprintId) {
+        // Selection columns
         String[] columns = {BeaconEntry.DB_ID, BeaconEntry.DB_FINGERPRINT_DB_ID, BeaconEntry.DB_BSSID, BeaconEntry.DB_DISTANCE,
                 BeaconEntry.DB_RSSI, BeaconEntry.DB_TIMESTAMP, BeaconEntry.DB_SCAN_TIME, BeaconEntry.DB_SCAN_DIFFERENCE};
+        // Where clause with parameters
         String selection = BeaconEntry.DB_FINGERPRINT_DB_ID + " = ?";
         String[] selectionArgs = new String[] {String.valueOf( fingerprintId )};
 
+        // Initiate and run database query
         List<BeaconEntry> beacons = new ArrayList<>();
         Cursor cursor = db.query(BeaconEntry.DB_TABLE, columns, selection, selectionArgs, null, null, null);
         if (cursor.moveToFirst()) {
@@ -483,13 +592,23 @@ public class DatabaseCRUD {
         return beacons;
     }
 
-    public List<WirelessEntry> getWirelessByFingerprintId(SQLiteDatabase db, int fingerprintId) {
+    /**
+     * Load all WirelessEntries for specific Fingerprint
+     *
+     * @param db to load data from
+     * @param fingerprintId to find in the database
+     * @return List of WirelessEntries
+     */
+    private List<WirelessEntry> getWirelessByFingerprintId(SQLiteDatabase db, int fingerprintId) {
+        // Selection columns
         String[] columns = {WirelessEntry.DB_ID, WirelessEntry.DB_FINGERPRINT_DB_ID, WirelessEntry.DB_SSID, WirelessEntry.DB_BSSID, WirelessEntry.DB_DISTANCE,
                 WirelessEntry.DB_RSSI, WirelessEntry.DB_FREQUENCY, WirelessEntry.DB_CHANNEL, WirelessEntry.DB_TIMESTAMP,
                 WirelessEntry.DB_SCAN_TIME, WirelessEntry.DB_SCAN_DIFFERENCE};
+        // Where clause with parameters
         String selection = WirelessEntry.DB_FINGERPRINT_DB_ID + " = ?";
         String[] selectionArgs = new String[] {String.valueOf( fingerprintId )};
 
+        // Initiate and run database query
         List<WirelessEntry> wireless = new ArrayList<>();
         Cursor cursor = db.query(WirelessEntry.DB_TABLE, columns, selection, selectionArgs, null, null, null);
         if (cursor.moveToFirst()) {
@@ -516,12 +635,22 @@ public class DatabaseCRUD {
         return wireless;
     }
 
-    public List<CellularEntry> getCellularByFingerprintId(SQLiteDatabase db, int fingerprintId) {
+    /**
+     * Get CellularEntries for specific Fingerprint
+     *
+     * @param db to load data from
+     * @param fingerprintId to find in the database
+     * @return List of CellularEntries
+     */
+    private List<CellularEntry> getCellularByFingerprintId(SQLiteDatabase db, int fingerprintId) {
+        // Selection columns
         String[] columns = {CellularEntry.DB_ID, CellularEntry.DB_FINGERPRINT_DB_ID, CellularEntry.DB_BSIC, CellularEntry.DB_CID, CellularEntry.DB_LAC,
                 CellularEntry.DB_RSSI, CellularEntry.DB_DISTANCE, CellularEntry.DB_TIMESTAMP, CellularEntry.DB_SCAN_TIME, CellularEntry.DB_SCAN_DIFFERENCE};
+        // Where clause with parameters
         String selection = CellularEntry.DB_FINGERPRINT_DB_ID + " = ?";
         String[] selectionArgs = new String[] {String.valueOf( fingerprintId )};
 
+        // Initiate and run database query
         List<CellularEntry> cellular = new ArrayList<>();
         Cursor cursor = db.query(CellularEntry.DB_TABLE, columns, selection, selectionArgs, null, null, null);
         if (cursor.moveToFirst()) {
@@ -547,12 +676,22 @@ public class DatabaseCRUD {
         return cellular;
     }
 
-    public List<SensorEntry> getSensorByFingerprintId(SQLiteDatabase db, int fingerprintId) {
+    /**
+     * Get SensorEntries for specific Fingerprint
+     *
+     * @param db to load data from
+     * @param fingerprintId to find in the database
+     * @return List of SensorEntries
+     */
+    private List<SensorEntry> getSensorByFingerprintId(SQLiteDatabase db, int fingerprintId) {
+        // Selection columns
         String[] columns = {SensorEntry.DB_ID, SensorEntry.DB_FINGERPRINT_DB_ID, SensorEntry.DB_TYPE, SensorEntry.DB_TYPE_STRING, SensorEntry.DB_X,
                 SensorEntry.DB_Y, SensorEntry.DB_Z, SensorEntry.DB_TIMESTAMP, SensorEntry.DB_SCAN_TIME, SensorEntry.DB_SCAN_DIFFERENCE};
+        // Where clause with parameters
         String selection = SensorEntry.DB_FINGERPRINT_DB_ID + " = ?";
         String[] selectionArgs = new String[] {String.valueOf( fingerprintId )};
 
+        // Initiate and run database query
         List<SensorEntry> sensor = new ArrayList<>();
         Cursor cursor = db.query(SensorEntry.DB_TABLE, columns, selection, selectionArgs, null, null, null);
         if (cursor.moveToFirst()) {
@@ -576,6 +715,51 @@ public class DatabaseCRUD {
         cursor.close();
 
         return sensor;
+    }
+
+    /**
+     * Get MAX value of scanStart (timestamp) of all fingerprints.
+     *
+     * @return Long timestamp
+     *\/
+    public Long getLastFingerprintTimestamp() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase(); // Init database connection
+
+        // Load MAX timestamp
+        final SQLiteStatement timestampStatement = db
+                .compileStatement("SELECT MAX("+Fingerprint.DB_SCAN_START+") FROM "+Fingerprint.DB_TABLE);
+        Long result = timestampStatement.simpleQueryForLong();
+
+        // Just to be sure we close the database connection
+        if(db.isOpen()) {
+            db.close();
+        }
+
+        return result;
+    }*/
+
+    /**
+     * Get count of not uploaded fingerprints.
+     *
+     * @param scanStart max timestamp on the server
+     * @param deviceId fingerprints only this device has found
+     * @return Long count of not uploaded fingerprints
+     */
+    public Long getUploadCount(Long scanStart, String deviceId) {
+        // Build query parameters
+        String rawQuery = "SELECT COUNT(*) FROM " + Fingerprint.DB_TABLE + " f INNER JOIN " + DeviceEntry.DB_TABLE + " d"
+                + " ON f." + Fingerprint.DB_DEVICE_ID + " = d." + DeviceEntry.DB_ID
+                + " WHERE f." + Fingerprint.DB_SCAN_START + " > ? AND d." + DeviceEntry.DB_TELEPHONE + " = ?";
+        String[] parameters = { String.valueOf(scanStart), deviceId };
+
+        // Run query to figure out upload count
+        SQLiteDatabase db = dbHelper.getReadableDatabase();                     // Init database connection
+        final SQLiteStatement countStatement = db.compileStatement(rawQuery);   // Init SQL statement
+        countStatement.bindAllArgsAsStrings(parameters);                        // Bind statement parameters
+        Long uploadCount = countStatement.simpleQueryForLong();                 // Run statement
+        db.close();                                                             // Close database connection
+
+        return uploadCount;
     }
 
     /**

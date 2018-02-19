@@ -1,19 +1,23 @@
 package cz.uhk.fim.kikm.wearnavigation.model.database;
 
+import android.Manifest;
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.v4.app.ActivityCompat;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
-@JsonIgnoreProperties(value = { "board", "bootloader", "host", "product", "tags", "telephone", "user" })
+@JsonIgnoreProperties(value = {"board", "bootloader", "host", "product", "tags", "telephone", "user"})
 public class DeviceEntry implements Parcelable {
 
     // Database labels for database
@@ -27,8 +31,9 @@ public class DeviceEntry implements Parcelable {
     public final static String DB_MANUFACTURER = "manufacturer";
     public final static String DB_DISPLAY = "display";
     public final static String DB_HARDWARE = "hardware";
-    public final static String DB_SERUAL_NUMBER = "serialNumber";
-    public final static String DB_DEVIDE_FINGERPRINT = "deviceFingerprint";
+    public final static String DB_SERIAL_NUMBER = "serialNumber";
+    public final static String DB_TELEPHONE = "telephone";
+    public final static String DB_DEVICE_FINGERPRINT = "deviceFingerprint";
     public final static String DB_OS = "os";
     public final static String DB_API = "api";
 
@@ -36,8 +41,10 @@ public class DeviceEntry implements Parcelable {
     @Expose(serialize = false)
     private int dbId;                  // UUID of this device
     private String type;                // Device type (phone, wear, TV ...)
+    @SerializedName("id")
     @JsonProperty("id")
     private String deviceId;            // Either a changelist number, or a label like "M4-rc20".
+    @SerializedName("device")
     @JsonProperty("device")
     private String deviceName;          // The name of the industrial design.
     private String model;               // The end-user-visible name for the end product.
@@ -45,15 +52,19 @@ public class DeviceEntry implements Parcelable {
     private String manufacturer;        // The manufacturer of the product/hardware.
     private String display;             // A build ID string meant for displaying to the user
     private String hardware;            // The name of the hardware (from the kernel command line or /proc).
+    @SerializedName("serial")
     @JsonProperty("serial")
     private String serialNumber;        // Gets the hardware serial, if available.
+    private String telephone;
+    @SerializedName("fingerprint")
     @JsonProperty("fingerprint")
     private String deviceFingerprint;   // A string that uniquely identifies this build.
     private String os;                  // CODENAME-RELEASE = The current development codename and the user-visible version string.
     private int api;                    // The user-visible SDK version of the framework; its possible values are defined in Build.VERSION_CODES.
 
     // Default constructor used for Gson
-    public DeviceEntry() {}
+    public DeviceEntry() {
+    }
 
     @Override
     public int describeContents() {
@@ -72,6 +83,7 @@ public class DeviceEntry implements Parcelable {
         dest.writeString(display);
         dest.writeString(hardware);
         dest.writeString(serialNumber);
+        dest.writeString(telephone);
         dest.writeString(deviceFingerprint);
         dest.writeString(os);
         dest.writeInt(api);
@@ -88,6 +100,7 @@ public class DeviceEntry implements Parcelable {
         display = in.readString();
         hardware = in.readString();
         serialNumber = in.readString();
+        telephone =in.readString();
         deviceFingerprint = in.readString();
         os = in.readString();
         api = in.readInt();
@@ -106,12 +119,12 @@ public class DeviceEntry implements Parcelable {
     };
 
     // Creates instance of this class with current device information
-    public static DeviceEntry createInstance() {
-        return new DeviceEntry(true);
+    public static DeviceEntry createInstance(Context context) {
+        return new DeviceEntry(context);
     }
 
     // Constructor that creates class with data from this device
-    private DeviceEntry(boolean create) {
+    private DeviceEntry(Context context) {
         this.type = "phone";
         this.deviceId = Build.ID;
         this.deviceName = Build.DEVICE;
@@ -128,6 +141,10 @@ public class DeviceEntry implements Parcelable {
             } catch (SecurityException e) {
                 Log.e("DeviceEntry", "Could not get device serialNumber", e);
             }
+        }
+        if (context != null
+                && ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+            this.telephone = ((TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE)).getDeviceId();
         }
         this.deviceFingerprint = Build.FINGERPRINT;
         this.os = Build.VERSION.CODENAME + "-" + Build.VERSION.RELEASE;
@@ -214,6 +231,14 @@ public class DeviceEntry implements Parcelable {
         this.serialNumber = serialNumber;
     }
 
+    public String getTelephone() {
+        return telephone;
+    }
+
+    public void setTelephone(String telephone) {
+        this.telephone = telephone;
+    }
+
     public String getDeviceFingerprint() {
         return deviceFingerprint;
     }
@@ -257,6 +282,7 @@ public class DeviceEntry implements Parcelable {
                 Objects.equals(this.display, deviceEntry.display) &&
                 Objects.equals(this.hardware, deviceEntry.hardware) &&
                 Objects.equals(this.serialNumber, deviceEntry.serialNumber) &&
+                Objects.equals(this.telephone, deviceEntry.telephone) &&
                 Objects.equals(this.deviceFingerprint, deviceEntry.deviceFingerprint) &&
                 Objects.equals(this.os, deviceEntry.os) &&
                 Objects.equals(this.api, deviceEntry.api);
@@ -264,13 +290,13 @@ public class DeviceEntry implements Parcelable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, deviceId, deviceName, model, brand, manufacturer, display, hardware, serialNumber, deviceFingerprint, os, api );
+        return Objects.hash(type, deviceId, deviceName, model, brand, manufacturer, display, hardware, serialNumber, telephone, deviceFingerprint, os, api );
     }
 
 
     @Override
     public String toString() {
-        return "class CellularEntry {\n" +
+        return "class DeviceEntry {\n" +
                 "    dbId: " + toIndentedString(dbId) + "\n" +
                 "    type: " + toIndentedString(type) + "\n" +
                 "    deviceId: " + toIndentedString(deviceId) + "\n" +
@@ -281,6 +307,7 @@ public class DeviceEntry implements Parcelable {
                 "    display: " + toIndentedString(display) + "\n" +
                 "    hardware: " + toIndentedString(hardware) + "\n" +
                 "    serialNumber: " + toIndentedString(serialNumber) + "\n" +
+                "    telephone: " + toIndentedString(telephone) + "\n" +
                 "    deviceFingerprint: " + toIndentedString(deviceFingerprint) + "\n" +
                 "    os: " + toIndentedString(os) + "\n" +
                 "    api: " + toIndentedString(api) + "\n" +

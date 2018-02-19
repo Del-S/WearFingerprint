@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <uses-feature
         android:name="android.hardware.bluetooth_le"
@@ -23,7 +24,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar">
-
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
@@ -37,13 +37,18 @@
         </activity>
         <activity android:name=".activities.devices.ShowDevicesActivity" />
         <activity android:name=".activities.scan.ScanActivity" />
+        <activity android:name=".activities.configuration.ConfigurationActivity" />
 
-        <service
-            android:name=".utils.wearCommunication.DataLayerListenerService" >
+        <service android:name=".utils.wearCommunication.DataLayerListenerService">
             <intent-filter>
+
                 <!-- listeners receive events that match the action and data filters -->
                 <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
-                <data android:scheme="wear" android:host="*" android:pathPrefix="/scan-complete"/>
+
+                <data
+                    android:host="*"
+                    android:pathPrefix="/scan-complete"
+                    android:scheme="wear" />
             </intent-filter>
         </service>
         <service
@@ -51,6 +56,9 @@
             android:exported="false" />
         <service
             android:name=".model.tasks.FingerprintScanner"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+        <service
+            android:name=".model.api.SynchronizationJob"
             android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 

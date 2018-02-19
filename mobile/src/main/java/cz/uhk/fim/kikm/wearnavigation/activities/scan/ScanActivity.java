@@ -19,7 +19,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.fasterxml.jackson.databind.ser.VirtualBeanPropertyWriter;
 import com.google.gson.Gson;
 import com.qozix.tileview.TileView;
 import com.qozix.tileview.geom.CoordinateTranslater;
@@ -36,7 +35,6 @@ import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseDataInterfa
 import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseDataLoader;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.ScanProgress;
-import cz.uhk.fim.kikm.wearnavigation.utils.wearCommunication.WearDataSender;
 
 /**
  * Displays map with fingerprints and enables different actions with them.
@@ -135,6 +133,7 @@ public class ScanActivity extends BaseActivity implements
      */
     private void displayFingerprints() {
         for (Fingerprint fingerprint : mFingerprints) {
+
             // Initiates image view
             ImageView iw = new ImageView(this);
             int[] fingerprintInfo = { fingerprint.getX(), fingerprint.getY() };
@@ -314,7 +313,7 @@ public class ScanActivity extends BaseActivity implements
      */
     private Fingerprint buildFingerprint(int posX, int posY) {
         // Create fingerprint for scanning
-        Fingerprint fingerprint = new Fingerprint();
+        Fingerprint fingerprint = new Fingerprint(this);
         // TODO: have a setter for building and floor
         fingerprint.setLocationEntry(new LocationEntry("J3NP"));
         // TODO: Have a parameter for that

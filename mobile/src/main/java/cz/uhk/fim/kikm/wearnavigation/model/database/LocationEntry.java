@@ -18,18 +18,21 @@ public class LocationEntry implements Parcelable {
     public final static String DB_ID = "id";
     public final static String DB_BUILDING = "building";
     public final static String DB_FLOOR = "floor";
+    public final static String DB_LEVEL = "level";
 
     // Variables of this class
     @Expose(serialize = false)
     private int id;                 // Database id (its inner id and it is not exported)
     private String building;        // Name of the building
     private int floor;              // Floor number inside the building
+    private String level;           // Level identifier to distinguish floors
 
     // Default constructor used for Gson
     public LocationEntry() {}
 
     // Default constructor used for Gson
     public LocationEntry(String location) {
+        level = location;
         switch(location) {
             case "J1NP":
                 this.building = "UHK";
@@ -60,12 +63,14 @@ public class LocationEntry implements Parcelable {
         dest.writeInt(id);
         dest.writeString(building);
         dest.writeInt(floor);
+        dest.writeString(level);
     }
 
     private LocationEntry(Parcel in) {
         id = in.readInt();
         building = in.readString();
         floor = in.readInt();
+        level = in.readString();
     }
 
     public static final Creator<LocationEntry> CREATOR = new Creator<LocationEntry>() {
@@ -104,6 +109,14 @@ public class LocationEntry implements Parcelable {
         this.floor = floor;
     }
 
+    public String getLevel() {
+        return level;
+    }
+
+    public void setLevel(String level) {
+        this.level = level;
+    }
+
     @Override
     public boolean equals(java.lang.Object o) {
         if (this == o) {
@@ -115,12 +128,13 @@ public class LocationEntry implements Parcelable {
 
         LocationEntry locationEntry = (LocationEntry) o;
         return Objects.equals(this.building, locationEntry.building) &&
-               Objects.equals(this.floor, locationEntry.floor);
+               Objects.equals(this.floor, locationEntry.floor) &&
+               Objects.equals(this.level, locationEntry.level);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(building, floor);
+        return Objects.hash(building, floor, level);
     }
 
 
@@ -130,6 +144,7 @@ public class LocationEntry implements Parcelable {
                 "    dbId: " + toIndentedString(id) + "\n" +
                 "    building: " + toIndentedString(building) + "\n" +
                 "    floor: " + toIndentedString(floor) + "\n" +
+                "    level: " + toIndentedString(level) + "\n" +
                 "}";
     }
 

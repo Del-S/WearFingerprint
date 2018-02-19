@@ -1,9 +1,15 @@
 package cz.uhk.fim.kikm.wearnavigation;
 
+import android.Manifest;
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.ActivityCompat;
+import android.telephony.TelephonyManager;
 
+import cz.uhk.fim.kikm.wearnavigation.model.api.FingerprintApi;
 import cz.uhk.fim.kikm.wearnavigation.utils.bluetoothConnection.BluetoothConnectionHandler;
 import cz.uhk.fim.kikm.wearnavigation.utils.bluetoothConnection.BluetoothConnectionInterface;
 
@@ -18,6 +24,14 @@ public class MainActivity extends BaseActivity implements BluetoothConnectionInt
 
         //ApiConnection apiConnection = new ApiConnection(this);
         //apiConnection.execute();
+
+        String deviceID = "123456789876543";
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+            deviceID = ((TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE)).getDeviceId();
+        }
+
+        //FingerprintApi apiConnection = new FingerprintApi(this);
+        //apiConnection.getFingerprints(deviceID, null, 100, null, null);
     }
 
     @Override

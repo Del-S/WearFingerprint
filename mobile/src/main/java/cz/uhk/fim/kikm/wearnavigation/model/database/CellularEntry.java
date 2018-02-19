@@ -17,6 +17,7 @@ import android.telephony.gsm.GsmCellLocation;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,12 +49,14 @@ public class CellularEntry implements Parcelable {
     private int rssi;           // Signal strength of the access point
     private float distance;     // Distance between access point and device
     private long timestamp;      // Device was found at this timestamp
+    @SerializedName("time")
     @JsonProperty("time")
     private long scanTime;       // Device was found at this time during the scan (seconds)
     /**
      * Difference between scanTime and last scanDifference (device based by bssid).
      * Informs about the time difference between this entry and previous one.
      */
+    @SerializedName("difference")
     @JsonProperty("difference")
     private long scanDifference;
 

@@ -14,7 +14,7 @@ import cz.uhk.fim.kikm.wearnavigation.model.database.WirelessEntry;
 
 class DatabaseHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 6;
     private static final String DATABASE_NAME = "fingerprint.db";
 
     DatabaseHelper(Context context) {
@@ -43,7 +43,8 @@ class DatabaseHelper extends SQLiteOpenHelper {
         String CREATE_TABLE_LOCATION = "CREATE TABLE IF NOT EXISTS " + LocationEntry.DB_TABLE + '('
                 + LocationEntry.DB_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + LocationEntry.DB_BUILDING + " TEXT, "
-                + LocationEntry.DB_FLOOR + " INTEGER )";
+                + LocationEntry.DB_FLOOR + " INTEGER, "
+                + LocationEntry.DB_LEVEL + " TEXT )";
         db.execSQL(CREATE_TABLE_LOCATION);
 
         // Create devices table
@@ -57,8 +58,9 @@ class DatabaseHelper extends SQLiteOpenHelper {
                 + DeviceEntry.DB_MANUFACTURER + " TEXT, "
                 + DeviceEntry.DB_DISPLAY + " TEXT, "
                 + DeviceEntry.DB_HARDWARE + " TEXT, "
-                + DeviceEntry.DB_SERUAL_NUMBER + " TEXT, "
-                + DeviceEntry.DB_DEVIDE_FINGERPRINT + " TEXT, "
+                + DeviceEntry.DB_SERIAL_NUMBER + " TEXT, "
+                + DeviceEntry.DB_TELEPHONE + " TEXT, "
+                + DeviceEntry.DB_DEVICE_FINGERPRINT + " TEXT, "
                 + DeviceEntry.DB_OS + " TEXT, "
                 + DeviceEntry.DB_API + " INTEGER )";
         db.execSQL(CREATE_TABLE_DEVICE);

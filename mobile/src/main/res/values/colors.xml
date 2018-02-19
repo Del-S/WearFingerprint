@@ -20,6 +20,7 @@
     <color name="colorTextGray">#80000000</color>
     <color name="colorTextAccent">#bef67a</color>
     <color name="colorTextWhite">@color/colorBackground</color>
+    <color name="colorTextPrimaryDark">@color/colorPrimaryDark</color>
 
     <!-- Menu -->
     <color name="colorMenuBackground">#4a5659</color>

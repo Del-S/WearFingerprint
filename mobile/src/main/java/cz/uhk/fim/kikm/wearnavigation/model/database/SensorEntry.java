@@ -212,7 +212,7 @@ public class SensorEntry implements Parcelable {
 
     @Override
     public String toString() {
-        return "class CellularEntry {\n" +
+        return "class SensorEntry {\n" +
                 "    dbId: " + toIndentedString(id) + "\n" +
                 "    type: " + toIndentedString(type) + "\n" +
                 "    x: " + toIndentedString(x) + "\n" +
