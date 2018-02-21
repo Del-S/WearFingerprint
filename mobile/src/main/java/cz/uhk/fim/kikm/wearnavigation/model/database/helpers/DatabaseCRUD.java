@@ -718,6 +718,75 @@ public class DatabaseCRUD {
     }
 
     /**
+     * Load fingerprints to upload from this device or paired wear device only to
+     * the beacon server.
+     *
+     * @param scanStart limit fingerprint by start timestamp
+     * @param deviceId find fingerprint only from this device
+     * @param limit for the data to not overflow the server
+     * @param offset move the within the specified limit
+     * @return List of Fingerprints
+     */
+    public List<Fingerprint> getFingerprintsForUpload(Long scanStart, String deviceId, int limit, int offset) {
+        List<Fingerprint> fingerprints = new ArrayList<>();
+
+        //Open connection to read only
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        // Select specific columns
+        String rawQuery = "SELECT * FROM " + Fingerprint.DB_TABLE + " f INNER JOIN " + DeviceEntry.DB_TABLE + " d"
+                + " ON f." + Fingerprint.DB_DEVICE_ID + " = d." + DeviceEntry.DB_ID
+                + " WHERE f." + Fingerprint.DB_SCAN_START + " > ? AND d." + DeviceEntry.DB_TELEPHONE + " = ?"
+                + " LIMIT ? OFFSET ?";
+        String[] parameters = { String.valueOf(scanStart),
+                deviceId,
+                String.valueOf(limit),
+                String.valueOf(offset)
+        };
+
+        // Initiate cursor and query data
+        Cursor cursor = db.rawQuery(rawQuery, parameters);
+        if (cursor.moveToFirst()) {
+            do {
+                Fingerprint fingerprint = new Fingerprint(context);
+                fingerprint.setDbId(cursor.getInt(cursor.getColumnIndex(Fingerprint.DB_ID)));
+                fingerprint.setId(UUID.fromString( cursor.getString(cursor.getColumnIndex(Fingerprint.DB_FINGERPRINT_ID))));
+                fingerprint.setX(cursor.getInt(cursor.getColumnIndex(Fingerprint.DB_X)));
+                fingerprint.setY(cursor.getInt(cursor.getColumnIndex(Fingerprint.DB_Y)));
+                fingerprint.setScanLength(cursor.getLong(cursor.getColumnIndex(Fingerprint.DB_SCAN_LENGTH)));
+                fingerprint.setScanStart(cursor.getLong(cursor.getColumnIndex(Fingerprint.DB_SCAN_START)));
+                fingerprint.setScanEnd(cursor.getLong(cursor.getColumnIndex(Fingerprint.DB_SCAN_END)));
+                fingerprint.setLevel(cursor.getString(cursor.getColumnIndex(Fingerprint.DB_LEVEL)));
+                fingerprint.setLocationDbId(cursor.getLong(cursor.getColumnIndex(Fingerprint.DB_LOCATION_ID)));
+                fingerprint.setDeviceDbId(cursor.getLong(cursor.getColumnIndex(Fingerprint.DB_DEVICE_ID)));
+
+                // Set scan id (only for new fingerprints)
+                String scanID = cursor.getString(cursor.getColumnIndex(Fingerprint.DB_FINGERPRINT_SCAN_ID));
+                if(scanID != null) {
+                    fingerprint.setScanID(UUID.fromString( scanID ));
+                }
+
+                fingerprints.add(fingerprint);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        // Loads all the sub-entries
+        for (Fingerprint fingerprint : fingerprints) {
+            fingerprint.setDeviceEntry(getDeviceById(db, fingerprint.getDeviceDbId()));
+            fingerprint.setLocationEntry(getLocationById(db, fingerprint.getLocationDbId()));
+            fingerprint.setBeaconEntries(getBeaconsByFingerprintId(db, fingerprint.getDbId()));
+            fingerprint.setWirelessEntries(getWirelessByFingerprintId(db, fingerprint.getDbId()));
+            fingerprint.setCellularEntries(getCellularByFingerprintId(db, fingerprint.getDbId()));
+            fingerprint.setSensorEntries(getSensorByFingerprintId(db, fingerprint.getDbId()));
+        }
+
+        db.close();
+
+        return fingerprints;
+    }
+
+    /**
      * Get MAX value of scanStart (timestamp) of all fingerprints.
      *
      * @return Long timestamp

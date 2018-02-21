@@ -48,6 +48,10 @@ public class ConfigurationActivity extends BaseActivity implements FingerprintRe
         mDatabase = new DatabaseCRUD(this);
 
         jobScheduler = (JobScheduler) getSystemService( Context.JOB_SCHEDULER_SERVICE );
+        // Todo: remove this it is a test
+        if(jobScheduler != null) {
+            jobScheduler.cancel(SynchronizationJob.JOB_ID);
+        }
 
         // Initiate views
         mNewDownload = findViewById(R.id.as_new_download);

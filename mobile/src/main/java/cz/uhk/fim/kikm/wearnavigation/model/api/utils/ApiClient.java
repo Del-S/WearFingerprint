@@ -12,6 +12,8 @@ import cz.uhk.fim.kikm.wearnavigation.model.api.auth.OAuth;
 import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
 import okio.BufferedSink;
 import okio.Okio;
+
+import org.apache.commons.io.IOUtils;
 import org.threeten.bp.LocalDate;
 import org.threeten.bp.OffsetDateTime;
 import org.threeten.bp.format.DateTimeFormatter;
@@ -24,6 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.SecureRandom;
@@ -678,7 +681,8 @@ public class ApiClient {
         String respBody;
         try {
             if (response.body() != null)
-                respBody = response.body().string();
+                respBody = IOUtils.toString(response.body().byteStream(), Charset.defaultCharset());
+                //response.body().byteStream();
             else
                 respBody = null;
         } catch (IOException e) {

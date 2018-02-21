@@ -87,7 +87,6 @@ public class BeaconEntry implements Parcelable {
         }
     };
 
-    // Default constructor used for Gson
     public BeaconEntry(String bssid) {
         this.bssid = bssid;
     }

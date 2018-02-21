@@ -45,10 +45,6 @@ public class Fingerprint implements Parcelable {
     @SerializedName("finish")
     @JsonProperty("finish")
     private long  scanEnd;                          // Timestamps of scan end
-    /**
-     * @Deprecated
-     * Use LocationEntry instead
-     */
     private String level;
     private long locationDbId;
     private LocationEntry locationEntry;            // Location of fingerprint to enable multiple buildings and floors
@@ -328,7 +324,6 @@ public class Fingerprint implements Parcelable {
                 Objects.equals(this.wirelessEntries, fingerprint.wirelessEntries) &&
                 Objects.equals(this.cellularEntries, fingerprint.cellularEntries) &&
                 Objects.equals(this.sensorEntries, fingerprint.sensorEntries);
-
     }
 
     @Override

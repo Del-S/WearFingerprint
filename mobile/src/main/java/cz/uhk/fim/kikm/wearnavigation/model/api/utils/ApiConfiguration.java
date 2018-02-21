@@ -11,8 +11,9 @@ public class ApiConfiguration {
      * @return Default API client
      */
     public static ApiClient getDefaultApiClient() {
-        defaultApiClient.setConnectTimeout(10_000);
+        defaultApiClient.setConnectTimeout(60_000);
         defaultApiClient.setReadTimeout(60_000);
+        defaultApiClient.setWriteTimeout(60_000);
         return defaultApiClient;
     }
 

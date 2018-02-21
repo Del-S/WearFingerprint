@@ -1,6 +1,7 @@
 package cz.uhk.fim.kikm.wearnavigation.utils.wearCommunication;
 
 import android.os.Handler;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.wearable.DataEvent;
@@ -10,6 +11,8 @@ import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.WearableListenerService;
 
+import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
+import cz.uhk.fim.kikm.wearnavigation.model.database.DeviceEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.Fingerprint;
 import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseCRUD;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
@@ -29,7 +32,8 @@ public class DataLayerListenerService extends WearableListenerService {
     public static final String SCAN_STATUS_KEY = "scanStatus";                      // Data key to check the status of wear scan
     public static final String SCAN_DATA = "scanData";                              // Data key to send/get fingerprint data
 
-    private DatabaseCRUD mDatabase;     // Database to save fingerprint to
+    private DatabaseCRUD mDatabase;  // Database to save fingerprint to
+    private DeviceEntry mDevice;     // DeviceEntry instance to get telephone
 
     @Override
     public void onCreate() {
@@ -37,6 +41,7 @@ public class DataLayerListenerService extends WearableListenerService {
 
         // Initiate database connection
         mDatabase = new DatabaseCRUD(this);
+        mDevice = Configuration.getConfiguration(this).getDevice(this);
     }
 
     @Override
@@ -59,6 +64,8 @@ public class DataLayerListenerService extends WearableListenerService {
                         Fingerprint fingerprint = ParcelableUtils.getParcelable(data,
                                 DataLayerListenerService.SCAN_DATA,
                                 Fingerprint.CREATOR);
+                        // Set deviceId to this fingerprint to enable querying
+                        fingerprint.getDeviceEntry().setTelephone(mDevice.getTelephone());
 
                         // If fingerprint is loaded it is saved into the database
                         if(fingerprint != null) {

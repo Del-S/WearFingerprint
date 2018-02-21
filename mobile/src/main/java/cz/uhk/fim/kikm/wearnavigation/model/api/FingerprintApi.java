@@ -3,6 +3,7 @@ package cz.uhk.fim.kikm.wearnavigation.model.api;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import java.util.List;
 
@@ -167,6 +168,7 @@ public class FingerprintApi {
          */
         @NonNull
         private Integer parseFingerprints(List<Fingerprint> fingerprints) {
+            Log.d("sdvsvs", "Starting parsing fo fingerprints");
             // Initiate database connection
             DatabaseCRUD dbcrud = new DatabaseCRUD(mContext);
 

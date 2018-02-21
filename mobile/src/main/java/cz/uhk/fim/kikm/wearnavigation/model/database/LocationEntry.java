@@ -50,6 +50,10 @@ public class LocationEntry implements Parcelable {
                 this.building = "UHK";
                 this.floor = 4;
                 break;
+            default:
+                this.building = "Dummy";
+                this.floor = 1;
+                break;
         }
     }
 

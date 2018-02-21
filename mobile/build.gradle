@@ -52,6 +52,7 @@ repositories {
     }
 }
 dependencies {
+    compile group: 'commons-io', name: 'commons-io', version: '2.6'
     provided 'javax.annotation:jsr250-api:1.0'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:27.0.2'
