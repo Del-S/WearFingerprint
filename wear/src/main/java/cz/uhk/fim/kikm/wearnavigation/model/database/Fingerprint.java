@@ -1,7 +1,9 @@
 package cz.uhk.fim.kikm.wearnavigation.model.database;
 
+import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import com.google.gson.annotations.Expose;
 
@@ -21,21 +23,26 @@ public class Fingerprint implements Parcelable {
     private long scanLength;                        // Length of the scan in ms
     private long scanStart;                         // Timestamps of scan start
     private long  scanEnd;                          // Timestamps of scan end
-    /**
-     * @Deprecated
-     * Use LocationEntry instead
-     */
     private String level;
-    private long location_id;
+    private long locationDbId;
     private LocationEntry locationEntry;            // Location of fingerprint to enable multiple buildings and floors
-    private long device_id;
+    private long deviceDbId;
     private DeviceEntry deviceEntry;                // Device that created this fingerprint
     private List<BeaconEntry> beaconEntries;        // List of beacon entries scanned for this fingerprint
     private List<WirelessEntry> wirelessEntries;    // List of wireless entries scanned for this fingerprint
     private List<CellularEntry> cellularEntries;    // List of cellular entries scanned for this fingerprint
     private List<SensorEntry> sensorEntries;        // List of beacon entries scanned for this fingerprint
 
+    // Used for JSON parsing
     public Fingerprint() {
+        // Initiate lists
+        beaconEntries = new ArrayList<>();
+        wirelessEntries = new ArrayList<>();
+        cellularEntries = new ArrayList<>();
+        sensorEntries = new ArrayList<>();
+    }
+
+    public Fingerprint(Context context) {
         // Set id and scan UUID to send into other device
         id = UUID.randomUUID();
         scanID = UUID.randomUUID();
@@ -47,7 +54,7 @@ public class Fingerprint implements Parcelable {
         sensorEntries = new ArrayList<>();
 
         // Set device
-        deviceEntry = DeviceEntry.createInstance();
+        deviceEntry = DeviceEntry.createInstance(context);
 
         // Default scan length is 60s
         scanLength = 60000;
@@ -63,9 +70,9 @@ public class Fingerprint implements Parcelable {
         scanStart = in.readLong();
         scanEnd = in.readLong();
         level = in.readString();
-        location_id = in.readLong();
+        locationDbId = in.readLong();
         locationEntry = in.readParcelable(LocationEntry.class.getClassLoader());
-        device_id = in.readLong();
+        deviceDbId = in.readLong();
         deviceEntry = in.readParcelable(DeviceEntry.class.getClassLoader());
         beaconEntries = in.createTypedArrayList(BeaconEntry.CREATOR);
         wirelessEntries = in.createTypedArrayList(WirelessEntry.CREATOR);
@@ -84,9 +91,9 @@ public class Fingerprint implements Parcelable {
         dest.writeLong(scanStart);
         dest.writeLong(scanEnd);
         dest.writeString(level);
-        dest.writeLong(location_id);
+        dest.writeLong(locationDbId);
         dest.writeParcelable(locationEntry, flags);
-        dest.writeLong(device_id);
+        dest.writeLong(deviceDbId);
         dest.writeParcelable(deviceEntry, flags);
         dest.writeTypedList(beaconEntries);
         dest.writeTypedList(wirelessEntries);
@@ -186,12 +193,12 @@ public class Fingerprint implements Parcelable {
         this.level = level;
     }
 
-    public long getLocation_id() {
-        return location_id;
+    public long getLocationDbId() {
+        return locationDbId;
     }
 
-    public void setLocation_id(long location_id) {
-        this.location_id = location_id;
+    public void setLocationDbId(long locationDbId) {
+        this.locationDbId = locationDbId;
     }
 
     public LocationEntry getLocationEntry() {
@@ -202,12 +209,12 @@ public class Fingerprint implements Parcelable {
         this.locationEntry = locationEntry;
     }
 
-    public long getDevice_id() {
-        return device_id;
+    public long getDeviceDbId() {
+        return deviceDbId;
     }
 
-    public void setDevice_id(long device_id) {
-        this.device_id = device_id;
+    public void setDeviceDbId(long deviceDbId) {
+        this.deviceDbId = deviceDbId;
     }
 
     public DeviceEntry getDeviceEntry() {
@@ -285,7 +292,6 @@ public class Fingerprint implements Parcelable {
                 Objects.equals(this.wirelessEntries, fingerprint.wirelessEntries) &&
                 Objects.equals(this.cellularEntries, fingerprint.cellularEntries) &&
                 Objects.equals(this.sensorEntries, fingerprint.sensorEntries);
-
     }
 
     @Override
@@ -296,7 +302,7 @@ public class Fingerprint implements Parcelable {
 
     @Override
     public String toString() {
-        return "class BeaconEntry {\n" +
+        return "class Fingerprint {\n" +
                 "    dbId: " + toIndentedString(dbId) + "\n" +
                 "    id: " + toIndentedString(id) + "\n" +
                 "    scanID: " + toIndentedString(scanID) + "\n" +

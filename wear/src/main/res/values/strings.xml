@@ -23,6 +23,9 @@
     <string name="am_status_done">Complete</string>
 
     <!-- Scan status data -->
-    <string name="am_progress_percent_default">0%</string>
-    <string name="am_progress_percent">%1$d%%</string>
+    <string name="am_data_count_default">0</string>
+    <string name="am_data_bluetooth_title">BL</string>
+    <string name="am_data_wireless_title">W</string>
+    <string name="am_data_cellular_title">C</string>
+    <string name="am_data_sensor_title">S</string>
 </resources>

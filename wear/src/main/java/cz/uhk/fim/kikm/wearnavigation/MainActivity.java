@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothClass;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -16,7 +17,6 @@ import android.os.Handler;
 import android.os.PersistableBundle;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
@@ -26,7 +26,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.DataClient;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
@@ -38,6 +37,7 @@ import com.google.gson.Gson;
 
 import java.util.UUID;
 
+import cz.uhk.fim.kikm.wearnavigation.model.database.DeviceEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.Fingerprint;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.ScanProgress;
@@ -58,8 +58,13 @@ public class MainActivity extends WearableActivity implements
     private RelativeLayout mProgressContent;    // Content holding all scanning progress data
     private TextView mProgressStatus;           // Status of scanning
     private ProgressBar mProgressBar;           // Progress bar of scanning
-    private TextView mProgressPercent;          // Progress in percentage
     private ProgressBarAnimation mProgressAnimation;    // ProgressBar animation class
+
+    // Scan progress numbers
+    private TextView mBlCount;                  // Count of bluetooth devices
+    private TextView mWCount;                   // Count of wireless devices
+    private TextView mCCount;                   // Count of cellular devices
+    private TextView mSCount;                   // Count of sensor devices
 
     // Scanner variables
     private JobScheduler jobScheduler;          // JobScheduler used to run FingerprintScanner
@@ -86,7 +91,12 @@ public class MainActivity extends WearableActivity implements
         mProgressContent = findViewById(R.id.am_progress_content);  // Find view containing all progress widgets
         mProgressStatus = findViewById(R.id.am_progress_status);    // Find view with scan status
         mProgressBar = findViewById(R.id.am_progress);              // Find view with progress bar
-        mProgressPercent = findViewById(R.id.am_progress_percent);  // Find view with progress percent
+
+        // Load progress widgets
+        mBlCount = findViewById(R.id.am_bluetooth_count);
+        mWCount = findViewById(R.id.am_wireless_count);
+        mCCount = findViewById(R.id.am_cellular_count);
+        mSCount = findViewById(R.id.am_sensor_count);
 
         // Initiate progress bar animation
         mProgressAnimation = new ProgressBarAnimation(mProgressBar, 1000);
@@ -157,6 +167,8 @@ public class MainActivity extends WearableActivity implements
                     Fingerprint fingerprint = ParcelableUtils.getParcelable(dataMapItem.getDataMap(),
                             DataLayerListenerService.SCAN_DATA,
                             Fingerprint.CREATOR);
+                    // Set device entry to this fingerprint
+                    fingerprint.setDeviceEntry(DeviceEntry.createInstance(this));
 
                     // Schedule new Fingerprint scan
                     runFingerprintScanner(fingerprint);
@@ -187,8 +199,10 @@ public class MainActivity extends WearableActivity implements
         fingerprint.setId(UUID.randomUUID());   // Creating new id for this scan
 
         // Vibrate to notify user
-        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE); // Get instance of Vibrator from current Context
-        v.vibrate(100);     // Vibrate for 100 milliseconds
+        Vibrator vib = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE); // Get instance of Vibrator from current Context
+        if(vib != null) {
+            vib.vibrate(100);     // Vibrate for 100 milliseconds
+        }
         // Show status of the scan
         displayScanView(true);
 
@@ -232,7 +246,12 @@ public class MainActivity extends WearableActivity implements
             mProgressStatus.setText(R.string.am_status_creating);
             mProgressBar.setMax(100);
             mProgressBar.setProgress(0);
-            mProgressPercent.setText(String.format( getResources().getString(R.string.am_progress_percent), 0));
+
+            // Reset progress views
+            mBlCount.setText(String.valueOf(0));
+            mWCount.setText(String.valueOf(0));
+            mCCount.setText(String.valueOf(0));
+            mSCount.setText(String.valueOf(0));
         }
     }
 
@@ -254,25 +273,29 @@ public class MainActivity extends WearableActivity implements
                         // Calculate display numbers
                         int progressMax = scanProgress.getScanLength();
                         int progressCurrent = scanProgress.getCurrentTime();
-                        int progressPercent = (int) (((double) progressCurrent / (double) progressMax) * 100);
+                        // Load display progress numbers for all types
+                        int blCount = scanProgress.getBeaconCount();
+                        int wCount = scanProgress.getWirelessCount();
+                        int cCount = scanProgress.getCellularCount();
+                        int sCount = scanProgress.getSensorCount();
 
                         // Display new status information
                         mProgressStatus.setText(scanProgress.getStateString());
                         mProgressBar.setMax(progressMax);
                         mProgressAnimation.setProgress(progressCurrent);
-                        mProgressPercent.setText(String.format( getResources().getString(R.string.am_progress_percent), progressPercent));
+
+                        // Reset progress views
+                        mBlCount.setText(String.valueOf(blCount));
+                        mWCount.setText(String.valueOf(wCount));
+                        mCCount.setText(String.valueOf(cCount));
+                        mSCount.setText(String.valueOf(sCount));
 
                         // Hide this view after completion (5 seconds)
                         if(scanProgress.getState() == FingerprintScanner.TASK_STATE_DONE) {
-                            Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE); // Get instance of Vibrator from current Context
-                            v.vibrate(100);     // Vibrate for 100 milliseconds
-
-                            // TODO: remove this just for making sure it works
-                            int bl = scanProgress.getBeaconCount();
-                            int w = scanProgress.getWirelessCount();
-                            int c = scanProgress.getCellularCount();
-                            int s = scanProgress.getSensorCount();
-                            Toast.makeText(MainActivity.this, "Found (b,w,c,s): " + bl + ", " + w + ", " + c + ", " + s, Toast.LENGTH_LONG).show();
+                            Vibrator vib = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE); // Get instance of Vibrator from current Context
+                            if(vib != null) {
+                                vib.vibrate(100);     // Vibrate for 100 milliseconds
+                            }
 
                             // Rest view for next scan
                             Handler hideHandler = new Handler();

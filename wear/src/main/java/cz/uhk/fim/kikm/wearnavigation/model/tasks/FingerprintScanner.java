@@ -207,6 +207,7 @@ public class FingerprintScanner extends JobService {
             // Set time and state
             mStartTime = System.currentTimeMillis();            // Set current time as start time
             mState = TASK_STATE_RUNNING;                        // Change state to running
+            mFingerprint.setScanStart(mStartTime);              // Set scan start into fingerprint
 
             // Handles Thread sleeps so the job would wait until the scanTime is up
             // Also publishes the progress and start wireless scans in specific intervals
@@ -241,10 +242,11 @@ public class FingerprintScanner extends JobService {
         @Override
         protected void onPostExecute(Fingerprint fingerprint) {
             // Change scan state
-            if(mFingerprint == null) {
+            if(fingerprint == null) {
                 mState = TASK_STATE_NONE;
             } else {
                 mState = TASK_STATE_DONE;
+                fingerprint.setScanEnd(System.currentTimeMillis());    // Set scan end to the fingerprint
             }
 
             // Update view and mobile device
