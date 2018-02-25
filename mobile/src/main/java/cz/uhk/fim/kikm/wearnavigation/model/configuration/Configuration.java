@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.google.gson.Gson;
 
 import cz.uhk.fim.kikm.wearnavigation.model.api.FingerprintMeta;
@@ -17,7 +18,7 @@ public class Configuration {
     private static final String PREFERENCES_NAME = "WearData";          // Preferences name file
     private static final String PREFERENCES_KEY = "ApiConfiguration";   // App configuration identification in the file
 
-    public static final String API_URL = "http://beacon.uhk.cz/fingerprint-api";    // URL of fingerprint api
+    public static final String API_URL = "http://beacon.uhk.cz/fingerprint-api/";    // URL of fingerprint api
 
     @JsonIgnore
     private DeviceEntry mDevice;             // This device object

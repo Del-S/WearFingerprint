@@ -10,9 +10,14 @@ import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 
+import java.util.concurrent.TimeUnit;
+
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
 import cz.uhk.fim.kikm.wearnavigation.utils.bluetoothConnection.BluetoothConnectionService;
 import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
+import okhttp3.OkHttpClient;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 public class WearApplication extends Application {
 
@@ -20,6 +25,7 @@ public class WearApplication extends Application {
     private static BluetoothConnectionService sService; // Bluetooth communication service
     private BackgroundPowerSaver backgroundPowerSaver;  // Power saver for BeaconLibrary
     private JobInfo.Builder jobBuilder;                 // Specific job to run via JobScheduler
+    private Retrofit retrofit;
 
     @Override
     public void onCreate() {
@@ -40,9 +46,20 @@ public class WearApplication extends Application {
         // Building job to run
         jobBuilder = new JobInfo.Builder(FingerprintScanner.JOB_ID,
                 new ComponentName(getPackageName(), FingerprintScanner.class.getName()));
-        jobBuilder.setMinimumLatency(0);                // Specify that this job should be delayed by the provided amount of time.
         jobBuilder.setOverrideDeadline(1000);           // Set deadline which is the maximum scheduling latency.
         jobBuilder.setPersisted(false);                 // Set whether or not to persist this job across device reboots.
+
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .connectTimeout(90, TimeUnit.MILLISECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .build();
+
+        retrofit = new Retrofit.Builder()
+                .baseUrl(Configuration.API_URL)
+                .client(okHttpClient)
+                .addConverterFactory(JacksonConverterFactory.create())
+                .build();
     }
 
     /**
@@ -71,6 +88,15 @@ public class WearApplication extends Application {
      */
     public JobInfo.Builder getFingerprintJob() {
         return jobBuilder;
+    }
+
+    /**
+     * Return application wide retrofit instance.
+     *
+     * @return retrofit instance
+     */
+    public Retrofit getRetrofit() {
+        return retrofit;
     }
 
     /**

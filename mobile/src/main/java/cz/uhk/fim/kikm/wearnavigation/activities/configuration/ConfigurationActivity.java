@@ -2,34 +2,45 @@ package cz.uhk.fim.kikm.wearnavigation.activities.configuration;
 
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
-import android.view.View;
+import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.List;
 
 import cz.uhk.fim.kikm.wearnavigation.BaseActivity;
 import cz.uhk.fim.kikm.wearnavigation.R;
-import cz.uhk.fim.kikm.wearnavigation.model.api.FingerprintApi;
+import cz.uhk.fim.kikm.wearnavigation.WearApplication;
+import cz.uhk.fim.kikm.wearnavigation.model.api.ApiConnection;
 import cz.uhk.fim.kikm.wearnavigation.model.api.FingerprintMeta;
-import cz.uhk.fim.kikm.wearnavigation.model.api.FingerprintResult;
 import cz.uhk.fim.kikm.wearnavigation.model.api.SynchronizationJob;
-import cz.uhk.fim.kikm.wearnavigation.model.api.utils.ApiException;
 import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
 import cz.uhk.fim.kikm.wearnavigation.model.database.DeviceEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseCRUD;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
-public class ConfigurationActivity extends BaseActivity implements FingerprintResult {
+public class ConfigurationActivity extends BaseActivity {
+
+    private final static String TAG = "ConfigurationActivity";
 
     private Configuration mConfiguration;
     private DeviceEntry mDevice;
     private FingerprintMeta mMeta;
-    private FingerprintApi mFingerprintApi;
+    private ApiConnection mFingerprintApi;
     private DatabaseCRUD mDatabase;
+    private BroadcastReceiver mJobBroadcast;    // Receives information from Synchronization job
 
     private TextView mNewDownload, mNewUpload;
     private ConstraintLayout mLayoutDownload, mLayoutUpload;
@@ -43,9 +54,11 @@ public class ConfigurationActivity extends BaseActivity implements FingerprintRe
         // Initiate data
         mConfiguration = Configuration.getConfiguration(this);
         mDevice = mConfiguration.getDevice(this);
-        mMeta = mConfiguration.getMeta();
-        mFingerprintApi = new FingerprintApi(this);
         mDatabase = new DatabaseCRUD(this);
+        mJobBroadcast = new SynchronizationJobReceiver();
+
+        Retrofit retrofit = ((WearApplication) getApplicationContext()).getRetrofit();
+        mFingerprintApi = retrofit.create(ApiConnection.class);
 
         jobScheduler = (JobScheduler) getSystemService( Context.JOB_SCHEDULER_SERVICE );
         // Todo: remove this it is a test
@@ -63,20 +76,68 @@ public class ConfigurationActivity extends BaseActivity implements FingerprintRe
         updateUI();
     }
 
-    private void initiateViewActions() {
-        mLayoutDownload.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(!isSynchronizationRunning()) {
-                    // Building job to run
-                    JobInfo.Builder jobBuilder = new JobInfo.Builder(SynchronizationJob.JOB_ID,
-                            new ComponentName(getPackageName(), SynchronizationJob.class.getName()));
-                    jobBuilder.setMinimumLatency(0);                // Specify that this job should be delayed by the provided amount of time.
-                    jobBuilder.setOverrideDeadline(1000);           // Set deadline which is the maximum scheduling latency.
-                    jobBuilder.setPersisted(false);                 // Set whether or not to persist this job across device reboots.
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Run synchronization with the API
+        if( checkMetaRefresh() ) {
+            Call<FingerprintMeta> metaCall = mFingerprintApi.getFingerprintsMeta(mDevice.getTelephone(),
+                    mConfiguration.getLastDownloadTime());
+            metaCall.enqueue(mMetaCallback);
+        }
 
-                    jobScheduler.schedule(jobBuilder.build());      // Schedule job to run
-                }
+        // Register synchronization receiver
+        IntentFilter intentFilter = new IntentFilter(SynchronizationJob.ACTION_SYNC_COMPLETE);
+        intentFilter.addAction(SynchronizationJob.ACTION_SYNC_FAILED);
+        registerReceiver(mJobBroadcast, intentFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        // Try to unregister synchronization receiver
+        try  {
+            unregisterReceiver(mJobBroadcast);
+        } catch (IllegalArgumentException ex) {
+            Log.e(TAG, "Could not unregister receiver.", ex);
+        }
+
+        super.onPause();
+    }
+
+    @Override
+    protected void updateUI() {
+        mConfiguration = Configuration.getConfiguration(this);
+        mMeta = mConfiguration.getMeta();
+        if(mMeta != null && mDevice != null) {
+            // Get upload count based on meta data
+            Long uploadCount = mDatabase.getUploadCount(mMeta.getLastInsert(), mDevice.getTelephone());
+
+            // Set view texts
+            mNewDownload.setText(String.valueOf(mMeta.getCountNew()));
+            mNewUpload.setText(String.valueOf(uploadCount));
+        }
+    }
+
+    @Override
+    protected int getContentViewId() {
+        return R.layout.activity_synchronization;
+    }
+
+    @Override
+    protected int getNavigationMenuItemId() {
+        return R.id.action_show_synchronization;
+    }
+
+    private void initiateViewActions() {
+        mLayoutDownload.setOnClickListener(v -> {
+            if(!isSynchronizationRunning()) {
+                // Building job to run
+                JobInfo.Builder jobBuilder = new JobInfo.Builder(SynchronizationJob.JOB_ID,
+                        new ComponentName(getPackageName(), SynchronizationJob.class.getName()));
+                jobBuilder.setOverrideDeadline(1000);           // Set deadline which is the maximum scheduling latency.
+                jobBuilder.setPersisted(false);                 // Set whether or not to persist this job across device reboots.
+
+                jobScheduler.schedule(jobBuilder.build());      // Schedule job to run
             }
         });
     }
@@ -120,61 +181,50 @@ public class ConfigurationActivity extends BaseActivity implements FingerprintRe
         }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // Run synchronization with the API
-        if( checkMetaRefresh() ) {
-            mFingerprintApi.getFingerprintMeta(mDevice.getTelephone(), mConfiguration.getLastDownloadTime());
+    private Callback<FingerprintMeta> mMetaCallback = new Callback<FingerprintMeta>() {
+        @Override
+        public void onResponse(@NonNull  Call<FingerprintMeta> call, @NonNull Response<FingerprintMeta> response) {
+            FingerprintMeta fingerprintMeta = response.body();
+            if(fingerprintMeta != null) {
+                // Save meta into the configuration
+                mConfiguration.setMeta(fingerprintMeta);
+                mConfiguration.setLastSynchronizationTime(System.currentTimeMillis());
+                Configuration.saveConfiguration(mConfiguration);
+
+                // Set meta and update the screen
+                mMeta = fingerprintMeta;
+                updateUI();
+            }
+
+            Log.d("svsvf", "RC: " + response.code());
         }
-    }
 
-    @Override
-    protected void updateUI() {
-        if(mMeta != null && mDevice != null) {
-            // Get upload count based on meta data
-            Long uploadCount = mDatabase.getUploadCount(mMeta.getLastInsert(), mDevice.getTelephone());
-
-            // Set view texts
-            mNewDownload.setText(String.valueOf(mMeta.getCountNew()));
-            mNewUpload.setText(String.valueOf(uploadCount));
+        @Override
+        public void onFailure(@NonNull Call<FingerprintMeta> call, @NonNull Throwable t) {
+            t.printStackTrace();
         }
-    }
+    };
 
-    @Override
-    protected int getContentViewId() {
-        return R.layout.activity_synchronization;
-    }
+    /**
+     * Informs activity that Synchronization Job is complete.
+     */
+    class SynchronizationJobReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if(SynchronizationJob.ACTION_SYNC_COMPLETE.equals(action)) {
+                updateUI();
 
-    @Override
-    protected int getNavigationMenuItemId() {
-        return R.id.action_show_synchronization;
-    }
+                Toast.makeText(ConfigurationActivity.this,
+                        R.string.ca_synchronization_successful,
+                        Toast.LENGTH_SHORT).show();
+            } else if(SynchronizationJob.ACTION_SYNC_FAILED.equals(action)) {
+                updateUI();
 
-    @Override
-    public void loadedFingerprintMeta(FingerprintMeta fingerprintMeta) {
-        // Save meta into the configuration
-        mConfiguration.setMeta(fingerprintMeta);
-        mConfiguration.setLastSynchronizationTime(System.currentTimeMillis());
-        Configuration.saveConfiguration(mConfiguration);
-
-        // Set meta and update the screen
-        mMeta = fingerprintMeta;
-        updateUI();
-    }
-
-    @Override
-    public void loadedFingerprints(int count) {
-        // Not used
-    }
-
-    @Override
-    public void postedFingerprints() {
-        // Not used
-    }
-
-    @Override
-    public void apiException(ApiException ex) {
-        // Not used
+                Toast.makeText(ConfigurationActivity.this,
+                        R.string.ca_synchronization_failed,
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }

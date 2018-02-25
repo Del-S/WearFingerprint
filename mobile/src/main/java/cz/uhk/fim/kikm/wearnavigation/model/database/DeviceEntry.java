@@ -17,7 +17,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.Objects;
 
-@JsonIgnoreProperties(value = {"board", "bootloader", "host", "product", "tags", "telephone", "user"})
+@JsonIgnoreProperties(value = {"board", "bootloader", "host", "product", "tags", "user"})
 public class DeviceEntry implements Parcelable {
 
     // Database labels for database

@@ -141,10 +141,6 @@ public abstract class BaseActivity extends AppCompatActivity implements
         navigationView.postDelayed(() -> {
             int itemId = item.getItemId();
             switch (itemId) {
-                case R.id.action_show_main:
-                    // Shows main activity
-                    showActivity(MainActivity.class);
-                    break;
                 case R.id.action_show_scan:
                     // Shows scan activity
                     showActivity(ScanActivity.class);
@@ -159,7 +155,7 @@ public abstract class BaseActivity extends AppCompatActivity implements
                     break;
                 default:
                     // Shows main activity
-                    showActivity(MainActivity.class);
+                    showActivity(ScanActivity.class);
                     break;
             }
         }, 100);

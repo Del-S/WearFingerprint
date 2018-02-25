@@ -17,6 +17,10 @@
     <string name="am_bluetooth_not_enabled">This application does not work without bluetooth.\nShutting down.</string>
     <string name="am_bluetooth_le_support">This app requires Bluetooth Low Energy to work.\nThis device does not support it.\nShutting down.</string>
 
+    <!-- Configuration Activity -->
+    <string name="ca_synchronization_successful">Synchronization complete.</string>
+    <string name="ca_synchronization_failed">Synchronization failed.</string>
+
     <!-- *********************** -->
     <!-- Fingerprint scan status -->
     <!-- *********************** -->

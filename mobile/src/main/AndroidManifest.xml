@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="cz.uhk.fim.kikm.wearnavigation">
 
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
@@ -28,7 +29,7 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <activity android:name=".MainActivity">
+        <activity android:name=".activities.scan.ScanActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -36,7 +37,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".activities.devices.ShowDevicesActivity" />
-        <activity android:name=".activities.scan.ScanActivity" />
         <activity android:name=".activities.configuration.ConfigurationActivity" />
 
         <service android:name=".utils.wearCommunication.DataLayerListenerService">

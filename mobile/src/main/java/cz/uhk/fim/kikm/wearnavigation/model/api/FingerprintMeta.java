@@ -7,25 +7,47 @@ import java.util.Objects;
 
 import com.google.gson.annotations.SerializedName;
 
-import io.swagger.annotations.ApiModelProperty;
-
-/**
- * FingerprintMeta
- */
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2018-02-11T15:15:00.746Z")
 public class FingerprintMeta implements Parcelable {
     @SerializedName("countNew")
     private int countNew = -1;
-
     @SerializedName("lastInsert")
     private long lastInsert = -1;
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<FingerprintMeta> CREATOR = new Creator<FingerprintMeta>() {
+        @Override
+        public FingerprintMeta createFromParcel(Parcel in) {
+            return new FingerprintMeta(in);
+        }
+
+        @Override
+        public FingerprintMeta[] newArray(int size) {
+            return new FingerprintMeta[size];
+        }
+    };
+
+    private FingerprintMeta(Parcel in) {
+        countNew = in.readInt();
+        lastInsert = in.readLong();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(countNew);
+        dest.writeLong(lastInsert);
+    }
 
     public FingerprintMeta countNew(int countNew) {
         this.countNew = countNew;
         return this;
     }
 
-    @ApiModelProperty(example = "10.0", value = "")
+    public FingerprintMeta() {}
+
     public int getCountNew() {
     return countNew;
     }
@@ -39,7 +61,6 @@ public class FingerprintMeta implements Parcelable {
         return this;
     }
 
-    @ApiModelProperty(example = "1.515244115E9", value = "")
     public long getLastInsert() {
     return lastInsert;
     }
@@ -47,7 +68,6 @@ public class FingerprintMeta implements Parcelable {
     public void setLastInsert(long lastInsert) {
     this.lastInsert = lastInsert;
     }
-
 
     @Override
     public boolean equals(java.lang.Object o) {
@@ -87,34 +107,6 @@ public class FingerprintMeta implements Parcelable {
           return "null";
         }
         return o.toString().replace("\n", "\n    ");
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    public static final Creator<FingerprintMeta> CREATOR = new Creator<FingerprintMeta>() {
-        @Override
-        public FingerprintMeta createFromParcel(Parcel in) {
-            return new FingerprintMeta(in);
-        }
-
-        @Override
-        public FingerprintMeta[] newArray(int size) {
-            return new FingerprintMeta[size];
-        }
-    };
-
-    private FingerprintMeta(Parcel in) {
-        countNew = in.readInt();
-        lastInsert = in.readLong();
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(countNew);
-        dest.writeLong(lastInsert);
     }
 }
 

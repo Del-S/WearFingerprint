@@ -34,7 +34,6 @@ public class Fingerprint implements Parcelable {
     // Variables of this class
     @Expose(serialize = false)
     private int dbId;                              // Database id (its inner id and it is not exported)
-    @JsonProperty("_id")
     private UUID id;                                // UUID of this scan
     private UUID scanID;                            // UUID to enable fingerprint grouping
     private int x,y;                                // Calculated X and Y locations
