@@ -35,7 +35,6 @@ public class WearApplication extends Application {
         // Building job to run
         jobBuilder = new JobInfo.Builder(FingerprintScanner.JOB_ID,
                 new ComponentName(getPackageName(), FingerprintScanner.class.getName()));
-        jobBuilder.setMinimumLatency(0);                // Specify that this job should be delayed by the provided amount of time.
         jobBuilder.setOverrideDeadline(200);            // Set deadline which is the maximum scheduling latency.
         jobBuilder.setPersisted(false);                 // Set whether or not to persist this job across device reboots.
     }
