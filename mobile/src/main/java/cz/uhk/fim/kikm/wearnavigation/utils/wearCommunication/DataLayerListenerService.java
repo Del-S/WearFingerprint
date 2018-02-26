@@ -64,14 +64,14 @@ public class DataLayerListenerService extends WearableListenerService {
                         Fingerprint fingerprint = ParcelableUtils.getParcelable(data,
                                 DataLayerListenerService.SCAN_DATA,
                                 Fingerprint.CREATOR);
-                        // Set deviceId to this fingerprint to enable querying
-                        fingerprint.getDeviceEntry().setTelephone(mDevice.getTelephone());
 
                         // If fingerprint is loaded it is saved into the database
                         if(fingerprint != null) {
-                            mDatabase.saveFingerprint(fingerprint, null);
-                            // TODO: REMOVE
-                            // create a handler to post messages to the main thread
+                            // Set deviceId to this fingerprint to enable querying and save
+                            fingerprint.getDeviceEntry().setTelephone(mDevice.getTelephone());
+                            mDatabase.saveFingerprint(fingerprint, null, true);
+                            // TODO: Modify
+                            // Create a handler to post messages to the main thread
                             Handler mHandler = new Handler(getMainLooper());
                             mHandler.post(() -> Toast.makeText(getApplicationContext(), "WearFingerprint was saved.", Toast.LENGTH_SHORT).show());
                         }

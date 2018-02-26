@@ -240,8 +240,9 @@ public class FingerprintScanner extends JobService {
         @Override
         protected void onPostExecute(Fingerprint fingerprint) {
             if (fingerprint != null) {
-                fingerprint.setScanEnd(System.currentTimeMillis());    // Set scan end to the fingerprint
-                mDatabase.saveFingerprint(fingerprint, null);      // Save fingerprint into the database
+                // Complete fingerprint with scanEnd and save it into the database
+                fingerprint.setScanEnd(System.currentTimeMillis());
+                mDatabase.saveFingerprint(fingerprint, null, true);
             }
 
             // Unbinding the scanner service

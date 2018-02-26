@@ -17,13 +17,13 @@ public interface ApiConnection {
     Call<List<Fingerprint>> getFingerprints(@Header("deviceId") String deviceId,
                                             @Query("timestamp") long timestamp,
                                             @Query("limit") int limit,
-                                            @Query("offset") int offset);
+                                            @Query("offset") long offset);
 
     @GET("fingerprints")
     Call<List<Fingerprint>> getFingerprintsByLocation(@Header("deviceId") String deviceId,
                                             @Query("timestamp") long timestamp,
                                             @Query("limit") int limit,
-                                            @Query("offset") int offset,
+                                            @Query("offset") long offset,
                                             @Body LocationEntry locationEntry);
 
     @GET("fingerprints-meta")

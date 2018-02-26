@@ -32,7 +32,11 @@ public class DatabaseCRUD {
 
     /**
      * Saves multiple fingerprints from the list.
-     * Each one is saved in separate transaction.
+     * Has two options to save:
+     * - Save all fingerprint in a single transaction.
+     * - Save each fingerprint in single transaction.
+     * If saving in a single transaction fails then it moves to
+     * single transactions.
      *
      * @param fingerprints List to save
      * @return int number of saved fingerprints
@@ -42,11 +46,68 @@ public class DatabaseCRUD {
 
         if(fingerprints != null && !fingerprints.isEmpty()) {
             SQLiteDatabase db = dbHelper.getWritableDatabase(); // Load sql database via helper
-            for (Fingerprint fingerprint : fingerprints) {
-                if(saveFingerprint(fingerprint, db))
-                    savedCount++;
+
+            savedCount = saveSingleTransaction(fingerprints, db);
+            if( savedCount <= 0 ) {
+                savedCount = saveMultipleTransaction(fingerprints, db);
             }
+
             db.close();
+        }
+
+        return savedCount;
+    }
+
+    /**
+     * Saves all fingerprint in single transaction.
+     * Thanks to single transaction it will be faster.
+     * If one of the saves fails this transaction is not successful.
+     *
+     * @param fingerprints to save into database
+     * @param db to save data into
+     * @return count of saved fingerprints
+     */
+    private int saveSingleTransaction(List<Fingerprint> fingerprints, SQLiteDatabase db) {
+        int savedCount = 0;
+        boolean transactionSuccess = true;
+
+        db.beginTransaction();  // Starts transaction
+
+        // Tries to save multiple fingerprints
+        for (Fingerprint fingerprint : fingerprints) {
+            if(!saveFingerprint(fingerprint, db, false)) {
+                transactionSuccess = false;
+                break;
+            }
+            savedCount++;
+        }
+
+        // Mark transaction as successful or failed
+        if(transactionSuccess)
+            db.setTransactionSuccessful();
+        else
+            savedCount = -1;
+
+        db.endTransaction();    // End transaction
+
+        return savedCount;
+    }
+
+    /**
+     * This option will save fingerprints with multiple transactions.
+     * Each fingerprint is one transaction.
+     *
+     * @param fingerprints to save into the database
+     * @param db database to save
+     * @return int count saved
+     */
+    private int saveMultipleTransaction(List<Fingerprint> fingerprints, SQLiteDatabase db) {
+        int savedCount = 0;
+
+        // Runs save with multiple transactions
+        for (Fingerprint fingerprint : fingerprints) {
+            if(saveFingerprint(fingerprint, db, true))
+                savedCount++;
         }
 
         return savedCount;
@@ -57,9 +118,11 @@ public class DatabaseCRUD {
      * This is main function for saving.
      *
      * @param fingerprint to save into the database
+     * @param db database to save into. Can be null.
+     * @param useTransaction if this code should use transactions
      * @return boolean if fingerprint was saved
      */
-    public boolean saveFingerprint(Fingerprint fingerprint, SQLiteDatabase db) {
+    public boolean saveFingerprint(Fingerprint fingerprint, SQLiteDatabase db, boolean useTransaction) {
         boolean saved = false;
         boolean close = false;
         if(db == null) {
@@ -69,7 +132,9 @@ public class DatabaseCRUD {
 
         if(db != null && fingerprint != null) {
             try {
-                db.beginTransaction();  // Start transaction
+                if(useTransaction) {
+                    db.beginTransaction();  // Start transaction
+                }
                 // Check if fingerprint already exists in the database by its UUID
                 if (fingerprint.getId() != null && !doesFingerprintExist(db, fingerprint.getId().toString())) {
                     boolean error = false;  // Check if there was some error
@@ -94,19 +159,24 @@ public class DatabaseCRUD {
 
                     // If there was no error we mark transaction as successful
                     if (!error) {
-                        Log.i(TAG,"Transaction successful in saveFingerprint().");
-                        db.setTransactionSuccessful();
+                        Log.i(TAG,"Fingerprint saved successfully.");
+                        if(useTransaction) {
+                            db.setTransactionSuccessful();
+                        }
                         saved = true;
                     } else {
-                        Log.e(TAG, "Transaction error in saveFingerprint().");
+                        Log.e(TAG, "Error in saveFingerprint().");
                     }
                 } else {
-                    Log.e(TAG, "Error in saveFingerprint(). Fingerprint already exists.");
+                    Log.e(TAG, "Fingerprint already exists in saveFingerprint().");
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Exception in saveFingerprint().", e);
             } finally {
-                db.endTransaction();
+                // Close up connection transaction if it should
+                if(useTransaction) {
+                    db.endTransaction();
+                }
                 if(close) {
                     db.close();
                 }
@@ -727,7 +797,7 @@ public class DatabaseCRUD {
      * @param offset move the within the specified limit
      * @return List of Fingerprints
      */
-    public List<Fingerprint> getFingerprintsForUpload(Long scanStart, String deviceId, int limit, int offset) {
+    public List<Fingerprint> getFingerprintsForUpload(Long scanStart, String deviceId, int limit, long offset) {
         List<Fingerprint> fingerprints = new ArrayList<>();
 
         //Open connection to read only

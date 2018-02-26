@@ -133,6 +133,9 @@ public class ScanActivity extends BaseActivity implements
      * Displays all the fingerprints on the map.
      */
     private void displayFingerprints() {
+        // Clear the map
+        mMap.getMarkerLayout().removeAllViews();
+
         for (Fingerprint fingerprint : mFingerprints) {
             Log.d("ScanAt", fingerprint.toString());
 
@@ -405,7 +408,7 @@ public class ScanActivity extends BaseActivity implements
 
     @Override
     protected void updateUI() {
-        // TODO: update map
+        loadFingerprints();     // Loads fingerprint data
     }
 
     @Override

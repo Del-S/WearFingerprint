@@ -45,6 +45,9 @@ public class ConfigurationActivity extends BaseActivity {
     private TextView mNewDownload, mNewUpload;
     private ConstraintLayout mLayoutDownload, mLayoutUpload;
 
+    private long mDownloadCount = 0;
+    private long mUploadCount = 0;
+
     private JobScheduler jobScheduler;          // JobScheduler used to run FingerprintScanner
 
     @Override
@@ -80,15 +83,15 @@ public class ConfigurationActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
         // Run synchronization with the API
-        if( checkMetaRefresh() ) {
+        if( mFingerprintApi != null && checkMetaRefresh() ) {
             Call<FingerprintMeta> metaCall = mFingerprintApi.getFingerprintsMeta(mDevice.getTelephone(),
                     mConfiguration.getLastDownloadTime());
             metaCall.enqueue(mMetaCallback);
         }
 
         // Register synchronization receiver
-        IntentFilter intentFilter = new IntentFilter(SynchronizationJob.ACTION_SYNC_COMPLETE);
-        intentFilter.addAction(SynchronizationJob.ACTION_SYNC_FAILED);
+        IntentFilter intentFilter = new IntentFilter(SynchronizationJob.ACTION_JOB_DONE);
+        intentFilter.addAction(SynchronizationJob.ACTION_JOB_UPDATE);
         registerReceiver(mJobBroadcast, intentFilter);
     }
 
@@ -109,12 +112,12 @@ public class ConfigurationActivity extends BaseActivity {
         mConfiguration = Configuration.getConfiguration(this);
         mMeta = mConfiguration.getMeta();
         if(mMeta != null && mDevice != null) {
-            // Get upload count based on meta data
-            Long uploadCount = mDatabase.getUploadCount(mMeta.getLastInsert(), mDevice.getTelephone());
+            // Get download and upload count based on meta data
+            mDownloadCount = mMeta.getCountNew();
+            mUploadCount = mDatabase.getUploadCount(mMeta.getLastInsert(), mDevice.getTelephone());
 
             // Set view texts
-            mNewDownload.setText(String.valueOf(mMeta.getCountNew()));
-            mNewUpload.setText(String.valueOf(uploadCount));
+            updateViews();
         }
     }
 
@@ -181,6 +184,11 @@ public class ConfigurationActivity extends BaseActivity {
         }
     }
 
+    private void updateViews() {
+        mNewDownload.setText(String.valueOf(mDownloadCount));
+        mNewUpload.setText(String.valueOf(mUploadCount));
+    }
+
     private Callback<FingerprintMeta> mMetaCallback = new Callback<FingerprintMeta>() {
         @Override
         public void onResponse(@NonNull  Call<FingerprintMeta> call, @NonNull Response<FingerprintMeta> response) {
@@ -212,18 +220,40 @@ public class ConfigurationActivity extends BaseActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if(SynchronizationJob.ACTION_SYNC_COMPLETE.equals(action)) {
+            if(SynchronizationJob.ACTION_JOB_DONE.equals(action)) {
                 updateUI();
 
-                Toast.makeText(ConfigurationActivity.this,
-                        R.string.ca_synchronization_successful,
-                        Toast.LENGTH_SHORT).show();
-            } else if(SynchronizationJob.ACTION_SYNC_FAILED.equals(action)) {
-                updateUI();
+                // Load status from intent
+                int status = intent.getIntExtra(SynchronizationJob.ACTION_DATA_STATE,
+                        SynchronizationJob.JOB_STATE_FAILED);
 
-                Toast.makeText(ConfigurationActivity.this,
-                        R.string.ca_synchronization_failed,
-                        Toast.LENGTH_SHORT).show();
+                // Print out toast message if job finished or failed
+                if(status == SynchronizationJob.JOB_STATE_FINISHED) {
+                    Toast.makeText(ConfigurationActivity.this,
+                            R.string.ca_synchronization_successful,
+                            Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(ConfigurationActivity.this,
+                            R.string.ca_synchronization_failed,
+                            Toast.LENGTH_SHORT).show();
+                }
+            } else if(SynchronizationJob.ACTION_JOB_UPDATE.equals(action)) {
+                // Load counts from the intent
+                mDownloadCount = intent.getLongExtra(SynchronizationJob.ACTION_DATA_DOWNLOAD,
+                        mDownloadCount);
+                mUploadCount = intent.getLongExtra(SynchronizationJob.ACTION_DATA_UPLOAD,
+                        mUploadCount);
+
+                // Set min for download count
+                if(mDownloadCount < 0)
+                    mDownloadCount = 0;
+
+                // Set min for upload count
+                if(mUploadCount < 0)
+                    mUploadCount = 0;
+
+                // Update view numbers in the activity
+                updateViews();
             }
         }
     }
