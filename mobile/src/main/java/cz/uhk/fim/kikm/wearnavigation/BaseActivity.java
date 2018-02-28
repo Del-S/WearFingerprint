@@ -315,14 +315,10 @@ public abstract class BaseActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onDataChanged(@NonNull DataEventBuffer dataEvents) {
-        Log.d(TAG, "onDataChanged: " + dataEvents);
-    }
+    public void onDataChanged(@NonNull DataEventBuffer dataEvents) {}
 
     @Override
     public void onMessageReceived(@NonNull MessageEvent event) {
-        Log.d(TAG, "onMessageReceived: " + event);
-
         if(event.getPath().equals(DataLayerListenerService.ACTIVITY_STARTED_PATH)) {
             // Notify wearable device that it should start a scan after a second of delay
             new Handler().postDelayed(() -> mWearDataSender.sendScanStart(), 1000);

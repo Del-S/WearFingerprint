@@ -18,11 +18,20 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
+/**
+ * This job download and uploads fingerprint into the API connected to the couchbase server.
+ * Keeps track of status of both sub-jobs and posts broadcast with more information.
+ * Tries to re-run sub jobs three times before failing the job but it keeps track of
+ * current status so no data is processed twice.
+ */
 public class SynchronizationJob extends JobService {
 
-    private static final String TAG = "SynchronizationJob";
+    private static final String TAG = "SynchronizationJob";     // Logging tag
+    // Broadcast actions and data tags
     public static final String ACTION_JOB_DONE = "syncDone";
     public static final String ACTION_DATA_STATE = "status";
+    public static final String ACTION_DATA_DOWN_STATE = "statusDownload";
+    public static final String ACTION_DATA_UP_STATE = "statusUpload";
     public static final String ACTION_JOB_UPDATE = "syncUpdate";
     public static final String ACTION_DATA_DOWNLOAD = "dCount";
     public static final String ACTION_DATA_UPLOAD = "uCount";
@@ -30,42 +39,47 @@ public class SynchronizationJob extends JobService {
     public static final int JOB_ID = 2;     // ID of this job in JobBuilder
 
     // States of this scanner
-    private final int JOB_STATE_NONE = 0;             // Nothing is happening
-    private final int JOB_STATE_PREPARING = 1;        // Job is downloading metadata before start run
-    private final int JOB_STATE_RUNNING = 2;          // Download nad upload is running
-    private final int JOB_STATE_FINISHING = 3;        // Job is ending and changing metadata
-    public static final int JOB_STATE_FINISHED = 4;         // Job finished successfully
-    public static final int JOB_STATE_FAILED = 5;           // Synchronization failed
-    private int mState = JOB_STATE_NONE;
+    public static final int JOB_STATE_NONE = 0;       // Nothing is happening
+    public static final int JOB_STATE_PREPARING = 1;  // Job is downloading metadata before start run
+    public static final int JOB_STATE_RUNNING = 2;    // Download and upload is running
+    public static final int JOB_STATE_FINISHING = 3;  // Job is ending and changing metadata
+    public static final int JOB_STATE_FINISHED = 4;   // Job finished successfully
+    public static final int JOB_STATE_FAILED = 5;     // Synchronization failed
+    // Variable that keep track of job and sub-jobs states
+    private int mState = JOB_STATE_NONE;              // Keeps state of this job as a whole
+    private int mStateDownload = JOB_STATE_NONE;      // Keeps state of download sub job
+    private int mStateUpload = JOB_STATE_NONE;        // Keeps state of upload sub job
 
-    private JobParameters mParams;
+    // Job instance variables
+    private JobParameters mParams;          // Parameters of this job to finish or reschedule it
+    private Configuration mConfiguration;   // Application configuration to load and save meta data
+    private FingerprintMeta mCurrentMeta;   // Meta data for this job
+    private DeviceEntry mDevice;            // Instance of this device information class
+    private ApiConnection mFingerprintApi;  // Retrofit api connection interface
+    private DatabaseCRUD mDatabase;         // Database to save data into
 
-    private Configuration mConfiguration;
-    private DeviceEntry mDevice;
-    private ApiConnection mFingerprintApi;
-    private DatabaseCRUD mDatabase;
+    // Call instances to enable re-runs
+    private Call<FingerprintMeta> mCallMeta;       // Call for fingerprint meta data
+    private Call<List<Fingerprint>> mCallDownload; // Call for downloading fingerprints
+    private Call<Void> mCallUpload;                // Call for upload of fingerprints
 
-    private List<Fingerprint> mUploadData;
-
+    // Limits for upload and download to protect from memory shortage and crashes
     private final int DOWNLOAD_LIMIT = 50;
     private final int UPLOAD_LIMIT = 20;
 
-    private FingerprintMeta mCurrentMeta;
-    private Call<FingerprintMeta> mCallMeta;
-    private Call<List<Fingerprint>> mCallDownload;
-    private Call mCallUpload;
-
-    private long mLastInsert = 0;
-    private long mDownloadCount = 0;
-    private long mDownloadOffset = 0;
-    private long mUploadCount = 0;
-    private long mUploadOffset = 0;
-    private boolean mDownloadComplete = false;
-    private boolean mUploadComplete = false;
-
+    // Sub job primitive variables
+    private long mDownloadCount = 0;    // How many fingerprints to download
+    private long mDownloadOffset = 0;   // Download offset for database call
+    private long mUploadCount = 0;      // How many fingerprint to upload
+    private long mUploadOffset = 0;     // Upload offset for database call
+    private long mLastUpdate = 0;       // Max update timestamp from database
+    // Call re-try limits every call be re-tried 3 times
     private int mDownloadRetry = 3;
     private int mUploadRetry = 3;
     private int mMetaRetry = 3;
+    // Checks if sub-jobs are complete or not
+    private boolean mDownloadFinished = false;
+    private boolean mUploadFinished = false;
 
     /**
      * Load all required instances and runs the loadMeta job.
@@ -102,11 +116,21 @@ public class SynchronizationJob extends JobService {
         return false;
     }
 
+    /**
+     * Stops all sub-job calls if they are scheduler or running.
+     *
+     * @param params of this job
+     * @return true/false is running
+     */
     @Override
     public boolean onStopJob(JobParameters params) {
-        mCallMeta.cancel();
-        mCallDownload.cancel();
-        mCallUpload.cancel();
+        // Cancel calls if it should
+        if(mCallMeta != null && !mCallMeta.isExecuted())
+            mCallMeta.cancel();
+        if(mCallDownload != null && !mCallDownload.isExecuted())
+            mCallDownload.cancel();
+        if(mCallUpload != null && !mCallUpload.isExecuted())
+            mCallUpload.cancel();
 
         mState = JOB_STATE_FAILED;
         return false;
@@ -127,31 +151,27 @@ public class SynchronizationJob extends JobService {
             if (fingerprintMeta != null) {
                 switch (mState) {
                     case JOB_STATE_PREPARING:
-                        // Loads important data and starts the sub-jobs
-                        // Load meta data variables
+                        // Load meta data and variables from it variables
                         mCurrentMeta = fingerprintMeta;
                         mDownloadCount = fingerprintMeta.getCountNew();
-                        mLastInsert = fingerprintMeta.getLastInsert();
-                        mUploadCount = mDatabase.getUploadCount(mLastInsert,
+                        mUploadCount = mDatabase.getUploadCount(fingerprintMeta.getLastInsert(),
                                 mDevice.getTelephone());
 
                         // Run download and upload jobs to continue this thread
                         runDownloadUpload();
                         break;
                     case JOB_STATE_FINISHING:
-                        // Save meta data and finish the job
-                        mState = JOB_STATE_FINISHED;
-                        Log.d(TAG, "Saving meta data");
+                        // Save new meta data into configuration
                         mConfiguration.setMeta(fingerprintMeta);
                         mConfiguration.setLastSynchronizationTime(System.currentTimeMillis());
-                        Configuration.saveConfiguration(mConfiguration);
 
+                        // Finish the job
+                        mState = JOB_STATE_FINISHED;
                         finishSynchronization();
                         break;
                     default:
                         // Fail the job and finish
                         mState = JOB_STATE_FAILED;
-
                         finishSynchronization();
                         break;
                 }
@@ -167,6 +187,7 @@ public class SynchronizationJob extends JobService {
 
         @Override
         public void onFailure(@NonNull Call<FingerprintMeta> call, @NonNull Throwable t) {
+            // Tries to re-run the call if it can
             Log.e(TAG, "Failed to load fingerprint meta.", t);
             reRunMeta();
         }
@@ -186,15 +207,14 @@ public class SynchronizationJob extends JobService {
             if (response.isSuccessful()) {
                 // Load fingerprint data and try to save them into the database
                 List<Fingerprint> fingerprints = response.body();
-                if (fingerprints != null) {
+                if (fingerprints != null && !fingerprints.isEmpty()) {
                     mDatabase.saveMultipleFingerprints(fingerprints);
+                    // Clear the list up to flag for memory clear
+                    fingerprints.clear();
 
-                    /*try {
-                        Fingerprint lastFingerprint = fingerprints.get(fingerprints.size() - 1);
-                        mConfiguration.setLastDownloadTime(lastFingerprint.getScanStart());
-                    } catch (IndexOutOfBoundsException ex) {
-                        Log.e(TAG, "Could not set download time. ", ex);
-                    }*/
+                    // Set update time into the configuration to protect from
+                    // downloading all fingerprint when previous load failed.
+                    mLastUpdate = mDatabase.getMaxUpdateTime();
                 }
 
                 // Run a new download call if there is data to download
@@ -203,8 +223,8 @@ public class SynchronizationJob extends JobService {
                     mDownloadOffset += DOWNLOAD_LIMIT;
                     runDownload();
                 } else {
-                    // Finish download job
-                    mDownloadComplete = true;
+                    // Finish download job if complete
+                    setDownloadFinished(true);
                     resetFingerprintMeta();
                 }
 
@@ -219,6 +239,7 @@ public class SynchronizationJob extends JobService {
 
         @Override
         public void onFailure(@NonNull Call<List<Fingerprint>> call, @NonNull Throwable t) {
+            // Try to run this call again if it can
             Log.e(TAG, "Failed to download fingerprints.", t);
             reRunDownload();
         }
@@ -243,16 +264,9 @@ public class SynchronizationJob extends JobService {
                     runUpload();
                 } else {
                     // Finish the upload job
-                    mUploadComplete = true;
+                    setUploadFinished(true);
                     resetFingerprintMeta();
                 }
-
-                /*try {
-                    Fingerprint lastFingerprint = mUploadData.get(mUploadData.size() - 1);
-                    mCurrentMeta.setLastInsert(lastFingerprint.getScanStart());
-                } catch (IndexOutOfBoundsException ex) {
-                    Log.e(TAG, "Could not set last insert time. ", ex);
-                }*/
 
                 // Sends update broadcast
                 publishUpdate();
@@ -266,7 +280,7 @@ public class SynchronizationJob extends JobService {
 
         @Override
         public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
-            // Re-run the job id it can
+            // Tries to re-run this call if it can
             Log.e(TAG, "Failed to upload fingerprints.", t);
             reRunUpload();
         }
@@ -277,27 +291,26 @@ public class SynchronizationJob extends JobService {
      * If none of them are able to run then finish this job.
      */
     private void runDownloadUpload() {
-        Log.d(TAG, "Run get/post fingeprints");
-        Log.d(TAG, "Start: " + System.currentTimeMillis());
+        Log.i(TAG, "Synchronization started at: " + System.currentTimeMillis());
 
-        // Run download job
-        /*if (mDownloadCount > 0) {
-            Log.d(TAG, "Trigger download job");
+        // Run download job or set is as complete
+        if (mDownloadCount > 0) {
+            mStateDownload = JOB_STATE_RUNNING;
             runDownload();
-        } else {*/
-            mDownloadComplete = true;
-        //}
+        } else {
+            setDownloadFinished(true);
+        }
 
-        // Run upload job
+        // Run upload job or set is as complete
         if (mUploadCount > 0) {
-            Log.d(TAG, "Trigger upload job");
+            mStateUpload = JOB_STATE_RUNNING;
             runUpload();
         } else {
-            mUploadComplete = true;
+            setUploadFinished(true);
         }
 
         // Finish the job if there is nothing to do
-        if(mDownloadComplete && mUploadComplete) {
+        if(mDownloadFinished && mUploadFinished) {
             mState = JOB_STATE_FINISHED;
             finishSynchronization();
         } else {
@@ -309,7 +322,6 @@ public class SynchronizationJob extends JobService {
      * Creates new download call based on variables and runs it.
      */
     private void runDownload() {
-        Log.d("TEST", "Run get fingeprints with offset: " + mDownloadOffset);
         mCallDownload = mFingerprintApi.getFingerprints(mDevice.getTelephone(),
                 mConfiguration.getLastDownloadTime(),
                 DOWNLOAD_LIMIT,
@@ -327,8 +339,8 @@ public class SynchronizationJob extends JobService {
             mDownloadRetry--;
             mCallDownload.clone().enqueue(mDownloadCallback);
         } else {
-            // Finish the download call.
-            mDownloadComplete = true;
+            // Fail the download and finish the download call.
+            setDownloadFinished(false);
             resetFingerprintMeta();
         }
     }
@@ -338,15 +350,18 @@ public class SynchronizationJob extends JobService {
      */
     private void runUpload() {
         // Load fingerprints from the database
-        mUploadData = mDatabase.getFingerprintsForUpload(mCurrentMeta.getLastInsert(),
+        List<Fingerprint> uploadData = mDatabase.getFingerprintsForUpload(mCurrentMeta.getLastInsert(),
                 mDevice.getTelephone(),
                 UPLOAD_LIMIT,
                 mUploadOffset);
 
         // Create new call and run it
         mCallUpload = mFingerprintApi.postFingerprints(mDevice.getTelephone(),
-                mUploadData);
+                uploadData);
         mCallUpload.enqueue(mUploadCallback);
+
+        // Clear the list up to flag for memory clear
+        uploadData.clear();
     }
 
     /**
@@ -360,7 +375,7 @@ public class SynchronizationJob extends JobService {
             mCallUpload.clone().enqueue(mUploadCallback);
         } else {
             // Finish the upload call.
-            mUploadComplete = true;
+            setUploadFinished(false);
             resetFingerprintMeta();
         }
     }
@@ -376,11 +391,7 @@ public class SynchronizationJob extends JobService {
             mCallMeta.clone().enqueue(mMetaCallback);
         } else {
             // Finish the synchronization job.
-            /*if (mCurrentMeta != null) {
-                mCurrentMeta.setCountNew(mDownloadCount);
-            }*/
             mState = JOB_STATE_FAILED;
-
             finishSynchronization();
         }
     }
@@ -390,17 +401,17 @@ public class SynchronizationJob extends JobService {
      * It only runs when both download and upload are complete.
      */
     private void resetFingerprintMeta() {
-        Log.d(TAG, "Run reset meta");
-        Log.d(TAG, "Down complete: " + mDownloadComplete);
-        Log.d(TAG, "Up complete: " + mUploadComplete);
-        Log.d(TAG, "Down count: " + mDownloadCount);
-        Log.d(TAG, "Up count: " + mUploadCount);
         // Check if this call should run or not
-        if (mDownloadComplete && mUploadComplete) {
+        if (mDownloadFinished && mUploadFinished) {
             mState = JOB_STATE_FINISHING;
 
+            // Set maximum of last update into configuration
+            if (mLastUpdate > 0) {
+                mConfiguration.setLastDownloadTime(mLastUpdate);
+            }
+
             // Set current timestamp as lastDownloadTime
-            if (mDownloadCount <= 0 && mUploadCount <= 0) {
+            if (mDownloadCount <= 0 && mStateDownload == JOB_STATE_FINISHED) {
                 mConfiguration.setLastDownloadTime(System.currentTimeMillis());
             }
 
@@ -415,10 +426,12 @@ public class SynchronizationJob extends JobService {
      * Send update broadcast to the activities to display changes.
      */
     private void publishUpdate() {
-        // Sends state, download and upload counts
+        // Broadcasts state of jobs with download and upload counts
         Intent intent = new Intent();
         intent.setAction(ACTION_JOB_UPDATE);
         intent.putExtra(ACTION_DATA_STATE, mState);
+        intent.putExtra(ACTION_DATA_DOWN_STATE, mStateDownload);
+        intent.putExtra(ACTION_DATA_UP_STATE, mStateUpload);
         intent.putExtra(ACTION_DATA_DOWNLOAD, mDownloadCount);
         intent.putExtra(ACTION_DATA_UPLOAD, mUploadCount);
         sendBroadcast(intent);
@@ -429,7 +442,10 @@ public class SynchronizationJob extends JobService {
      * Sends a Broadcast to inform about state change.
      */
     private void finishSynchronization() {
-        Log.d(TAG, "Finished: " + System.currentTimeMillis());
+        Log.i(TAG, "Synchronization finished at: " + System.currentTimeMillis());
+
+        // Save configuration data
+        Configuration.saveConfiguration(mConfiguration);
 
         // Create and send broadcast updating Activities about synchronization status
         Intent intent = new Intent();
@@ -439,9 +455,34 @@ public class SynchronizationJob extends JobService {
         } else {
             intent.putExtra(ACTION_DATA_STATE, JOB_STATE_FAILED);   // Job failed
         }
+        // Informs about download and upload state of the job
+        intent.putExtra(ACTION_DATA_DOWN_STATE, mStateDownload);
+        intent.putExtra(ACTION_DATA_UP_STATE, mStateUpload);
         sendBroadcast(intent);
 
         // Complete this job
         jobFinished(mParams, false);
+    }
+
+    /**
+     * Sets download job as finished and changes all
+     * connected variables.
+     *
+     * @param success if download finished successfully
+     */
+    private void setDownloadFinished(boolean success) {
+        mDownloadFinished = true;
+        mStateDownload = (success) ? JOB_STATE_FINISHED : JOB_STATE_FAILED;
+    }
+
+    /**
+     * Sets upload job as finished and changes all
+     * connected variables.
+     *
+     * @param success if upload finished successfully
+     */
+    private void setUploadFinished(boolean success) {
+        mUploadFinished = true;
+        mStateUpload = (success) ? JOB_STATE_FINISHED : JOB_STATE_FAILED;
     }
 }

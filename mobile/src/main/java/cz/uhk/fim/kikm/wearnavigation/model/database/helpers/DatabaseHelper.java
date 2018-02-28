@@ -14,7 +14,7 @@ import cz.uhk.fim.kikm.wearnavigation.model.database.WirelessEntry;
 
 class DatabaseHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 6;
+    private static final int DATABASE_VERSION = 9;
     private static final String DATABASE_NAME = "fingerprint.db";
 
     DatabaseHelper(Context context) {
@@ -34,6 +34,7 @@ class DatabaseHelper extends SQLiteOpenHelper {
                 + Fingerprint.DB_SCAN_LENGTH + " INTEGER, "
                 + Fingerprint.DB_SCAN_START + " INTEGER, "
                 + Fingerprint.DB_SCAN_END + " INTEGER, "
+                + Fingerprint.DB_UPDATE_TIME + " INTEGER, "
                 + Fingerprint.DB_LEVEL + " TEXT, "
                 + Fingerprint.DB_LOCATION_ID + " INTEGER, "
                 + Fingerprint.DB_DEVICE_ID + " INTEGER )";

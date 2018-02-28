@@ -68,7 +68,9 @@ public class DataLayerListenerService extends WearableListenerService {
                         // If fingerprint is loaded it is saved into the database
                         if(fingerprint != null) {
                             // Set deviceId to this fingerprint to enable querying and save
-                            fingerprint.getDeviceEntry().setTelephone(mDevice.getTelephone());
+                            if(mDevice != null) {
+                                fingerprint.getDeviceEntry().setTelephone(mDevice.getTelephone());
+                            }
                             mDatabase.saveFingerprint(fingerprint, null, true);
                             // TODO: Modify
                             // Create a handler to post messages to the main thread

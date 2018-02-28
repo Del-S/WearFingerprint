@@ -3,6 +3,7 @@ package cz.uhk.fim.kikm.wearnavigation.model.database;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.Expose;
 
 import java.util.Objects;
@@ -21,6 +22,7 @@ public class LocationEntry implements Parcelable {
     public final static String DB_LEVEL = "level";
 
     // Variables of this class
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Expose(serialize = false)
     private int id;                 // Database id (its inner id and it is not exported)
     private String building;        // Name of the building
@@ -32,7 +34,7 @@ public class LocationEntry implements Parcelable {
 
     // Default constructor used for Gson
     public LocationEntry(String location) {
-        level = location;
+        this.level = location;
         switch(location) {
             case "J1NP":
                 this.building = "UHK";

@@ -27,11 +27,13 @@ public class Fingerprint implements Parcelable {
     public final static String DB_SCAN_LENGTH = "scanLength";
     public final static String DB_SCAN_START = "scanStart";
     public final static String DB_SCAN_END = "scanEnd";
+    public final static String DB_UPDATE_TIME = "updateTime";
     public final static String DB_LEVEL = "level";
     public final static String DB_LOCATION_ID = "locationDbId";
     public final static String DB_DEVICE_ID = "deviceDbId";
 
     // Variables of this class
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Expose(serialize = false)
     private int dbId;                              // Database id (its inner id and it is not exported)
     private UUID id;                                // UUID of this scan
@@ -44,6 +46,9 @@ public class Fingerprint implements Parcelable {
     @SerializedName("finish")
     @JsonProperty("finish")
     private long  scanEnd;                          // Timestamps of scan end
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Expose(serialize = false)
+    private long updateTime;                        // Sync gateway update time (no need to expose it since gateway already knows it)
     private String level;
     private long locationDbId;
     private LocationEntry locationEntry;            // Location of fingerprint to enable multiple buildings and floors
@@ -100,6 +105,7 @@ public class Fingerprint implements Parcelable {
         scanLength = in.readLong();
         scanStart = in.readLong();
         scanEnd = in.readLong();
+        updateTime = in.readLong();
         level = in.readString();
         locationDbId = in.readLong();
         locationEntry = in.readParcelable(LocationEntry.class.getClassLoader());
@@ -121,6 +127,7 @@ public class Fingerprint implements Parcelable {
         dest.writeLong(scanLength);
         dest.writeLong(scanStart);
         dest.writeLong(scanEnd);
+        dest.writeLong(updateTime);
         dest.writeString(level);
         dest.writeLong(locationDbId);
         dest.writeParcelable(locationEntry, flags);
@@ -213,11 +220,20 @@ public class Fingerprint implements Parcelable {
         this.scanEnd = scanEnd;
     }
 
+    public long getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(long updateTime) {
+        this.updateTime = updateTime;
+    }
+
     public String getLevel() {
         return level;
     }
 
     public void setLevel(String level) {
+        // Set level to build from legacy
         if(level != null) {
             this.locationEntry = new LocationEntry(level);
         }
@@ -238,6 +254,8 @@ public class Fingerprint implements Parcelable {
 
     public void setLocationEntry(LocationEntry locationEntry) {
         this.locationEntry = locationEntry;
+        // Set level to keep legacy
+        this.level = locationEntry.getLevel();
     }
 
     public long getDeviceDbId() {
@@ -317,6 +335,7 @@ public class Fingerprint implements Parcelable {
                 Objects.equals(this.scanLength, fingerprint.scanLength) &&
                 Objects.equals(this.scanStart, fingerprint.scanStart) &&
                 Objects.equals(this.scanEnd, fingerprint.scanEnd) &&
+                Objects.equals(this.updateTime, fingerprint.updateTime) &&
                 Objects.equals(this.locationEntry, fingerprint.locationEntry) &&
                 Objects.equals(this.deviceEntry, fingerprint.deviceEntry) &&
                 Objects.equals(this.beaconEntries, fingerprint.beaconEntries) &&
@@ -327,7 +346,19 @@ public class Fingerprint implements Parcelable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, scanID, x, y, scanStart, scanEnd, locationEntry, deviceEntry, beaconEntries, wirelessEntries, cellularEntries, sensorEntries);
+        return Objects.hash(id,
+                scanID,
+                x,
+                y,
+                scanStart,
+                scanEnd,
+                updateTime,
+                locationEntry,
+                deviceEntry,
+                beaconEntries,
+                wirelessEntries,
+                cellularEntries,
+                sensorEntries);
     }
 
 
@@ -342,6 +373,8 @@ public class Fingerprint implements Parcelable {
                 "    scanLength: " + toIndentedString(scanLength) + "\n" +
                 "    scanStart: " + toIndentedString(scanStart) + "\n" +
                 "    scanEnd: " + toIndentedString(scanEnd) + "\n" +
+                "    updateTime: " + toIndentedString(updateTime) + "\n" +
+                "    level: " + toIndentedString(level) + "\n" +
                 "    locationEntry: " + toIndentedString(locationEntry) + "\n" +
                 "    deviceEntry: " + toIndentedString(deviceEntry) + "\n" +
                 "    beaconEntriesCount: " + toIndentedString(beaconEntries.size()) + "\n" +

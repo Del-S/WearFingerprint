@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.util.Log;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,6 +45,7 @@ public class ConfigurationActivity extends BaseActivity {
 
     private TextView mNewDownload, mNewUpload;
     private ConstraintLayout mLayoutDownload, mLayoutUpload;
+    private ImageButton mRealoadMeta;
 
     private long mDownloadCount = 0;
     private long mUploadCount = 0;
@@ -74,6 +76,7 @@ public class ConfigurationActivity extends BaseActivity {
         mNewUpload = findViewById(R.id.as_new_upload);
         mLayoutDownload = findViewById(R.id.as_constraint_new_download);
         mLayoutUpload = findViewById(R.id.as_constraint_new_upload);
+        mRealoadMeta = findViewById(R.id.as_synchronization_meta);
         initiateViewActions();
 
         updateUI();
@@ -83,10 +86,8 @@ public class ConfigurationActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
         // Run synchronization with the API
-        if( mFingerprintApi != null && checkMetaRefresh() ) {
-            Call<FingerprintMeta> metaCall = mFingerprintApi.getFingerprintsMeta(mDevice.getTelephone(),
-                    mConfiguration.getLastDownloadTime());
-            metaCall.enqueue(mMetaCallback);
+        if(checkMetaRefresh()) {
+            runMetaRefresh();
         }
 
         // Register synchronization receiver
@@ -143,6 +144,8 @@ public class ConfigurationActivity extends BaseActivity {
                 jobScheduler.schedule(jobBuilder.build());      // Schedule job to run
             }
         });
+
+        mRealoadMeta.setOnClickListener(v -> runMetaRefresh());
     }
 
     /**
@@ -162,6 +165,17 @@ public class ConfigurationActivity extends BaseActivity {
         // Calculate and return time difference in millis
         long diff = System.currentTimeMillis() - mConfiguration.getLastSynchronizationTime();
         return diff >= refreshInterval;
+    }
+
+    /**
+     * Runs meta refresh call to the API.
+     */
+    private void runMetaRefresh() {
+        if( mFingerprintApi != null ) {
+            Call<FingerprintMeta> metaCall = mFingerprintApi.getFingerprintsMeta(mDevice.getTelephone(),
+                    mConfiguration.getLastDownloadTime());
+            metaCall.enqueue(mMetaCallback);
+        }
     }
 
     /**
@@ -203,8 +217,6 @@ public class ConfigurationActivity extends BaseActivity {
                 mMeta = fingerprintMeta;
                 updateUI();
             }
-
-            Log.d("svsvf", "RC: " + response.code());
         }
 
         @Override

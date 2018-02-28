@@ -23,6 +23,7 @@ public class Fingerprint implements Parcelable {
     private long scanLength;                        // Length of the scan in ms
     private long scanStart;                         // Timestamps of scan start
     private long  scanEnd;                          // Timestamps of scan end
+    private long updateTime;                        // Sync gateway update time
     private String level;
     private long locationDbId;
     private LocationEntry locationEntry;            // Location of fingerprint to enable multiple buildings and floors
@@ -69,6 +70,7 @@ public class Fingerprint implements Parcelable {
         scanLength = in.readLong();
         scanStart = in.readLong();
         scanEnd = in.readLong();
+        updateTime = in.readLong();
         level = in.readString();
         locationDbId = in.readLong();
         locationEntry = in.readParcelable(LocationEntry.class.getClassLoader());
@@ -90,6 +92,7 @@ public class Fingerprint implements Parcelable {
         dest.writeLong(scanLength);
         dest.writeLong(scanStart);
         dest.writeLong(scanEnd);
+        dest.writeLong(updateTime);
         dest.writeString(level);
         dest.writeLong(locationDbId);
         dest.writeParcelable(locationEntry, flags);
@@ -180,6 +183,14 @@ public class Fingerprint implements Parcelable {
 
     public void setScanEnd(long scanEnd) {
         this.scanEnd = scanEnd;
+    }
+
+    public long getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(long updateTime) {
+        this.updateTime = updateTime;
     }
 
     public String getLevel() {
@@ -286,6 +297,7 @@ public class Fingerprint implements Parcelable {
                 Objects.equals(this.scanLength, fingerprint.scanLength) &&
                 Objects.equals(this.scanStart, fingerprint.scanStart) &&
                 Objects.equals(this.scanEnd, fingerprint.scanEnd) &&
+                Objects.equals(this.updateTime, fingerprint.updateTime) &&
                 Objects.equals(this.locationEntry, fingerprint.locationEntry) &&
                 Objects.equals(this.deviceEntry, fingerprint.deviceEntry) &&
                 Objects.equals(this.beaconEntries, fingerprint.beaconEntries) &&
@@ -296,7 +308,14 @@ public class Fingerprint implements Parcelable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, scanID, x, y, scanStart, scanEnd, locationEntry, deviceEntry, beaconEntries, wirelessEntries, cellularEntries, sensorEntries);
+        return Objects.hash(id,
+                scanID,
+                x,
+                y,
+                scanStart,
+                scanEnd,
+                updateTime,
+                locationEntry, deviceEntry, beaconEntries, wirelessEntries, cellularEntries, sensorEntries);
     }
 
 

@@ -11,7 +11,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.v4.app.ActivityCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageButton;
@@ -30,6 +29,8 @@ import java.util.List;
 
 import cz.uhk.fim.kikm.wearnavigation.BaseActivity;
 import cz.uhk.fim.kikm.wearnavigation.R;
+import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
+import cz.uhk.fim.kikm.wearnavigation.model.database.DeviceEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.Fingerprint;
 import cz.uhk.fim.kikm.wearnavigation.model.database.LocationEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseDataInterface;
@@ -45,14 +46,16 @@ import cz.uhk.fim.kikm.wearnavigation.model.tasks.ScanProgress;
 public class ScanActivity extends BaseActivity implements
         DatabaseDataInterface<List<Fingerprint>> {
 
+    private DeviceEntry mDevice;
+
     // Map stuff
     private TileView mMap;                      // Map view
     private List<Fingerprint> mFingerprints;    // List of the fingerprints loaded and kept for display here
     private boolean mMarkerClicked = false;     // Disables HotSpot click if marker was clicked
 
     // Sizes of the map
-    private final int MAP_WIDTH = 3000;
-    private final int MAP_HEIGHT = 3000;
+    private static final int MAP_WIDTH = 3000;
+    private static final int MAP_HEIGHT = 3000;
 
     private final Gson gson = new Gson();       // Class to json (and reverse) parser
     private JobScheduler jobScheduler;          // JobScheduler used to run FingerprintScanner
@@ -68,6 +71,11 @@ public class ScanActivity extends BaseActivity implements
         // Load location manager
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         jobScheduler = (JobScheduler) getSystemService( Context.JOB_SCHEDULER_SERVICE );
+
+        Configuration config = Configuration.getConfiguration(this);
+        if(config != null) {
+            mDevice = config.getDevice(this);
+        }
     }
 
     @Override
@@ -137,8 +145,6 @@ public class ScanActivity extends BaseActivity implements
         mMap.getMarkerLayout().removeAllViews();
 
         for (Fingerprint fingerprint : mFingerprints) {
-            Log.d("ScanAt", fingerprint.toString());
-
             // Initiates image view
             ImageView iw = new ImageView(this);
             int[] fingerprintInfo = { fingerprint.getX(), fingerprint.getY() };
@@ -148,6 +154,13 @@ public class ScanActivity extends BaseActivity implements
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(84,120);
             iw.setLayoutParams(lp);                                 // Sets layout to the ImageView
             iw.setImageResource(R.drawable.map_marker_normal);      // Sets image resource to the view
+
+            // TODO: add images for wear devices
+            // Set image resource based this device
+            if(mDevice != null && (mDevice.equals(fingerprint.getDeviceEntry()) ||
+                    mDevice.getTelephone().equals(fingerprint.getDeviceEntry().getTelephone()) )) {
+                iw.setImageResource(R.drawable.map_marker_own);
+            }
 
             // Adds marker to the map
             mMap.addMarker(iw, fingerprint.getX(), fingerprint.getY(), null, null);
@@ -163,7 +176,7 @@ public class ScanActivity extends BaseActivity implements
         public void onMarkerTap(View markerView, int x, int y ) {
             mMarkerClicked = true;           // Set to disable HotSpot click to trigger
 
-            // Adds callout layout to the map
+            // Adds call-out layout to the map
             int[] position = (int[]) markerView.getTag();         // Position of the callout widget
             View markerActions = generateMarkerActionView(position);  // Generates layout of the callout widget
             mMap.addCallout( markerActions, position[0], position[1], -0.5f, -1.0f );
@@ -188,38 +201,27 @@ public class ScanActivity extends BaseActivity implements
 
         // Button to show more information about selected fingerprint.
         ImageButton buttonInfo = calloutView.findViewById(R.id.am_show_info);
-        buttonInfo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText( ScanActivity.this, "Show information fragment with fingerprints at this position.", Toast.LENGTH_SHORT ).show();
-            }
-        });
+        buttonInfo.setOnClickListener(v -> Toast.makeText( ScanActivity.this, "Show information fragment with fingerprints at this position.", Toast.LENGTH_SHORT ).show());
 
         // Button to create new fingerprint.
         ImageButton buttonCreate = calloutView.findViewById(R.id.am_create);
-        buttonCreate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Run a new scan only if there is no other running.
-                if(!isScanRunning()) {
-                    Fingerprint fingerprint = buildFingerprint(posX, posY);     // Build fingerprint to save scan data to
-                    mWearDataSender.initiateScanStart(fingerprint);             // Triggers scan on wear device
-                    runLocalFingerprintScanner(fingerprint);                    // Triggers a fingerprint scanner job on the phone
-                    mMap.getCalloutLayout().removeAllViews();                   // Remove single does not work :(
-                } else {
-                    Toast.makeText(ScanActivity.this, R.string.am_scan_already_running, Toast.LENGTH_SHORT).show();
-                }
+        buttonCreate.setOnClickListener(v -> {
+            // Run a new scan only if there is no other running.
+            if(!isScanRunning()) {
+                Fingerprint fingerprint = buildFingerprint(posX, posY);     // Build fingerprint to save scan data to
+                mWearDataSender.initiateScanStart(fingerprint);             // Triggers scan on wear device
+                runLocalFingerprintScanner(fingerprint);                    // Triggers a fingerprint scanner job on the phone
+                mMap.getCalloutLayout().removeAllViews();                   // Remove single does not work :(
+            } else {
+                Toast.makeText(ScanActivity.this, R.string.am_scan_already_running, Toast.LENGTH_SHORT).show();
             }
         });
 
         // Cancel button in markerView
         ImageButton buttonCancel = calloutView.findViewById(R.id.am_cancel);
-        buttonCancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Remove single does not work :(
-                mMap.getCalloutLayout().removeAllViews();
-            }
+        buttonCancel.setOnClickListener(v -> {
+            // Remove single does not work :(
+            mMap.getCalloutLayout().removeAllViews();
         });
 
         // Disable button if there is a scan running.
@@ -275,28 +277,22 @@ public class ScanActivity extends BaseActivity implements
 
         // Button to create new fingerprint.
         ImageButton buttonCreate = calloutView.findViewById(R.id.amn_create);
-        buttonCreate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(!isScanRunning()) {
-                    Fingerprint fingerprint = buildFingerprint(posX, posY);     // Build fingerprint to save scan data to
-                    mWearDataSender.initiateScanStart(fingerprint);             // Triggers scan on wear device
-                    runLocalFingerprintScanner(fingerprint);                    // Triggers a fingerprint scanner job on the phone
-                    mMap.getCalloutLayout().removeAllViews();                   // Remove single does not work :(
-                } else {
-                    Toast.makeText(ScanActivity.this, R.string.am_scan_already_running, Toast.LENGTH_SHORT).show();
-                }
+        buttonCreate.setOnClickListener(v -> {
+            if(!isScanRunning()) {
+                Fingerprint fingerprint = buildFingerprint(posX, posY);     // Build fingerprint to save scan data to
+                mWearDataSender.initiateScanStart(fingerprint);             // Triggers scan on wear device
+                runLocalFingerprintScanner(fingerprint);                    // Triggers a fingerprint scanner job on the phone
+                mMap.getCalloutLayout().removeAllViews();                   // Remove single does not work :(
+            } else {
+                Toast.makeText(ScanActivity.this, R.string.am_scan_already_running, Toast.LENGTH_SHORT).show();
             }
         });
 
         // Cancel button in markerView
         ImageButton buttonCancel = calloutView.findViewById(R.id.amn_cancel);
-        buttonCancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Remove single does not work :(
-                mMap.getCalloutLayout().removeAllViews();
-            }
+        buttonCancel.setOnClickListener(v -> {
+            // Remove single does not work :(
+            mMap.getCalloutLayout().removeAllViews();
         });
 
         // Disable button if there is a scan running.
@@ -320,8 +316,8 @@ public class ScanActivity extends BaseActivity implements
         // Create fingerprint for scanning
         Fingerprint fingerprint = new Fingerprint(this);
         // TODO: have a setter for building and floor
-        //fingerprint.setLocationEntry(new LocationEntry("J3NP"));
-        fingerprint.setLocationEntry(new LocationEntry("TEST"));
+        fingerprint.setLocationEntry(new LocationEntry("J3NP"));
+        //fingerprint.setLocationEntry(new LocationEntry("TEST"));
         // TODO: Have a parameter for that
         fingerprint.setScanLength(20000);
         fingerprint.setX(posX);

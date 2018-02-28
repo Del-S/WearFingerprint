@@ -30,8 +30,11 @@ public class WirelessEntry implements Parcelable {
     public final static String DB_SCAN_DIFFERENCE = "scanDifference";
 
     // Variables of this class
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Expose(serialize = false)
     private int id;             // Database id (its inner id and it is not exported)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Expose(serialize = false)
     private int fingerprintId;  // If of fingerprint that this entry belongs to
     private String ssid;        // Wifi network public ssid
     private String bssid;       // The address of the access point
@@ -216,6 +219,7 @@ public class WirelessEntry implements Parcelable {
     public String toString() {
         return "class WirelessEntry {\n" +
                 "    dbId: " + toIndentedString(id) + "\n" +
+                "    fingerprintId: " + toIndentedString(fingerprintId) + "\n" +
                 "    ssid: " + toIndentedString(ssid) + "\n" +
                 "    bssid: " + toIndentedString(bssid) + "\n" +
                 "    rssi: " + toIndentedString(rssi) + "\n" +

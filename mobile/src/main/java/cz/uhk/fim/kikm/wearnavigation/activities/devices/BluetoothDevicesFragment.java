@@ -380,7 +380,10 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         // Register for broadcasts for device discovery and binding
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        getActivity().registerReceiver(mReceiver, filter);
+        FragmentActivity activity = getActivity();
+        if(activity != null) {
+            getActivity().registerReceiver(mReceiver, filter);
+        }
     }
 
     /**

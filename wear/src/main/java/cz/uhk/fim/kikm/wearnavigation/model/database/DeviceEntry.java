@@ -1,9 +1,13 @@
 package cz.uhk.fim.kikm.wearnavigation.model.database;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.v4.app.ActivityCompat;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.google.gson.annotations.Expose;
@@ -252,7 +256,19 @@ public class DeviceEntry implements Parcelable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, deviceId, deviceName, model, brand, manufacturer, display, hardware, serialNumber, telephone, deviceFingerprint, os, api );
+        return Objects.hash(type,
+                deviceId,
+                deviceName,
+                model,
+                brand,
+                manufacturer,
+                display,
+                hardware,
+                serialNumber,
+                telephone,
+                deviceFingerprint,
+                os,
+                api );
     }
 
 

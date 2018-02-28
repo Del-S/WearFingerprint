@@ -38,6 +38,7 @@ public class DeviceEntry implements Parcelable {
     public final static String DB_API = "api";
 
     // Variables of this class
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Expose(serialize = false)
     private int dbId;                  // UUID of this device
     private String type;                // Device type (phone, wear, TV ...)
@@ -55,7 +56,7 @@ public class DeviceEntry implements Parcelable {
     @SerializedName("serial")
     @JsonProperty("serial")
     private String serialNumber;        // Gets the hardware serial, if available.
-    private String telephone;
+    private String telephone;           // Used as a device id for synchronization
     @SerializedName("fingerprint")
     @JsonProperty("fingerprint")
     private String deviceFingerprint;   // A string that uniquely identifies this build.
@@ -100,7 +101,7 @@ public class DeviceEntry implements Parcelable {
         display = in.readString();
         hardware = in.readString();
         serialNumber = in.readString();
-        telephone =in.readString();
+        telephone = in.readString();
         deviceFingerprint = in.readString();
         os = in.readString();
         api = in.readInt();
@@ -290,7 +291,19 @@ public class DeviceEntry implements Parcelable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, deviceId, deviceName, model, brand, manufacturer, display, hardware, serialNumber, telephone, deviceFingerprint, os, api );
+        return Objects.hash(type,
+                deviceId,
+                deviceName,
+                model,
+                brand,
+                manufacturer,
+                display,
+                hardware,
+                serialNumber,
+                telephone,
+                deviceFingerprint,
+                os,
+                api );
     }
 
 

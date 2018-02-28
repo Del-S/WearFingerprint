@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothClass;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -51,8 +50,8 @@ public class MainActivity extends WearableActivity implements
     private static final String TAG = "MainActivity";   // Logging tag
 
     // Request permissions parameters
-    private final int REQUEST_ENABLE_BT = 1000;         // Bluetooth check request code
-    private final int REQUEST_ACCESS_LOCATION = 1001;   // Request access to coarse location
+    private static final int REQUEST_ENABLE_BT = 1000;         // Bluetooth check request code
+    private static final int REQUEST_ACCESS_LOCATION = 1001;   // Request access to coarse location
 
     private TextView mIntro;                    // Intro before scan is initiated
     private RelativeLayout mProgressContent;    // Content holding all scanning progress data
@@ -147,13 +146,10 @@ public class MainActivity extends WearableActivity implements
 
     @Override
     public void onMessageReceived(@NonNull MessageEvent event) {
-        Log.d(TAG, "onMessageReceived: " + event);
     }
 
     @Override
     public void onDataChanged(@NonNull DataEventBuffer dataEvents) {
-        Log.d(TAG, "onDataChanged(): " + dataEvents);
-
         // Check all dataEvents if there are some to be handled
         for (DataEvent event : dataEvents) {
             // Working only with changed dataEvents
@@ -173,12 +169,8 @@ public class MainActivity extends WearableActivity implements
                     // Schedule new Fingerprint scan
                     runFingerprintScanner(fingerprint);
                 } else {
-                    Log.d(TAG, "Unrecognized path: " + path);
+                    Log.i(TAG, "Unrecognized path in onDataChanged(): " + path);
                 }
-            } else if (event.getType() == DataEvent.TYPE_DELETED) {
-                Log.d(TAG, "DataItem Deleted: " + event.getDataItem().toString());
-            } else {
-                Log.d(TAG, "Unknown data event Type = " + event.getType());
             }
         }
     }

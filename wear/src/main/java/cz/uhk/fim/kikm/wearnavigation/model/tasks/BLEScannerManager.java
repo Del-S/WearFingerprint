@@ -125,8 +125,6 @@ public class BLEScannerManager implements BeaconConsumer {
      * @return true/false if scan started or not
      */
     public boolean startScan(long duration, boolean priority) {
-        Log.d("savsvsdv", "RN: " + beaconManager.getRangingNotifiers().size());
-
         // If there is a scan running and there is priority scan started we cancel current scan
         if (isScanning() && priority && !mIsPriority) {
             cancelScan();

@@ -43,9 +43,18 @@ import cz.uhk.fim.kikm.wearnavigation.model.database.SensorEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.WirelessEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseCRUD;
 
+/**
+ * Scans for fingerprints and saves the data into the database.
+ * Scans multiple sources via BroadcastReceivers:
+ * - Bluetooth LE such as iBeacons
+ * - Wireless such as access points
+ * - Cellular such as cellular towers
+ * It also sends scan progress with device counts via Broadcast.
+ */
 public class FingerprintScanner extends JobService {
 
     public static final int JOB_ID = 1;     // ID of this job in JobBuilder
+    private static final String TAG = "FingerprintScanner"; // TAG for logging
 
     // Broadcast data Bundle keys
     public static final String ACTION_POST_PROGRESS = "scanProgress";   // Broadcast intent information
@@ -203,6 +212,7 @@ public class FingerprintScanner extends JobService {
             }
 
             // Set time and state
+            Log.i(TAG, "Fingerprint scan started.");
             mStartTime = System.currentTimeMillis();            // Set current time as start time
             mState = TASK_STATE_RUNNING;                        // Change state to running
             mFingerprint.setScanStart(mStartTime);              // Set scan start into fingerprint
@@ -257,7 +267,7 @@ public class FingerprintScanner extends JobService {
             publishProgress();      // Publish progress after scan is done
 
             // Finish this job
-            Log.d("FingerprintScan", "Killing job");
+            Log.i(TAG, "Fingerprint scan complete.");
             FingerprintScanner.this.jobFinished(mJobParams, false);
         }
 

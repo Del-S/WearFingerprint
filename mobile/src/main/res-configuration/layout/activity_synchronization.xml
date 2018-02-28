@@ -1,25 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="cz.uhk.fim.kikm.wearnavigation.activities.configuration.ConfigurationActivity">
 
-    <TextView
-        android:id="@+id/as_synchronization_title"
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/as_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="@string/as_synchronization_title"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:padding="15dp"
-        android:textColor="@color/colorTextPrimaryDark"
         android:background="@drawable/item_background_first"
-        tools:layout_constraintLeft_creator="1"
-        tools:layout_constraintTop_creator="1"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:layout_constraintRight_toRightOf="parent">
+
+        <TextView
+            android:id="@+id/as_synchronization_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/item_background_first"
+            android:padding="15dp"
+            android:text="@string/as_synchronization_title"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="@color/colorTextPrimaryDark"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/as_synchronization_meta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/ic_sync_data_30dp"
+            android:contentDescription="@string/as_synch_img_description"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </android.support.constraint.ConstraintLayout>
 
     <android.support.constraint.ConstraintLayout
         android:id="@+id/as_constraint_meta"
@@ -27,7 +48,7 @@
         android:layout_height="wrap_content"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/as_synchronization_title">
+        app:layout_constraintTop_toBottomOf="@id/as_title">
 
         <android.support.constraint.ConstraintLayout
             android:id="@+id/as_constraint_new_download"
