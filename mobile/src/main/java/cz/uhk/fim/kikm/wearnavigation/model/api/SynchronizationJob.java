@@ -3,6 +3,7 @@ package cz.uhk.fim.kikm.wearnavigation.model.api;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -136,6 +137,8 @@ public class SynchronizationJob extends JobService {
         return false;
     }
 
+    // TODO: change to the async task/thread/handler
+
     /**
      * Callback from Call for Fingerprint meta data.
      * Handles response from the API and has three cases:
@@ -149,6 +152,11 @@ public class SynchronizationJob extends JobService {
             // Get the data and check if there is any
             FingerprintMeta fingerprintMeta = response.body();
             if (fingerprintMeta != null) {
+                // Save current fingerprint meta into the configuration and sync time
+                mConfiguration.setMeta(fingerprintMeta);
+                mConfiguration.setLastSynchronizationTime(System.currentTimeMillis());
+
+                // Run state specific actions
                 switch (mState) {
                     case JOB_STATE_PREPARING:
                         // Load meta data and variables from it variables
@@ -161,10 +169,6 @@ public class SynchronizationJob extends JobService {
                         runDownloadUpload();
                         break;
                     case JOB_STATE_FINISHING:
-                        // Save new meta data into configuration
-                        mConfiguration.setMeta(fingerprintMeta);
-                        mConfiguration.setLastSynchronizationTime(System.currentTimeMillis());
-
                         // Finish the job
                         mState = JOB_STATE_FINISHED;
                         finishSynchronization();
@@ -390,6 +394,12 @@ public class SynchronizationJob extends JobService {
             mMetaRetry--;
             mCallMeta.clone().enqueue(mMetaCallback);
         } else {
+            // Save download count to not reset the view
+            if(mCurrentMeta != null && mDownloadCount > 0) {
+                mCurrentMeta.setCountNew(mDownloadCount);
+                mConfiguration.setMeta(mCurrentMeta);
+            }
+
             // Finish the synchronization job.
             mState = JOB_STATE_FAILED;
             finishSynchronization();

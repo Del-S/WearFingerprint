@@ -161,6 +161,26 @@ public class WirelessEntry implements Parcelable {
         this.channel = channel;
     }
 
+    /**
+     * Parse frequency into channel number.
+     * Found here: https://stackoverflow.com/questions/5485759/how-to-determine-a-wifi-channel-number-used-by-wifi-ap-network
+     *
+     * @param frequency to parse
+     */
+    public void setChannelByFrequency(int frequency) {
+        if (frequency == 2484) {
+            this.channel = 14;
+            return;
+        }
+
+        if (frequency < 2484) {
+            this.channel = (frequency - 2407) / 5;
+            return;
+        }
+
+        this.channel = (frequency / 5) - 1000;
+    }
+
     public float getDistance() {
         return distance;
     }

@@ -9,7 +9,7 @@ import com.google.gson.annotations.SerializedName;
 
 public class FingerprintMeta implements Parcelable {
     @SerializedName("countNew")
-    private int countNew = -1;
+    private long countNew = -1;
     @SerializedName("lastInsert")
     private long lastInsert = -1;
 
@@ -31,13 +31,13 @@ public class FingerprintMeta implements Parcelable {
     };
 
     private FingerprintMeta(Parcel in) {
-        countNew = in.readInt();
+        countNew = in.readLong();
         lastInsert = in.readLong();
     }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(countNew);
+        dest.writeLong(countNew);
         dest.writeLong(lastInsert);
     }
 
@@ -48,11 +48,11 @@ public class FingerprintMeta implements Parcelable {
 
     public FingerprintMeta() {}
 
-    public int getCountNew() {
+    public long getCountNew() {
     return countNew;
     }
 
-    public void setCountNew(int countNew) {
+    public void setCountNew(long countNew) {
     this.countNew = countNew;
     }
 

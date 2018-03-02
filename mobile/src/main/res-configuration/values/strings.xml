@@ -8,6 +8,6 @@
     <string name="as_new_upload_title">Not uploaded Fingerprints</string>
     <string name="as_new_upload_description">Fingerprints on this device that were not uploaded to the server.</string>
 
-    <string name="as_synch_img_description">Reload meta data</string>
+    <string name="as_synch_img_description">Run synchronization</string>
 
 </resources>

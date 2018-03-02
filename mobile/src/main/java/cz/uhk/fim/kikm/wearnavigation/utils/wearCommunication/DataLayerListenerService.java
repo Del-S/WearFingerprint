@@ -1,7 +1,6 @@
 package cz.uhk.fim.kikm.wearnavigation.utils.wearCommunication;
 
 import android.os.Handler;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.wearable.DataEvent;
@@ -16,7 +15,6 @@ import cz.uhk.fim.kikm.wearnavigation.model.database.DeviceEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.Fingerprint;
 import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseCRUD;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
-
 
 /**
  * Listens to DataItems and Messages from the local node.

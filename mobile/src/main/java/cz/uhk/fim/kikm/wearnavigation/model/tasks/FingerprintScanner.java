@@ -457,15 +457,11 @@ public class FingerprintScanner extends JobService {
                 for (ScanResult scanResult : mWifiManager.getScanResults()) {
                     // Create new WirelessEntry and set its data
                     WirelessEntry wirelessEntry = new WirelessEntry();
-                    wirelessEntry.setSsid(scanResult.SSID);                 // Set wireless SSID
-                    wirelessEntry.setBssid(scanResult.BSSID);               // Set wireless BSSID
-                    wirelessEntry.setRssi(scanResult.level);                // Set wireless RSSI
-                    wirelessEntry.setFrequency(scanResult.frequency);       // Set wireless Frequency
-                    // Set wireless channel width (api 23+)
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        wirelessEntry.setChannel(scanResult.channelWidth);
-                    }
-
+                    wirelessEntry.setSsid(scanResult.SSID);                   // Set wireless SSID
+                    wirelessEntry.setBssid(scanResult.BSSID);                 // Set wireless BSSID
+                    wirelessEntry.setRssi(scanResult.level);                  // Set wireless RSSI
+                    wirelessEntry.setFrequency(scanResult.frequency);         // Set wireless Frequency
+                    wirelessEntry.setChannelByFrequency(scanResult.frequency);// Parses frequency into channel number
                     // Calculated distance and times
                     wirelessEntry.setDistance((float) (Math.pow(10.0d, (27.55d - 40d * Math.log10(scanResult.frequency) + 6.7d - scanResult.level) / 20.0d) * 1000.0));
                     wirelessEntry.setTimestamp(currentMillis);      // Current timestamp set to entry

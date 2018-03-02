@@ -12,6 +12,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.util.Log;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,8 +46,9 @@ public class ConfigurationActivity extends BaseActivity {
     private BroadcastReceiver mJobBroadcast;    // Receives information from Synchronization job
 
     private TextView mNewDownload, mNewUpload;
-    private ConstraintLayout mLayoutDownload, mLayoutUpload;
-    private ImageButton mRealoadMeta;
+    private ImageButton mSynchronizationButton;
+    private ConstraintLayout mSynchronization;
+    private Animation mRotateAnimation;
 
     private long mDownloadCount = 0;
     private long mUploadCount = 0;
@@ -62,21 +65,19 @@ public class ConfigurationActivity extends BaseActivity {
         mDatabase = new DatabaseCRUD(this);
         mJobBroadcast = new SynchronizationJobReceiver();
 
+        // Synchronization instances (api and jobScheduler)
         Retrofit retrofit = ((WearApplication) getApplicationContext()).getRetrofit();
         mFingerprintApi = retrofit.create(ApiConnection.class);
-
         jobScheduler = (JobScheduler) getSystemService( Context.JOB_SCHEDULER_SERVICE );
-        // Todo: remove this it is a test
-        if(jobScheduler != null) {
-            jobScheduler.cancel(SynchronizationJob.JOB_ID);
-        }
 
         // Initiate views
         mNewDownload = findViewById(R.id.as_new_download);
         mNewUpload = findViewById(R.id.as_new_upload);
-        mLayoutDownload = findViewById(R.id.as_constraint_new_download);
-        mLayoutUpload = findViewById(R.id.as_constraint_new_upload);
-        mRealoadMeta = findViewById(R.id.as_synchronization_meta);
+        mSynchronization = findViewById(R.id.as_constraint_synchronization);
+        mSynchronizationButton = findViewById(R.id.as_synchronization);
+        // Load animation
+        mRotateAnimation = AnimationUtils.loadAnimation(this, R.anim.rotation_infinite_counter_clock);
+        // Initiate actions for views
         initiateViewActions();
 
         updateUI();
@@ -88,6 +89,11 @@ public class ConfigurationActivity extends BaseActivity {
         // Run synchronization with the API
         if(checkMetaRefresh()) {
             runMetaRefresh();
+        }
+
+        // Add animation for sync button if it's running
+        if(isSynchronizationRunning()) {
+            mSynchronizationButton.setAnimation(mRotateAnimation);
         }
 
         // Register synchronization receiver
@@ -133,7 +139,7 @@ public class ConfigurationActivity extends BaseActivity {
     }
 
     private void initiateViewActions() {
-        mLayoutDownload.setOnClickListener(v -> {
+        mSynchronization.setOnClickListener(v -> {
             if(!isSynchronizationRunning()) {
                 // Building job to run
                 JobInfo.Builder jobBuilder = new JobInfo.Builder(SynchronizationJob.JOB_ID,
@@ -142,10 +148,11 @@ public class ConfigurationActivity extends BaseActivity {
                 jobBuilder.setPersisted(false);                 // Set whether or not to persist this job across device reboots.
 
                 jobScheduler.schedule(jobBuilder.build());      // Schedule job to run
+
+                // Start animation of synchronization button
+                mSynchronizationButton.startAnimation(mRotateAnimation);
             }
         });
-
-        mRealoadMeta.setOnClickListener(v -> runMetaRefresh());
     }
 
     /**
@@ -249,6 +256,9 @@ public class ConfigurationActivity extends BaseActivity {
                             R.string.ca_synchronization_failed,
                             Toast.LENGTH_SHORT).show();
                 }
+
+                // Remove animation for sync button
+                mSynchronizationButton.clearAnimation();
             } else if(SynchronizationJob.ACTION_JOB_UPDATE.equals(action)) {
                 // Load counts from the intent
                 mDownloadCount = intent.getLongExtra(SynchronizationJob.ACTION_DATA_DOWNLOAD,

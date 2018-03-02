@@ -8,10 +8,11 @@
     tools:context="cz.uhk.fim.kikm.wearnavigation.activities.configuration.ConfigurationActivity">
 
     <android.support.constraint.ConstraintLayout
-        android:id="@+id/as_title"
+        android:id="@+id/as_constraint_synchronization"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@drawable/item_background_first"
+        android:foreground="?attr/selectableItemBackground"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintRight_toRightOf="parent">
@@ -30,10 +31,11 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
-            android:id="@+id/as_synchronization_meta"
+            android:id="@+id/as_synchronization"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
+            android:layout_marginEnd="5dp"
+            android:padding="5dp"
             android:background="@drawable/ic_sync_data_30dp"
             android:contentDescription="@string/as_synch_img_description"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -48,14 +50,13 @@
         android:layout_height="wrap_content"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/as_title">
+        app:layout_constraintTop_toBottomOf="@id/as_constraint_synchronization">
 
         <android.support.constraint.ConstraintLayout
             android:id="@+id/as_constraint_new_download"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:padding="10dp"
-            android:foreground="?attr/selectableItemBackground"
             android:background="@drawable/item_background"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -110,7 +111,6 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:padding="10dp"
-            android:foreground="?attr/selectableItemBackground"
             android:background="@drawable/item_background"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
