@@ -11,7 +11,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.v4.app.ActivityCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageButton;
@@ -318,8 +317,8 @@ public class ScanActivity extends BaseActivity implements
         // Create fingerprint for scanning
         Fingerprint fingerprint = new Fingerprint(this);
         // TODO: have a setter for building and floor
-        //fingerprint.setLocationEntry(new LocationEntry("J3NP"));
-        fingerprint.setLocationEntry(new LocationEntry("TEST"));
+        fingerprint.setLocationEntry(new LocationEntry("J3NP"));
+        //fingerprint.setLocationEntry(new LocationEntry("TEST"));
         // TODO: Have a parameter for that
         fingerprint.setScanLength(20000);
         fingerprint.setX(posX);

@@ -202,6 +202,12 @@ public class FingerprintScanner extends JobService {
                 connectionTry--;
             }
 
+            // Set time and state
+            Log.i(TAG, "Fingerprint scan started.");
+            mStartTime = System.currentTimeMillis();            // Set current time as start time
+            mState = TASK_STATE_RUNNING;                        // Change state to running
+            mFingerprint.setScanStart(mStartTime);              // Set scan start into fingerprint
+
             // Starting scans
             if (!mBLEScannerManager.isBound()) return null;  // Service is not bound then we finish the scan
             if (!mBLEScannerManager.startScan(mScanLength, true)) return null;   // Try to start BLE scan
@@ -210,12 +216,6 @@ public class FingerprintScanner extends JobService {
             for (Sensor sensor : sensors) {
                 mSensorManager.registerListener(mSensorScanner, sensor, SensorManager.SENSOR_DELAY_NORMAL);
             }
-
-            // Set time and state
-            Log.i(TAG, "Fingerprint scan started.");
-            mStartTime = System.currentTimeMillis();            // Set current time as start time
-            mState = TASK_STATE_RUNNING;                        // Change state to running
-            mFingerprint.setScanStart(mStartTime);              // Set scan start into fingerprint
 
             // Handles Thread sleeps so the job would wait until the scanTime is up
             // Also publishes the progress and start wireless scans in specific intervals
@@ -538,12 +538,12 @@ public class FingerprintScanner extends JobService {
 
                 // Calculate time variables
                 long timestamp = System.currentTimeMillis();
-                int currentScanTime = (int) (timestamp - mStartTime);
+                long currentScanTime = timestamp - mStartTime;
                 int addedScanTime = sensorTimer.get(sensorType);
 
                 if (addedScanTime == 0 || (currentScanTime - addedScanTime) >= mSensorScanDelay) {
                     // This ensured that new sensor record will be handled every 5seconds
-                    sensorTimer.put(sensorType, currentScanTime);
+                    sensorTimer.put(sensorType, (int) currentScanTime);
 
                     // Create new SensorEntry and set its data
                     List<SensorEntry> sensorEntries = mFingerprint.getSensorEntries();

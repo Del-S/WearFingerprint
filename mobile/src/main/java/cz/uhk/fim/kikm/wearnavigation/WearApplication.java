@@ -10,6 +10,7 @@ import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
@@ -49,16 +50,19 @@ public class WearApplication extends Application {
         jobBuilder.setOverrideDeadline(1000);           // Set deadline which is the maximum scheduling latency.
         jobBuilder.setPersisted(false);                 // Set whether or not to persist this job across device reboots.
 
+        // Retrofit client with specific time limits
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
                 .connectTimeout(90, TimeUnit.MILLISECONDS)
                 .readTimeout(60, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)
                 .build();
 
+        // Retrofit instance with background thread executor
         retrofit = new Retrofit.Builder()
                 .baseUrl(Configuration.API_URL)
                 .client(okHttpClient)
                 .addConverterFactory(JacksonConverterFactory.create())
+                .callbackExecutor(Executors.newSingleThreadExecutor())
                 .build();
     }
 

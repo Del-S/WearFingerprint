@@ -97,9 +97,7 @@ public class ConfigurationActivity extends BaseActivity {
         }
 
         // Register synchronization receiver
-        IntentFilter intentFilter = new IntentFilter(SynchronizationJob.ACTION_JOB_DONE);
-        intentFilter.addAction(SynchronizationJob.ACTION_JOB_UPDATE);
-        registerReceiver(mJobBroadcast, intentFilter);
+        registerReceiver(mJobBroadcast, new IntentFilter(SynchronizationJob.ACTION_SYNC_JOB));
     }
 
     @Override
@@ -239,43 +237,42 @@ public class ConfigurationActivity extends BaseActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if(SynchronizationJob.ACTION_JOB_DONE.equals(action)) {
-                updateUI();
-
+            if(SynchronizationJob.ACTION_SYNC_JOB.equals(action)) {
                 // Load status from intent
                 int status = intent.getIntExtra(SynchronizationJob.ACTION_DATA_STATE,
                         SynchronizationJob.JOB_STATE_FAILED);
+
+                // Load download count from intent
+                if(intent.hasExtra(SynchronizationJob.ACTION_DATA_DOWNLOAD)) {
+                    mDownloadCount = intent.getLongExtra(SynchronizationJob.ACTION_DATA_DOWNLOAD,
+                            mDownloadCount);
+                    mDownloadCount = (mDownloadCount < 0) ? 0 : mDownloadCount;
+                }
+
+                // Load upload count from intent
+                if(intent.hasExtra(SynchronizationJob.ACTION_DATA_UPLOAD)) {
+                    mUploadCount = intent.getLongExtra(SynchronizationJob.ACTION_DATA_UPLOAD,
+                            mUploadCount);
+                    mUploadCount = (mUploadCount < 0) ? 0 : mUploadCount;
+                }
+
+                // Update UI and views
+                updateViews();
 
                 // Print out toast message if job finished or failed
                 if(status == SynchronizationJob.JOB_STATE_FINISHED) {
                     Toast.makeText(ConfigurationActivity.this,
                             R.string.ca_synchronization_successful,
                             Toast.LENGTH_SHORT).show();
-                } else {
+                    // Remove animation for sync button
+                    mSynchronizationButton.clearAnimation();
+                } else if (status == SynchronizationJob.JOB_STATE_FAILED) {
                     Toast.makeText(ConfigurationActivity.this,
                             R.string.ca_synchronization_failed,
                             Toast.LENGTH_SHORT).show();
+                    // Remove animation for sync button
+                    mSynchronizationButton.clearAnimation();
                 }
-
-                // Remove animation for sync button
-                mSynchronizationButton.clearAnimation();
-            } else if(SynchronizationJob.ACTION_JOB_UPDATE.equals(action)) {
-                // Load counts from the intent
-                mDownloadCount = intent.getLongExtra(SynchronizationJob.ACTION_DATA_DOWNLOAD,
-                        mDownloadCount);
-                mUploadCount = intent.getLongExtra(SynchronizationJob.ACTION_DATA_UPLOAD,
-                        mUploadCount);
-
-                // Set min for download count
-                if(mDownloadCount < 0)
-                    mDownloadCount = 0;
-
-                // Set min for upload count
-                if(mUploadCount < 0)
-                    mUploadCount = 0;
-
-                // Update view numbers in the activity
-                updateViews();
             }
         }
     }
