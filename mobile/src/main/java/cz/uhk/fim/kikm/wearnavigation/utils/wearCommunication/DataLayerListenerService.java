@@ -72,8 +72,9 @@ public class DataLayerListenerService extends WearableListenerService {
                             mDatabase.saveFingerprint(fingerprint, null, true);
                             // TODO: Modify
                             // Create a handler to post messages to the main thread
+                            int wirelessCount = fingerprint.getWirelessEntries().size();
                             Handler mHandler = new Handler(getMainLooper());
-                            mHandler.post(() -> Toast.makeText(getApplicationContext(), "WearFingerprint was saved.", Toast.LENGTH_SHORT).show());
+                            mHandler.post(() -> Toast.makeText(getApplicationContext(), "WearFingerprint was saved. W:"+wirelessCount, Toast.LENGTH_SHORT).show());
                         }
                     }
                 }

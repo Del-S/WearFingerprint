@@ -10,6 +10,7 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.provider.ContactsContract;
 import android.support.v4.app.ActivityCompat;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,6 +34,7 @@ import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
 import cz.uhk.fim.kikm.wearnavigation.model.database.DeviceEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.Fingerprint;
 import cz.uhk.fim.kikm.wearnavigation.model.database.LocationEntry;
+import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseCRUD;
 import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseDataInterface;
 import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseDataLoader;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
@@ -60,6 +62,7 @@ public class ScanActivity extends BaseActivity implements
     private final Gson gson = new Gson();       // Class to json (and reverse) parser
     private JobScheduler jobScheduler;          // JobScheduler used to run FingerprintScanner
     private LocationManager locationManager;    // Location manager to get location from the network
+    private DatabaseCRUD mDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +74,7 @@ public class ScanActivity extends BaseActivity implements
         // Load location manager
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         jobScheduler = (JobScheduler) getSystemService( Context.JOB_SCHEDULER_SERVICE );
+        mDatabase = new DatabaseCRUD(this);
 
         Configuration config = Configuration.getConfiguration(this);
         if(config != null) {
@@ -202,7 +206,13 @@ public class ScanActivity extends BaseActivity implements
 
         // Button to show more information about selected fingerprint.
         ImageButton buttonInfo = calloutView.findViewById(R.id.am_show_info);
-        buttonInfo.setOnClickListener(v -> Toast.makeText( ScanActivity.this, "Show information fragment with fingerprints at this position.", Toast.LENGTH_SHORT ).show());
+        buttonInfo.setOnClickListener(v -> {
+            // TODO: This is only a test
+            mDatabase.deleteNewestFingerprintAtPosition(posX, posY);
+            updateUI();
+            mMap.getCalloutLayout().removeAllViews();                   // Remove single does not work :(
+            Toast.makeText(ScanActivity.this, "Deleted last fingerprint", Toast.LENGTH_SHORT).show();
+        });
 
         // Button to create new fingerprint.
         ImageButton buttonCreate = calloutView.findViewById(R.id.am_create);
@@ -320,7 +330,7 @@ public class ScanActivity extends BaseActivity implements
         fingerprint.setLocationEntry(new LocationEntry("J3NP"));
         //fingerprint.setLocationEntry(new LocationEntry("TEST"));
         // TODO: Have a parameter for that
-        fingerprint.setScanLength(20000);
+        fingerprint.setScanLength(30000);
         fingerprint.setX(posX);
         fingerprint.setY(posY);
 

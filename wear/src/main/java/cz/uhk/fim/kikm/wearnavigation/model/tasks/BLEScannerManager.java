@@ -264,8 +264,8 @@ public class BLEScannerManager implements BeaconConsumer {
         else beaconManager.bind(this);
     }
 
-    public void setScanPeriods(long foregroundPeriod, long backgroundPeriod) {
+    public void setScanPeriods(long foregroundPeriod, long foregroundWaitPeriod) {
         beaconManager.setForegroundScanPeriod(foregroundPeriod);
-        beaconManager.setBackgroundScanPeriod(backgroundPeriod);
+        beaconManager.setForegroundBetweenScanPeriod(foregroundWaitPeriod);
     }
 }

@@ -930,9 +930,18 @@ public class DatabaseCRUD {
      */
     public void deleteFingerprint(Fingerprint fingerprint) {
         String fingerprintId = String.valueOf( fingerprint.getDbId() );
+        deleteFingerprintById(fingerprintId);
+    }
+
+    /**
+     * Handles deletion of fingerprint based on ID.
+     *
+     * @param fingerprintId to delete
+     */
+    private void deleteFingerprintById(String fingerprintId) {
         if(!fingerprintId.isEmpty()) {
-            SQLiteDatabase db = dbHelper.getWritableDatabase();
             // Delete Fingerprint data only from specific tables (ignore location and device)
+            SQLiteDatabase db = dbHelper.getWritableDatabase();
             db.delete(BeaconEntry.DB_TABLE, BeaconEntry.DB_FINGERPRINT_DB_ID + "= ?", new String[]{fingerprintId});
             db.delete(WirelessEntry.DB_TABLE, WirelessEntry.DB_FINGERPRINT_DB_ID + "= ?", new String[]{fingerprintId});
             db.delete(CellularEntry.DB_TABLE, CellularEntry.DB_FINGERPRINT_DB_ID + "= ?", new String[]{fingerprintId});
@@ -940,6 +949,42 @@ public class DatabaseCRUD {
             db.delete(Fingerprint.DB_TABLE, Fingerprint.DB_ID + "= ?", new String[]{fingerprintId});
             db.close(); // Closing database connection
         }
+    }
+
+    /**
+     * Delete newest fingerprint on a specific position.
+     * NOTE: This is a quick fix to saving failed fingerprints.
+     *
+     * @param posX of fingerprint
+     * @param posY of fingerprint
+     */
+    public void deleteNewestFingerprintAtPosition(int posX, int posY) {
+        // Select fingerprints id's of last added fingerprints
+        // They are connected by scan id to delete the group
+        String rawQuery = "SELECT f." + Fingerprint.DB_ID
+                + " FROM " + Fingerprint.DB_TABLE + " f  INNER JOIN "
+                    + "(SELECT " + Fingerprint.DB_FINGERPRINT_SCAN_ID
+                    + " FROM " + Fingerprint.DB_TABLE
+                    + " WHERE " + Fingerprint.DB_X + " = ? AND " + Fingerprint.DB_Y + " = ?"
+                    + " ORDER BY " + Fingerprint.DB_SCAN_START + " DESC"
+                    + " LIMIT 1) ff"
+                + " ON f." + Fingerprint.DB_FINGERPRINT_SCAN_ID + " = ff." + Fingerprint.DB_FINGERPRINT_SCAN_ID;
+        String[] parameters = { String.valueOf(posX), String.valueOf(posY) };
+
+        //Open connection to read only
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        // Initiate cursor and start deletion of fingerprints
+        Cursor cursor = db.rawQuery(rawQuery, parameters);
+        if (cursor.moveToFirst()) {
+            do {
+                Log.d("svsvssv", cursor.getString(cursor.getColumnIndex(Fingerprint.DB_ID)));
+                deleteFingerprintById(cursor.getString(cursor.getColumnIndex(Fingerprint.DB_ID)));
+            } while (cursor.moveToNext());
+        }
+
+        // Close cursor and db
+        cursor.close();
+        db.close();
     }
 
     /**

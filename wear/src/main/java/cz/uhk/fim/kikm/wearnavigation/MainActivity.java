@@ -11,6 +11,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.PersistableBundle;
@@ -51,7 +52,7 @@ public class MainActivity extends WearableActivity implements
 
     // Request permissions parameters
     private static final int REQUEST_ENABLE_BT = 1000;         // Bluetooth check request code
-    private static final int REQUEST_ACCESS_LOCATION = 1001;   // Request access to coarse location
+    private static final int REQUEST_PERMISSIONS = 1001;   // Request access to coarse location
 
     private TextView mIntro;                    // Intro before scan is initiated
     private RelativeLayout mProgressContent;    // Content holding all scanning progress data
@@ -101,7 +102,14 @@ public class MainActivity extends WearableActivity implements
         mProgressAnimation = new ProgressBarAnimation(mProgressBar, 1000);
 
         checkBluetooth();           // Bluetooth check
-        checkLocationPermissions(); // Location permission check
+        checkPermissions(); // Location permission check
+
+        // Start dummy wifi scan
+        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        if(wifiManager != null) {
+            wifiManager.setWifiEnabled(true);
+            wifiManager.startScan();                        // Start wifi scan
+        }
     }
 
     @Override
@@ -204,8 +212,10 @@ public class MainActivity extends WearableActivity implements
                 ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            lastKnownLocation[0] = location.getLatitude();
-            lastKnownLocation[1] = location.getLongitude();
+            if(location != null) {
+                lastKnownLocation[0] = location.getLatitude();
+                lastKnownLocation[1] = location.getLongitude();
+            }
         }
 
         // Create instance of scanner and start it with execute
@@ -336,14 +346,15 @@ public class MainActivity extends WearableActivity implements
     }
 
     /**
-     * Asks for permission to access Coarse and Fine location
+     * Asks for permission to access location and telephone state
      */
-    protected void checkLocationPermissions() {
+    protected void checkPermissions() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
-                    REQUEST_ACCESS_LOCATION);
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.READ_PHONE_STATE},
+                    REQUEST_PERMISSIONS);
         }
     }
 

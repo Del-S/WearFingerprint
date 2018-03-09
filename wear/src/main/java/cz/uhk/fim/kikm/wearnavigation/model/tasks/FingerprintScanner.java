@@ -19,14 +19,15 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.telephony.CellInfo;
+import android.telephony.NeighboringCellInfo;
 import android.telephony.PhoneStateListener;
+import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
+import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
 import android.util.SparseIntArray;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.wearable.DataItem;
 import com.google.android.gms.wearable.DataMap;
@@ -49,9 +50,18 @@ import cz.uhk.fim.kikm.wearnavigation.model.database.SensorEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.WirelessEntry;
 import cz.uhk.fim.kikm.wearnavigation.utils.ParcelableUtils;
 
+/**
+ * Scans for fingerprints and saves the data into the database.
+ * Scans multiple sources via BroadcastReceivers:
+ * - Bluetooth LE such as iBeacons
+ * - Wireless such as access points
+ * - Cellular such as cellular towers
+ * It also sends scan progress with device counts via Broadcast.
+ */
 public class FingerprintScanner extends JobService {
 
     public static final int JOB_ID = 1;     // ID of this job in JobBuilder
+    private static final String TAG = "FingerprintScanner"; // TAG for logging
 
     // Broadcast data Bundle keys
     public static final String ACTION_POST_PROGRESS = "scanProgress";   // Broadcast intent information
@@ -104,7 +114,7 @@ public class FingerprintScanner extends JobService {
     private class ScannerTask extends AsyncTask<Void, Void, Fingerprint> {
 
         // Global scan variables
-        private long mScanLength = 60000;            // Length of the current scan
+        private long mScanLength = 30000;            // Length of the current scan
         private long mStartTime;                     // Timestamp when scan was started
         private Fingerprint mFingerprint;            // Fingerprint data that will be saved into the database
         private ScanProgress mScanProgress;
@@ -120,6 +130,7 @@ public class FingerprintScanner extends JobService {
         // Cellular scanner variables
         private TelephonyManager mCellularManager;   // Manager to get cellular data from
         private CellularScanner mCellularScanner;    // Scanner to parse data into CellularEntries
+        private int currentCellularRSSI = 0;         // Cellular RSSI for GsmCellLocation
         private double[] mLastKnowLocation = {0, 0}; // Last known location to calculate distance between Cell tower and device
 
         // Sensor scanner variables
@@ -132,7 +143,7 @@ public class FingerprintScanner extends JobService {
         private int mThreadUpdateDelay = 1000;          // This job will post scan progress every 1 seconds
         // Delays for Wireless and Sensor scans
         private final int mSensorScanDelay = 5000;     // Every sensor will be added every 5second
-        private final int mWirelessDelay = 4000;       // Wireless time delay in ms (4s = 4000ms). Connected to mThreadUpdateDelay.
+        private final int mWirelessDelay = 5000;       // Wireless time delay in ms (5s = 5000ms). Connected to mThreadUpdateDelay.
 
         ScannerTask(Fingerprint fingerprint, long scanLength, double[] location) {
             Context context = getApplicationContext();      // Load application context to bind listeners, get managers, etc.
@@ -143,7 +154,7 @@ public class FingerprintScanner extends JobService {
 
             // Initiate bluetooth scanner
             mBLEScannerManager = BLEScannerManager.getInstance(context);
-            mBLEScannerManager.setScanPeriods(1000L, 2000L);   // Change scan periods
+            mBLEScannerManager.setScanPeriods(200L, 0L);   // Change scan periods
             mBeaconScanner = new BeaconScanner();
             context.registerReceiver(mBeaconScanner, new IntentFilter(BLEScannerManager.ACTION_BEACONS_FOUND));    // Register receiver to the context to listen for beacon data
 
@@ -156,6 +167,7 @@ public class FingerprintScanner extends JobService {
             mLastKnowLocation = location;               // Set last known location
             mCellularManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
             mCellularScanner = new CellularScanner();   // Create instance of cellular scanner
+            mCellularManager.listen(mCellularScanner, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);  // Update current RSSI for GsmCellLocation
 
             // Initiate sensor manager and scanner
             mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
@@ -196,6 +208,7 @@ public class FingerprintScanner extends JobService {
             }
 
             // Set time and state
+            Log.i(TAG, "Fingerprint scan started.");
             mStartTime = System.currentTimeMillis();            // Set current time as start time
             mState = TASK_STATE_RUNNING;                        // Change state to running
             mFingerprint.setScanStart(mStartTime);              // Set scan start into fingerprint
@@ -203,6 +216,7 @@ public class FingerprintScanner extends JobService {
             // Starting scans
             if (!mBLEScannerManager.isBound()) return null;  // Service is not bound then we finish the scan
             if (!mBLEScannerManager.startScan(mScanLength, true)) return null;   // Try to start BLE scan
+            mWifiManager.setWifiEnabled(true);
             mWifiManager.startScan();                        // Start wifi scan
             // Bind sensor scanner to start sensor scans
             for (Sensor sensor : sensors) {
@@ -258,7 +272,7 @@ public class FingerprintScanner extends JobService {
             context.unregisterReceiver(mBeaconScanner);         // Unregister beacon receiver
             context.unregisterReceiver(mWifiScanner);           // Unregister wifi receiver
             mSensorManager.unregisterListener(mSensorScanner);  // Unregister scanner receiver
-            mBLEScannerManager.handleDestroy();                        // Destroy ble scanner
+            mBLEScannerManager.handleDestroy();                 // Destroy ble scanner
 
             // Finish this job
             FingerprintScanner.this.jobFinished(mJobParams, false);
@@ -355,9 +369,7 @@ public class FingerprintScanner extends JobService {
 
             Task<DataItem> dataItemTask = Wearable.getDataClient(getApplicationContext()).putDataItem(request);
 
-            dataItemTask.addOnFailureListener(e -> {
-                Toast.makeText(FingerprintScanner.this, R.string.am_scan_data_send_error, Toast.LENGTH_SHORT).show();
-            });
+            dataItemTask.addOnFailureListener(e -> Toast.makeText(FingerprintScanner.this, R.string.am_scan_data_send_error, Toast.LENGTH_SHORT).show());
         }
 
         /**
@@ -472,10 +484,10 @@ public class FingerprintScanner extends JobService {
                 for (ScanResult scanResult : mWifiManager.getScanResults()) {
                     // Create new WirelessEntry and set its data
                     WirelessEntry wirelessEntry = new WirelessEntry();
-                    wirelessEntry.setSsid(scanResult.SSID);                 // Set wireless SSID
-                    wirelessEntry.setBssid(scanResult.BSSID);               // Set wireless BSSID
-                    wirelessEntry.setRssi(scanResult.level);                // Set wireless RSSI
-                    wirelessEntry.setFrequency(scanResult.frequency);       // Set wireless Frequency
+                    wirelessEntry.setSsid(scanResult.SSID);                   // Set wireless SSID
+                    wirelessEntry.setBssid(scanResult.BSSID);                 // Set wireless BSSID
+                    wirelessEntry.setRssi(scanResult.level);                  // Set wireless RSSI
+                    wirelessEntry.setFrequency(scanResult.frequency);         // Set wireless Frequency
                     wirelessEntry.setChannelByFrequency(scanResult.frequency);// Parses frequency into channel number
                     // Calculated distance and times
                     wirelessEntry.setDistance((float) (Math.pow(10.0d, (27.55d - 40d * Math.log10(scanResult.frequency) + 6.7d - scanResult.level) / 20.0d) * 1000.0));
@@ -645,6 +657,30 @@ public class FingerprintScanner extends JobService {
                             // Add entry to the list
                             cellularEntries.add(cellularEntry);
                         }
+                    } else {
+                        if (mCellularManager.getNeighboringCellInfo().size() >= 1) {
+                            for (NeighboringCellInfo cellInfo : mCellularManager.getNeighboringCellInfo()) {
+                                CellularEntry cellularEntry = new CellularEntry(cellInfo);      // Creates instance of CellularEntry (identification variables are set in the constructor)
+
+                                // Set time variables
+                                cellularEntry.setTimestamp(currentMillis);
+                                cellularEntry.setScanTime(scanTime);
+                                cellularEntry.setScanDifference(calculateWirelessScanDifference(scanTime, cellularEntry));  // Calculated scan difference for the entry
+
+                                // Add entry to the list
+                                cellularEntries.add(cellularEntry);
+                            }
+                        } else {
+                            CellularEntry cellularEntry = new CellularEntry((GsmCellLocation) mCellularManager.getCellLocation(), currentCellularRSSI);     // Creates instance of CellularEntry (identification variables are set in the constructor)
+
+                            // Set time variables
+                            cellularEntry.setTimestamp(currentMillis);
+                            cellularEntry.setScanTime(scanTime);
+                            cellularEntry.setScanDifference(calculateWirelessScanDifference(scanTime, cellularEntry));  // Calculated scan difference for the entry
+
+                            // Add entry to the list
+                            cellularEntries.add(cellularEntry);
+                        }
                     }
                 }
             }
@@ -677,6 +713,18 @@ public class FingerprintScanner extends JobService {
 
                 // Return scanTimeDifference
                 return scanDifference;
+            }
+
+            /**
+             * Saves current RSSI for GsmCellLocation.
+             *
+             * @param signalStrength current RSSI
+             */
+            @Override
+            public void onSignalStrengthsChanged(SignalStrength signalStrength) {
+                super.onSignalStrengthsChanged(signalStrength);
+                // Calculates RSSI
+                currentCellularRSSI = signalStrength.isGsm() ? (signalStrength.getGsmSignalStrength() != 99 ? signalStrength.getGsmSignalStrength() * 2 - 113 : signalStrength.getGsmSignalStrength()) : signalStrength.getCdmaDbm();
             }
         }
     }

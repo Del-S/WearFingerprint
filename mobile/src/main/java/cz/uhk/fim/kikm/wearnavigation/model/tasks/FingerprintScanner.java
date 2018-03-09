@@ -16,7 +16,6 @@ import android.hardware.SensorManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.telephony.CellInfo;
@@ -108,7 +107,7 @@ public class FingerprintScanner extends JobService {
 
         // Global scan variables
         private DatabaseCRUD mDatabase;              // Database helper for inserting data into the database
-        private long mScanLength = 60000;            // Length of the current scan
+        private long mScanLength = 30000;            // Length of the current scan
         private long mStartTime;                     // Timestamp when scan was started
         private Fingerprint mFingerprint;            // Fingerprint data that will be saved into the database
         private ScanProgress mScanProgress;
@@ -137,7 +136,7 @@ public class FingerprintScanner extends JobService {
         private int mThreadUpdateDelay = 1000;      // This job will post scan progress every 1 seconds
         // Delays for Wireless and Sensor scans
         private final int mSensorScanDelay = 5000;     // Every sensor will be added every 5second
-        private final int mWirelessDelay = 4000;       // Wireless time delay in ms (4s = 4000ms). Connected to mThreadUpdateDelay.
+        private final int mWirelessDelay = 5000;       // Wireless time delay in ms (5s = 5000ms). Connected to mThreadUpdateDelay.
 
         ScannerTask(Fingerprint fingerprint, long scanLength, double[] location) {
             Context context = getApplicationContext();      // Load application context to bind listeners, get managers, etc.
@@ -149,7 +148,7 @@ public class FingerprintScanner extends JobService {
 
             // Initiate bluetooth scanner
             mBLEScannerManager = BLEScannerManager.getInstance(context);
-            mBLEScannerManager.setScanPeriods(1000L, 2000L);   // Change scan periods
+            mBLEScannerManager.setScanPeriods(200L, 0L);   // Change scan periods
             mBeaconScanner = new BeaconScanner();
             context.registerReceiver(mBeaconScanner, new IntentFilter(BLEScannerManager.ACTION_BEACONS_FOUND));    // Register receiver to the context to listen for beacon data
 
