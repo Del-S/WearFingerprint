@@ -52,13 +52,13 @@ public abstract class BaseActivity extends AppCompatActivity implements
 
     protected BottomNavigationView navigationView;      // Global variable for Bottom navigation
     private final int REQUEST_ENABLE_BT = 1000;         // Bluetooth check request code
-    private final int REQUEST_PERMISSIONS = 1001;   // Request access to coarse location
+    private final int REQUEST_PERMISSIONS = 1001;       // Request access to coarse location
     protected Configuration mConfiguration;             // App wide configuration class
 
-    protected WearDataSender mWearDataSender;   // Send information into the nodes
-    protected JobInfo.Builder jobBuilder;       // Job builder for FingerprintScanner
+    private WearDataSender mWearDataSender;     // Send information into the nodes
+    private JobInfo.Builder mJobBuilder;        // Job builder for FingerprintScanner
     private ScannerProgressReceiver mReceiver;  // Scanner receiver instance
-    protected AnimationHelper mAnimationHelper; // Animation helper
+    private AnimationHelper mAnimationHelper;   // Animation helper
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,7 +79,7 @@ public abstract class BaseActivity extends AppCompatActivity implements
 
         // Load configuration from the application
         mConfiguration = ((WearApplication) getApplicationContext()).getConfiguration();    // Load configuration from Application
-        jobBuilder = ((WearApplication) getApplicationContext()).getFingerprintJob();       // Load JobBuilder from Application
+        mJobBuilder = ((WearApplication) getApplicationContext()).getFingerprintJob();       // Load JobBuilder from Application
         mWearDataSender = new WearDataSender(this); // Initiate WearDataSender
 
         mAnimationHelper = new AnimationHelper();   // Initialize animation helper
@@ -367,5 +367,32 @@ public abstract class BaseActivity extends AppCompatActivity implements
      * @return int id of item in the menu
      */
     protected abstract int getNavigationMenuItemId();
+
+    /**
+     * Return wear data sender instance.
+     *
+     * @return WearDataSender
+     */
+    public WearDataSender getWearDataSender() {
+        return mWearDataSender;
+    }
+
+    /**
+     * Returns an instance of jobBuilder.
+     *
+     * @return JobInfo.Builder
+     */
+    public JobInfo.Builder getJobBuilder() {
+        return mJobBuilder;
+    }
+
+    /**
+     * Returns an instance of AnimationHelper.
+     *
+     * @return AnimationHelper
+     */
+    public AnimationHelper getAnimationHelper() {
+        return mAnimationHelper;
+    }
 
 }

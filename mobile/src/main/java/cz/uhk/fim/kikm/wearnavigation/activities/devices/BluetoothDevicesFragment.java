@@ -52,7 +52,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
     private Handler cancelSearchHandler = new Handler();    // Handler that cancels search
 
     private BlDevicesAdapter mBlDeviceAdapterBonded, mBlDeviceAdapter;      // Adapters to show devices
-    private List<BluetoothDevice> bondedDevices = new ArrayList<>();        // Global list of bounded devices
+    private List<BluetoothDevice> mBondedDevices = new ArrayList<>();        // Global list of bounded devices
 
     /**
      * Create instance of BluetoothDevicesFragment and pass variable to it to change functions
@@ -79,7 +79,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         // Load bluetooth bound devices
-        bondedDevices.addAll(mBluetoothAdapter.getBondedDevices());
+        mBondedDevices.addAll(mBluetoothAdapter.getBondedDevices());
 
         registerReceiver();
     }
@@ -102,7 +102,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         mBlDeviceAdapterBonded = new BlDevicesAdapter(getActivity(),
                 this,
                 true,
-                bondedDevices);
+                mBondedDevices);
 
         // Recycler view for bonded devices
         RecyclerView recyclerViewBonded = rootView.findViewById(R.id.fdb_bluetooth_list_bonded);
@@ -260,7 +260,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
 
         // Check if the device is bonded (paired) already
         boolean bonded = false;
-        for(BluetoothDevice bondedDevice : bondedDevices) {
+        for(BluetoothDevice bondedDevice : mBondedDevices) {
             if( bondedDevice.getAddress().equals(device.getAddress()) ) {
                 bonded = true;
                 break;
