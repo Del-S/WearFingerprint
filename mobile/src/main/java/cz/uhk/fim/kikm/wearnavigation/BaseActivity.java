@@ -39,7 +39,6 @@ import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.ScanProgress;
 import cz.uhk.fim.kikm.wearnavigation.utils.animations.AnimationHelper;
-import cz.uhk.fim.kikm.wearnavigation.utils.SimpleDialogHelper;
 import cz.uhk.fim.kikm.wearnavigation.utils.wearCommunication.DataLayerListenerService;
 import cz.uhk.fim.kikm.wearnavigation.utils.wearCommunication.WearDataSender;
 
@@ -59,6 +58,8 @@ public abstract class BaseActivity extends AppCompatActivity implements
     private JobInfo.Builder mJobBuilder;        // Job builder for FingerprintScanner
     private ScannerProgressReceiver mReceiver;  // Scanner receiver instance
     private AnimationHelper mAnimationHelper;   // Animation helper
+
+    private boolean shouldClose = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,9 +131,15 @@ public abstract class BaseActivity extends AppCompatActivity implements
 
     @Override
     public void onBackPressed() {
-        // Shows alert dialog for the whole app.
-        // Because with bottom menu implementation you can click back button and kill the app instantly.
-        SimpleDialogHelper.dialogLeavingApp(this, null).show();
+        // Closes the app after 2 clicks of back button
+        if(shouldClose) {
+            finishAffinity();
+        } else {
+            // If the button was clicked for the first time it will notify the user about leaving.
+            shouldClose = true;
+            Toast.makeText(this, R.string.app_leaving_notice, Toast.LENGTH_SHORT).show();
+            new Handler().postDelayed(() -> shouldClose = false, 3000);
+        }
     }
 
     @Override

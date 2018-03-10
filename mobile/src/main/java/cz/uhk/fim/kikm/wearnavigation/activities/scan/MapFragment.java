@@ -30,6 +30,7 @@ import com.qozix.tileview.geom.CoordinateTranslater;
 import com.qozix.tileview.hotspots.HotSpot;
 import com.qozix.tileview.markers.MarkerLayout;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import cz.uhk.fim.kikm.wearnavigation.BaseActivity;
@@ -46,8 +47,7 @@ import cz.uhk.fim.kikm.wearnavigation.model.tasks.ScanProgress;
 import cz.uhk.fim.kikm.wearnavigation.utils.animations.AnimationHelper;
 import cz.uhk.fim.kikm.wearnavigation.utils.wearCommunication.WearDataSender;
 
-public class MapFragment extends Fragment implements
-        DatabaseDataInterface {
+public class MapFragment extends Fragment implements DatabaseDataInterface {
 
     private DeviceEntry mDevice;
 
@@ -68,12 +68,14 @@ public class MapFragment extends Fragment implements
     private FragmentActivity mActivity;
     private WearDataSender mWearDataSender;
     private AnimationHelper mAnimationHelper;
+    private MapClickCallback mCallback;    // Callback to the activity
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
 
         mActivity = getActivity();
+        mFingerprints = new ArrayList<>();
 
         // Load location manager
         mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
@@ -84,12 +86,20 @@ public class MapFragment extends Fragment implements
         if(config != null) {
             mDevice = config.getDevice(context);
         }
+
+        // Initiate callback connection to the activity or throw an Exception
+        try {
+            mCallback = (MapClickCallback) context;
+        } catch (Exception e) {
+            throw new ClassCastException(context.getClass().getName()
+                    + " must implement MapClickCallback");
+        }
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_map, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_map_fingerprint, container, false);
 
         // Load instances from Activity
         BaseActivity bActivity = ((BaseActivity) getActivity());
@@ -99,8 +109,10 @@ public class MapFragment extends Fragment implements
             mAnimationHelper = bActivity.getAnimationHelper();
         }
 
-        loadMap(rootView);      // Find and load map
-        loadFingerprints();     // Loads fingerprint data
+        if(mMap == null) {
+            loadMap(rootView);      // Find and load map
+            loadFingerprints();     // Loads fingerprint data
+        }
 
         return rootView;
     }
@@ -166,8 +178,9 @@ public class MapFragment extends Fragment implements
     private void loadFingerprints() {
         if(mDatabase != null) {
             // Connects to the database via AsyncTask and downloads basic fingerprint information
+            mFingerprints.clear();
             DatabaseDataLoader loader = new DatabaseDataLoader(mDatabase, this);
-            loader.execute(DatabaseDataLoader.MODE_FINGERPRINT);
+            loader.execute(DatabaseDataLoader.MODE_FINGERPRINT_POSITIONS);
         }
     }
 
@@ -234,14 +247,10 @@ public class MapFragment extends Fragment implements
         final int posX = position[0];
         final int posY = position[1];
 
-        // Button to show more information about selected fingerprint.
+        // Button to show more information about selected position.
         ImageButton buttonInfo = calloutView.findViewById(R.id.am_show_info);
         buttonInfo.setOnClickListener(v -> {
-            // TODO: This is only a test
-            mDatabase.deleteNewestFingerprintAtPosition(posX, posY);
-            updateUI();
-            mMap.getCalloutLayout().removeAllViews();                   // Remove single does not work :(
-            Toast.makeText(mActivity, "Deleted last fingerprint", Toast.LENGTH_SHORT).show();
+            mCallback.onPositionClick(posX, posY);
         });
 
         // Button to create new fingerprint.
@@ -256,6 +265,16 @@ public class MapFragment extends Fragment implements
             } else {
                 Toast.makeText(mActivity, R.string.fma_scan_already_running, Toast.LENGTH_SHORT).show();
             }
+        });
+
+        // Button to delete last two fingerprints
+        ImageButton buttonDelete = calloutView.findViewById(R.id.am_delete);
+        buttonDelete.setOnClickListener(v -> {
+            // TODO: This is only a test
+            mDatabase.deleteNewestFingerprintAtPosition(posX, posY);
+            updateUI();
+            mMap.getCalloutLayout().removeAllViews();                   // Remove single does not work :(
+            Toast.makeText(mActivity, "Deleted last fingerprint group", Toast.LENGTH_SHORT).show();
         });
 
         // Cancel button in markerView
@@ -446,9 +465,9 @@ public class MapFragment extends Fragment implements
     }
 
     @Override
-    public void allFingerprintsLoaded(List<Fingerprint> result) {
-        if(result != null) {
-            mFingerprints = result;
+    public void loadedFingerprintPositions(List<Fingerprint> result) {
+        if(result != null && !result.isEmpty()) {
+            mFingerprints.addAll(result);
             displayFingerprints();
         }
     }

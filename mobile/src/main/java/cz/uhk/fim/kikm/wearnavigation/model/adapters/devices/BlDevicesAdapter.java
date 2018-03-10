@@ -1,4 +1,4 @@
-package cz.uhk.fim.kikm.wearnavigation.model.adapters;
+package cz.uhk.fim.kikm.wearnavigation.model.adapters.devices;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;

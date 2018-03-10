@@ -34,7 +34,7 @@ import cz.uhk.fim.kikm.wearnavigation.R;
 import cz.uhk.fim.kikm.wearnavigation.utils.bluetoothConnection.BluetoothConnectionHandler;
 import cz.uhk.fim.kikm.wearnavigation.utils.bluetoothConnection.BluetoothConnectionInterface;
 import cz.uhk.fim.kikm.wearnavigation.utils.bluetoothConnection.BluetoothConnectionService;
-import cz.uhk.fim.kikm.wearnavigation.model.adapters.BlDevicesAdapter;
+import cz.uhk.fim.kikm.wearnavigation.model.adapters.devices.BlDevicesAdapter;
 import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
 import cz.uhk.fim.kikm.wearnavigation.utils.SimpleDividerItemDecoration;
 

@@ -9,7 +9,7 @@ import cz.uhk.fim.kikm.wearnavigation.model.database.Fingerprint;
 public class DatabaseDataLoader extends AsyncTask<Integer, Void, List<Fingerprint>> {
 
     // Modes of this loader
-    public final static int MODE_FINGERPRINT = 0;
+    public final static int MODE_FINGERPRINT_POSITIONS = 0;
 
     private DatabaseCRUD mDatabase;             // Database crud to get access to the data in the SQL
     private DatabaseDataInterface mInterface;   // Interface to communicate with the context
@@ -31,9 +31,9 @@ public class DatabaseDataLoader extends AsyncTask<Integer, Void, List<Fingerprin
         if(mDatabase != null && mInterface != null) {
             mMode = params[0];
             switch (mMode) {
-                case MODE_FINGERPRINT:
-                    // Return all fingerprints from the database
-                    return mDatabase.getAllFingerprints(false);
+                case MODE_FINGERPRINT_POSITIONS:
+                    // Load fingerprints positions for the map
+                    return mDatabase.getFingerprintPositions();
             }
         }
         return null;
@@ -43,9 +43,9 @@ public class DatabaseDataLoader extends AsyncTask<Integer, Void, List<Fingerprin
     protected void onPostExecute(List<Fingerprint> result) {
         if(result != null) {
             switch (mMode) {
-                case MODE_FINGERPRINT:
+                case MODE_FINGERPRINT_POSITIONS:
                     // Return all fingerprints from the database
-                    mInterface.allFingerprintsLoaded(result);
+                    mInterface.loadedFingerprintPositions(result);
                     break;
                 default:
                     // If mode was not set correctly then return error
