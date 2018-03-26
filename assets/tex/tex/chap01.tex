@@ -3,9 +3,9 @@
 \setcounter{page}{1}
 As the technology evolves it unlocks more and more possibilities. Just few years back there were no smart watches or phones but at this time they are important part of our lives. As they evolve there is the need for them to have more functions and features. One of them is to locate it's position on the map. This information is very useful since it can prevent people from getting lost, figuring out path to drive, used by military and countless more cases.
 
-Finding out such position is possible using Global Navigation Satellite System (GNSS). Multiple implementations of this system exist like GPS, GLONASS or Galileo. All of these systems provide location using sufficient number (at least four) of satellites \cite{GNSS, GNSSGPS}. GNSS solution requires clear path between satellites and the receiving device because signal is not able to pass through buildings. That makes it the main reason why it cannot be used for indoor localization.
+Finding out such position is possible using Global Navigation Satellite System (GNSS). Multiple implementations of this system exist such as GPS, GLONASS or Galileo. All of these systems provide location using sufficient number (at least four) of satellites \cite{GNSS, GNSSGPS}. GNSS solution requires clear line of sight between satellites and the receiving device because signal is not able to pass through buildings. That makes it the main reason why it cannot be used for indoor localization.
 
-There are multiple approaches to find out location inside the building. They can be divided into three main types. First type is using wireless signal ranging approach with multiple kinds of data like Time of Arrival (ToA). Second approach is using special equipment like active bats (Ultrasonic). And final type based on Signal Strength Fingerprint Maps (SSFM), in which first part is to collect signal strengths from the environment and construct fingerprint maps. They are then used to match with current signal to obtain the location \cite{LocalizationApproaches}.
+There are multiple approaches to find out location inside the building. They can be divided into three main types. First, using wireless signal ranging approach with multiple kinds of data such as Time of Arrival (ToA). Second, using special equipment such as active bats (Ultrasonic). Final, based on Signal Strength Fingerprint Maps (SSFM), in which first part is to collect signal strengths from the environment and construct fingerprint maps. They are then used to match with current signal to obtain the location \cite{LocalizationApproaches}.
 
 \begin{figure}[h!]
 	\begin{centering}
@@ -19,7 +19,7 @@ In addition to these types there are also multiple algorithms used in indoor loc
 This thesis is focused on method using radio signal strength (RSS) fingerprinting collecting data from bluetooth, wireless and cellular networks.
 
 \section{Goals of this thesis}\label{sec:GoalsOfThisThesis}
-Main goal of this thesis is to explore possibilities of fingerprint collection using smartwatch technology. The first question that needs to be answered is if this can be done. Is smartwatch capable of RSS data collection? And the answer to this question is yes since smartwatches have the similar specifications as low-end smartphones. 
+Main goal of this thesis is to explore possibilities of fingerprint acquisition using smartwatch technology. The first question that needs to be answered is if this can be done. Is smartwatch capable of RSS data collection? And the answer to this question is yes since smartwatches have the similar specifications as low-end smartphones. 
 
 One of the goals for this thesis is to create an application for Android phone and wear device which handles fingerprint collection. Problem with smartwatches is their diversity in operational system because a lot of watch creators build their own custom systems which can complicate things. Luckily there is new system from Android called Wear 2.0 and it is basically port of Android system to wearable devices. 
 
