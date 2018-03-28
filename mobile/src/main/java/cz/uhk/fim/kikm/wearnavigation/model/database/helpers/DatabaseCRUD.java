@@ -193,7 +193,14 @@ public class DatabaseCRUD {
      * @param fingerprintId to find in the database
      * @return boolean if exits
      */
-    private boolean doesFingerprintExist(SQLiteDatabase db, String fingerprintId) {
+    public boolean doesFingerprintExist(SQLiteDatabase db, String fingerprintId) {
+        // Create a database connection for single query
+        boolean close = false;
+        if(db == null) {
+            db = dbHelper.getReadableDatabase();
+            close = true;
+        }
+
         // SQL parameters
         String[] columns = { Fingerprint.DB_FINGERPRINT_ID };           // We can select only one column
         String selection = Fingerprint.DB_FINGERPRINT_ID + " = ?";      // SQL WHERE clause for fingerprint id
@@ -204,6 +211,10 @@ public class DatabaseCRUD {
         Cursor cursor = db.query(Fingerprint.DB_TABLE, columns, selection, selectionArgs, null, null, null, limit);
         boolean exists = (cursor.getCount() > 0);           // If count is higher then 0 there is a fingerprint in the database
         cursor.close();                                     // Close the curson because we dont need it anymore
+
+        // Close database connection if it should
+        if(close)
+            db.close();
 
         return exists;
     }

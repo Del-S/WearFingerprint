@@ -293,7 +293,8 @@ public class MainActivity extends WearableActivity implements
                         mSCount.setText(String.valueOf(sCount));
 
                         // Hide this view after completion (5 seconds)
-                        if(scanProgress.getState() == FingerprintScanner.TASK_STATE_DONE) {
+                        if(scanProgress.getState() == FingerprintScanner.TASK_STATE_DONE
+                                || scanProgress.getState() == FingerprintScanner.TASK_STATE_FAILED) {
                             Vibrator vib = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE); // Get instance of Vibrator from current Context
                             if(vib != null) {
                                 vib.vibrate(100);     // Vibrate for 100 milliseconds

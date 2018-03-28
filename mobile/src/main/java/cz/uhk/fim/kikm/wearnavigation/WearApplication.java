@@ -38,6 +38,7 @@ public class WearApplication extends Application {
         // Enable beacon
         beaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"));
         //backgroundPowerSaver = new BackgroundPowerSaver(this);      // This reduces bluetooth power usage by about 60% when application is not visible
+        beaconManager.setEnableScheduledScanJobs(false);              // Disable scheduled jobs since scans are not run in the background
 
         JobScheduler jobScheduler = (JobScheduler) getSystemService( Context.JOB_SCHEDULER_SERVICE );
         if(jobScheduler != null) {

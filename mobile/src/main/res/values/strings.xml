@@ -27,6 +27,7 @@
     <string name="spo_status_starting">Starting</string>
     <string name="spo_status_running">Scanning</string>
     <string name="spo_status_done">Complete</string>
+    <string name="am_status_failed">Failed</string>
 
     <!-- Scan status data -->
     <string name="spo_data_count_default">0</string>
