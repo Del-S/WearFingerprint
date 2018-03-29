@@ -68,6 +68,7 @@ public class FingerprintScanner extends JobService {
     private final int TASK_STATE_STARTING = 1;        // Starting scan
     private final int TASK_STATE_RUNNING = 2;         // Scan is running
     public static final int TASK_STATE_DONE = 3;      // Scan finished
+    public static final int TASK_STATE_FAILED = 4;    // Scan failed
 
     private Gson mGson = new Gson();       // Json to Class parser
     private ScannerTask mScannerTask;      // Task that will run in this job
@@ -76,6 +77,13 @@ public class FingerprintScanner extends JobService {
     @Override
     public boolean onStartJob(JobParameters params) {
         mJobParams = params;        // Save job params
+
+        // Start dummy wifi scan to refresh wifi
+        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        if(wifiManager != null) {
+            wifiManager.setWifiEnabled(true);
+            wifiManager.startScan();                        // Start wifi scan
+        }
 
         // Parse json data into Fingerprint class
         String json = mJobParams.getExtras().getString(PARAM_FINGERPRINT);
@@ -87,10 +95,14 @@ public class FingerprintScanner extends JobService {
         double[] lastLocation = mJobParams.getExtras().getDoubleArray(PARAM_LOCATION);  // Load last known location from parameters
 
         // If there is some fingerprint data we start the task
-        if (fingerprint != null) {
-            mScannerTask = new ScannerTask(fingerprint, fingerprint.getScanLength(), lastLocation);
-            mScannerTask.execute();
-            return true;
+        if (fingerprint != null && fingerprint.getId() != null) {
+            // Check if fingerprint already exists in the database
+            DatabaseCRUD tempDatabase = new DatabaseCRUD(this);
+            if(!tempDatabase.doesFingerprintExist(null, fingerprint.getId().toString())) {
+                mScannerTask = new ScannerTask(fingerprint, fingerprint.getScanLength(), lastLocation);
+                mScannerTask.execute();
+                return true;
+            }
         }
 
         return false;   // Task was not started so return false
@@ -158,7 +170,7 @@ public class FingerprintScanner extends JobService {
             context.registerReceiver(mWifiScanner, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));    // Register receiver to the context to listen for wireless data
 
             // Initiate cellular scanner
-            mLastKnowLocation = location;       // Set last known location
+            mLastKnowLocation = location;               // Set last known location
             mCellularManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
             mCellularScanner = new CellularScanner();   // Create instance of cellular scanner
             mCellularManager.listen(mCellularScanner, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);  // Update current RSSI for GsmCellLocation
@@ -252,6 +264,9 @@ public class FingerprintScanner extends JobService {
                 // Complete fingerprint with scanEnd and save it into the database
                 fingerprint.setScanEnd(System.currentTimeMillis());
                 mDatabase.saveFingerprint(fingerprint, null, true);
+                mState = TASK_STATE_DONE;
+            } else {
+                mState = TASK_STATE_FAILED;
             }
 
             // Unbinding the scanner service
@@ -262,7 +277,6 @@ public class FingerprintScanner extends JobService {
             mBLEScannerManager.handleDestroy();                 // Destroy ble scanner
 
             // Change and publish progress
-            mState = TASK_STATE_DONE;    // Scan is done
             publishProgress();      // Publish progress after scan is done
 
             // Finish this job
@@ -317,6 +331,8 @@ public class FingerprintScanner extends JobService {
                     return context.getResources().getText(R.string.spo_status_running).toString();
                 case TASK_STATE_DONE:
                     return context.getResources().getText(R.string.spo_status_done).toString();
+                case TASK_STATE_FAILED:
+                    return context.getResources().getText(R.string.am_status_failed).toString();
                 default:
                     return context.getResources().getText(R.string.spo_status_none).toString();
             }

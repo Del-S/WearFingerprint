@@ -76,6 +76,7 @@ public class FingerprintScanner extends JobService {
     private final int TASK_STATE_STARTING = 1;        // Starting scan
     private final int TASK_STATE_RUNNING = 2;         // Scan is running
     public static final int TASK_STATE_DONE = 3;      // Scan finished
+    public static final int TASK_STATE_FAILED = 4;    // Scan failed
 
     private Gson mGson = new Gson();       // Json to Class parser
     private ScannerTask mScannerTask;      // Task that will run in this job
@@ -214,7 +215,8 @@ public class FingerprintScanner extends JobService {
             mFingerprint.setScanStart(mStartTime);              // Set scan start into fingerprint
 
             // Starting scans
-            if (!mBLEScannerManager.isBound()) return null;  // Service is not bound then we finish the scan
+            // TODO: return this after release of 2.13.2
+            //if (!mBLEScannerManager.isBound()) return null;  // Service is not bound then we finish the scan
             if (!mBLEScannerManager.startScan(mScanLength, true)) return null;   // Try to start BLE scan
             mWifiManager.setWifiEnabled(true);
             mWifiManager.startScan();                        // Start wifi scan
@@ -240,11 +242,12 @@ public class FingerprintScanner extends JobService {
                         publishProgress();                  // Update progress information
                         Thread.sleep(mThreadUpdateDelay);   // Pause thread for a second
                     } catch (InterruptedException e) {
-                        Log.e("FingerprintScanner", "Cannot run sleep() in interrupted thread", e);
+                        Log.e(TAG, "Cannot run sleep() in interrupted thread", e);
                         mBLEScannerManager.cancelScan();   // Cancel scan if the task was canceled
                         return null;
                     }
                 } else {
+                    Log.i(TAG, "Task was canceled.");
                     mBLEScannerManager.cancelScan();   // Cancel scan if the task was canceled
                     return null;
                 }
@@ -257,7 +260,7 @@ public class FingerprintScanner extends JobService {
         protected void onPostExecute(Fingerprint fingerprint) {
             // Change scan state
             if(fingerprint == null) {
-                mState = TASK_STATE_NONE;
+                mState = TASK_STATE_FAILED;
             } else {
                 mState = TASK_STATE_DONE;
                 fingerprint.setScanEnd(System.currentTimeMillis());    // Set scan end to the fingerprint
@@ -325,6 +328,8 @@ public class FingerprintScanner extends JobService {
                     return context.getResources().getText(R.string.am_status_running).toString();
                 case TASK_STATE_DONE:
                     return context.getResources().getText(R.string.am_status_done).toString();
+                case TASK_STATE_FAILED:
+                    return context.getResources().getText(R.string.am_status_failed).toString();
                 default:
                     return context.getResources().getText(R.string.am_status_none).toString();
             }
