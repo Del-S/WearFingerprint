@@ -4,8 +4,6 @@ This chapter describes all important information about created application. Firs
 \section{Hardware}\label{sec:Hardware}
 There are three main Hardware components used and those are smartphone, smartwatch and BLE beacons. Both smart devices must support scanning of Bluetooth Low Energy beacons that can be done with Bluetooth 4.0 and higher. Secondary requirements are Wi-Fi, GSM and LTE modules to support more data types than just BLE beacons.
 
-% Maybe add beacons server information?
-
 \subsection{Smartphone}\label{subsec:Smartphone}
 Main part of the application will be developed and tested on Redmi Note 4 from Chinese company Xiaomi. It is running customized version of Android 6.0 called MIUI. Even thought system was customized, in core it is still Android so there are no problems in that regard \cite{XRN4LTE}. This phone has Bluetooth 4.1 with LE support so main requirement for the hardware is met. This device also met all the secondary requirements with Wi-Fi 802.11 a/b/g/n, GSM, and LTE support like most modern smartphones would \cite{XRN4FPS}.
 
@@ -52,7 +50,14 @@ There are multiple beacon manufacturers with their own quality, signal strength,
 
 Another important thing to note it that Beacons are not connected to the Internet and do not collect any data from devices around. Meaning all the data have to be processed in another device, most commonly a smartphone, and it also makes Beacon safe to use because there is no need to worry about sensitive data theft \cite{10TABB}.
 
-\section{Software}\label{sec:Software}
+\section{Server}\label{sec:Server}
+The application does not need a server for its core functionality but it is common and faster to run an analysis of the data on a different, faster device. The other functionality of the server is to serve as a backup of the data and also as a synchronization point to enable other devices to download fingerprints and upload new ones.
+
+The server infrastructure was built in previous years \cite{IILUBLEB} but it was improved for this solution. It uses NoSQL database to save fingerprints. This type of database does not have fixed scheme, making it easy to save all kinds of data. There are many NoSQL databases, around 250 at this time, to choose from. Selected database is called Couchbase, it saves data in JSON files with its own query language similar to SQL. Part of this database can also replicate data between other devices which could be used in the application part. In the end it was deemed too slow and data heavy for usage in the application, creating the need for creation of a middleman API between Android application and Couchbase database.
+
+%Add schema and describe it
+
+\section{Application Software}\label{sec:ApplicationSoftware}
 Software part for smart phone and wear uses Android system which was already described in \hyperref[sec:Android]{Chapter 3}. This section will on the other hand provide basic information about libraries, technologies and systems used in the application.
 
 \subsection{AltBeacon Library}\label{subsec:AltBeaconLibrary}
