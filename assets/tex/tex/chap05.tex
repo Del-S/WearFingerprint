@@ -1,23 +1,36 @@
 \chapter{Application design and implementation}\label{sec:ApplicationDesingAndImplementation}
 This chapter describes all important information about created application. First is hardware and software used for developing and testing of the application. Second is structure and description of core parts used in the application. 
 
+\begin{figure}[H]
+	\begin{centering}
+		\includegraphics[width=0.6\textwidth]{img/server_architecture}
+		\par\end{centering}
+	\caption{Application architecture (based on \cite{IILUBLEB})}
+	\label{fig057}
+\end{figure}
+
+\fref{fig057} shows basic devices and technologies used in this application. There are three main part of this implementation, mobile, wear and server application. Mobile and wear parts implement scanning for radio signals and are written in Java language for Android system. Server is also programmed in Java to keep implementations close to each other and make future adjustments easier. Main goal of the server is to store scanned data.
+
 \section{Hardware}\label{sec:Hardware}
-There are three main Hardware components used and those are smartphone, smartwatch and BLE beacons. Both smart devices must support scanning of Bluetooth Low Energy beacons that can be done with Bluetooth 4.0 and higher. Secondary requirements are Wi-Fi, GSM and LTE modules to support more data types than just BLE beacons.
+There are multiple hardware devices used in this application. All of them can be seen on \fref{fig057}, where first and the most obvious are smartphone and smartwatch. These devices scan radio signals from WiFi access-points and BLE beacons that are placed in the indoor environment. And a final hardware part is a server holding scanned data from all devices.
 
-\subsection{Smartphone}\label{subsec:Smartphone}
-Main part of the application will be developed and tested on Redmi Note 4 from Chinese company Xiaomi. It is running customized version of Android 6.0 called MIUI. Even thought system was customized, in core it is still Android so there are no problems in that regard \cite{XRN4LTE}. This phone has Bluetooth 4.1 with LE support so main requirement for the hardware is met. This device also met all the secondary requirements with Wi-Fi 802.11 a/b/g/n, GSM, and LTE support like most modern smartphones would \cite{XRN4FPS}.
+\subsection{Smartphone and Smartwatch}\label{subsec:SmartphoneAndSmartWatch}
+Both smart devices must support scanning of Bluetooth Low Energy beacons that can be done with Bluetooth 4.0 and higher. Secondary requirements are Wi-Fi, GSM and LTE modules to support more data types than just BLE beacons.
 
-One interesting thing about Xioami smartphones is their locked bootloader. This prevents user from any manual updates but most importantly from factory reset. To unlock it owner has to create an account in Xiaomi website and put a request to unlock bootloader. This request is usually processed within two weeks and there is no actual guarantee of it being approved. User is later notified via sms about the result of this request.
+\subsubsection{Phone}\label{subsubsec:Phone}
+Main part of the application is developed and tested on Redmi Note 4 from Chinese company Xiaomi. It is running customized version of Android 6.0 called MIUI. Even thought system was customized, in core it is still Android so there are no problems in that regard \cite{XRN4LTE}. This phone has Bluetooth 4.1 with LE support so main requirement for the hardware is met, with all the secondary requirements also met with Wi-Fi 802.11 a/b/g/n, GSM, and LTE support like most modern smartphones would \cite{XRN4FPS}.
 
-\subsection{Smartwatch}\label{subsec:Smartwatch}
-As already mentioned this thesis is using smartwatch with support of Android Wear 2.0 which makes it harder to select proper wear device since there not so many options at this time. There was around twenty of watches with 2.0 system and only five of them were selected to closer inspection based on few articles \cite{BAWW, BAWW18, BAWW17}.
+One interesting thing about Xioami smartphones is their locked bootloader. It prevents users from any manual updates but most importantly from factory reset. To unlock it owner has to create an account in Xiaomi website and put a request to unlock bootloader. This request is usually processed within two weeks period and there is no actual guarantee of it being approved. After evaluation process is complete user is notified via sms about the result of such request.
+
+\subsubsection{Smartwatch}\label{subsubsec:Smartwatch}
+First goal of this thesis was to select smartwatches running on Android Wear 2.0 technology. This iteration is quite new currently, which makes it harder to select proper wear device since there are not so many options. During selection process there were around twenty of watches with this system and only five of them were selected to closer inspection based on few articles \cite{BAWW, BAWW18, BAWW17}.
 
 \begin{table}[h]
 	\scriptsize
 	\begin{center}
 		\begin{tabular}{| m{3cm} | c | c | l |}
 			\hline
-			Watch & BLE / Wi-fi & Czech Republic & Problems \\ \hline
+			Watch & BLE / Wi-Fi & Czech Republic & Problems \\ \hline
 			LG W280 Sport & Yes / Yes & No & \begin{tabular}[c]{@{}l@{}} Battery life is one day or less. \\ Too big in size. \end{tabular} \\ \hline
 			LG W270 Titanium Style & Yes / Yes & Yes & Battery life is one day or less. \\ \hline
 			Huawei Watch 2 & Yes / Yes & Yes & \begin{tabular}[c]{@{}l@{}} First update can take a long time. \\ Slight Bluetooth pairing issues. \end{tabular} \\ \hline
@@ -29,16 +42,20 @@ As already mentioned this thesis is using smartwatch with support of Android Wea
 	\end{center}
 \end{table}
 
-There were funds only for one watch device out of five which is displayed in \tref{tab2} with selection parameters. First requirement for the wear device is support of BLE and Wi-Fi which all have. Second information considered was being able to buy it in Czech Republic (CR) since it is easier for prices, shipping and warranty. Only three of five devices were sold in CR at that time so others are out of the question. Final decision was made based on extensive research of customer reviews in shopping sites (Amazon, CZC, Heureka, Alza), wear official websites \cite{LGWSP, LGWST, HW2, PM600, AZW3} and other tech sites \cite{BAWW, BAWW18, BAWW17}. Finally, selected device is Huawei Watch 2 since there were not too many problems in reviews and other requirements were met. 
+Only one smartwatch could be selected out of five displayed in \tref{tab2}. Firstly, wear device had to support BLE and Wi-Fi which all have. Secondly, it must have been sold in Czech Republic (CR) since it makes shipping and warranty easier. Only three of five devices were sold in Czech Republic at that time so others were taken out of the consideration. Final decision was made based on extensive research of customer reviews in shopping sites such as Amazon, CZC, Heureka, Alza, wear official websites \cite{LGWSP, LGWST, HW2, PM600, AZW3} and other tech sites \cite{BAWW, BAWW18, BAWW17}. Finally, selected device was Huawei Watch 2 since there were not too many problems in reviews and other requirements were met.
 
-Initial setup of the wear device was composed of two main parts. First one was update wear system that took about one to two hours. Second task was copy Google account into the wear device where problem was discovered. Copying of accounts from Redmi Note 4 ti the watch hanged nd never completed. To fix this problem another smartphone was used to copy the account but as it was already mentioned only single device can be connected to smartwatch and connecting a new one requires factory reset that would remove all the data. So there was the need to pair wear with phone without factory reset which was handled via debugging following this \cite{HtPAWW} article.
+Initial setup of the wear device was composed of two main parts. First, update wear system which took about one to two hours. Second task was to setup the watch and copy Google account, this is where some problem were discovered. Copying of accounts from Redmi Note 4 to the watch never completed. To fix this problem another smartphone (Huawei Y5 II) was used to copy the account, it was already mentioned that only single device can be connected to smartwatch and connecting to a new one requires factory reset removing all the data. It was needed to pair wear with phone without factory reset which was handled via Android Debug Bridge following this \cite{HtPAWW} article.
 
-% name change to wear os by google and inability to deploy apps
+Since Google wants to focus also on iOS devices technology Android Wear 2.0 was rebranded to Wear Os by Google to remove confusion in the future \cite{AWITFNM}. This updated was forced on wear devices, updating it to the newest Android version which forced some changes in the development of this solution. First, implementation bug in scanning library was introduced and had to be fixed. Second and bigger problem was inability to deploy new version of the application from Android Studio to the watch. This, for some reason, effects the main computer used to develop this application and it was fixed by using another computer.
 
-\subsection{BLE beacons}\label{subsec:BLEBeacons}
-Beacons are small devices that can be easily placed in almost any environment. The only thing they do is send their information packets using bluetooth and are used in museums, airports and as of late in indoor localization \cite{10TABB}. Beacons have their own battery that can last around a year without charging because of the new Bluetooth Low Energy (BLE) standard that consumes little to no energy \cite{IPSBOBLE}. 
+\subsection{Radio signal devices}\label{subsec:RSD}
+As hardware devices are used BLE beacons, WiFi access-points and Cellular towers. Only first two types of these devices can be placed inside a building and are most commonly used in indoor localization. Signal from cellular towers is only a complimentary data that does not have to be used and cannot be influenced since they are placed by telecommunication companies.
 
-There are multiple beacon manufacturers with their own quality, signal strength, battery life and other hardware differences. There are also multiple software (packet) specifications for beacons meaning that data they send have different format but they does not mean other systems cannot see them. Beacons are usually platform independent and work with multiple platforms \cite{IPSBOBLE, 10TABB}.
+\subsubsection{BLE beacons}\label{subsec:BLEBeacons}
+Beacons are small devices that can be easily placed in almost any environment. Only thing they do is send an information packets using Bluetooth and nothing else. They are commonly used in museums, airports and as of late in indoor localization \cite{10TABB}. Beacons have their own battery powering them which can last around a year or two without charging because of the new Bluetooth Low Energy (BLE) standard. This technology drastically reduces power consumption and introduces new configuration
+options regarding the advertising interval and the transmitter output power \cite{IPSBOBLE}. More in depth description of this technology and devices was written by Pavel Kriz et al. \cite{IILUBLEB}.
+
+There are multiple beacon manufacturers with their own quality, signal strength, battery life and other hardware differences. Changes can also be found in software (packet) specifications for beacons, meaning data they send have different format but it does not mean other systems cannot see them. Usually some software changes have to be made to detect such beacons but they are documented and not hard to make. Beacons are also usually platform independent, making them work with multiple platforms such as Android or iOS \cite{IPSBOBLE, 10TABB}. Beacons used in this thesis are from a company called Estimote and they are most commonly used.
 
 \begin{figure}[H]
 	\begin{centering}
@@ -48,48 +65,45 @@ There are multiple beacon manufacturers with their own quality, signal strength,
 	\label{fig10}
 \end{figure}
 
-Another important thing to note it that Beacons are not connected to the Internet and do not collect any data from devices around. Meaning all the data have to be processed in another device, most commonly a smartphone, and it also makes Beacon safe to use because there is no need to worry about sensitive data theft \cite{10TABB}.
+Another important thing to note, Beacons are not connected to the Internet and do not collect any data from devices around them. Meaning all the data have to be processed in another device, most commonly a smartphone, and it also makes Beacon safe to use because there is no need to worry about sensitive data theft \cite{10TABB}.
+
+\subsubsection{WiFi access-points}\label{subsec:WiFi access-points}
+WiFi signals are commonly used in indoor localization due to their presence almost anywhere. In this case several WiFi transmitters of the \verb|eduroam| network made by Cisco were used. They are permanently deployed on every floor of a test building and cannot be influenced or changed.
 
 \section{Server}\label{sec:Server}
-The application does not need a server for its core functionality but it is common and faster to run an analysis of the data on a different, faster device. The other functionality of the server is to serve as a backup of the data and also as a synchronization point to enable other devices to download fingerprints and upload new ones.
+Implemented application do not necessarily need a server for its core functionality but it is common and faster to run an analysis of the data and other heavy computational work on a different, faster device. Functionality of the server is to serve as a backup of the data and also as a synchronization point to enable other devices to download fingerprints and upload new ones.
 
 The server infrastructure was built in previous years \cite{IILUBLEB} but it was improved for this solution. It uses NoSQL database to save fingerprints. This type of database does not have fixed scheme, making it easy to save all kinds of data. There are many NoSQL databases, around 250 at this time, to choose from. Selected database is called Couchbase, it saves data in JSON files with its own query language similar to SQL. Part of this database can also replicate data between other devices which could be used in the application part. In the end it was deemed too slow and data heavy for usage in the application, creating the need for creation of a middleman API between Android application and Couchbase database.
 
-%Add schema and describe it
+As \fref{fig057} shows server has three main parts to work with. First, already mentioned is Couchbase database to keep scanned data. Second, sync gateway that can synchronize data between devices, not used in this implementation. Both of these part were already implemented in previous years \cite{IILUBLEB}. Final part is web application working as a REST API to send data between the server and mobile application. 
+
+This API is written in Java based framework called Spring to keep the code similar to Android. It was documented using Swagger and it handles two main HTTP routes: \verb|fingerprints| and  \verb|fingerprints-meta|. Before any tasks are issued, mobile application checks data on the server using \verb|fingerprints-meta| route which returns count of new fingerprints and last time specific device saved fingerprints on the server. With this information the application knows how many fingerprints to upload and download, in this specific order, to ensure data is stored first. To prevent device memory exhaustion and connection timeout both of these tasks have specific limits, download can process 100 of fingerprints while upload only 20. Server can also generate data files for analysis, split by technology, time, origin device and other filters. To simplify this generation it is similar loading all fingerprints, meaning it does not create file but prints the data directly into the connection stream.
+
+One last thing to note in \fref{fig057} is the connection with sync gateway. Even though it is not used in this implementation for synchronization it is used to save fingerprints into the database. When data is saved into Couchbase directly sync gateway will not display them, that is why the upload must go through the gateway. This is to ensure all previous and next solution can use this feature without loosing any important data.
 
 \section{Application Software}\label{sec:ApplicationSoftware}
-Software part for smart phone and wear uses Android system which was already described in \hyperref[sec:Android]{Chapter 3}. This section will on the other hand provide basic information about libraries, technologies and systems used in the application.
+Software part for smartphone and smartwatch uses Android system which was already described in \hyperref[sec:Android]{Chapter 3}. This section will provide basic information about libraries, technologies and systems used in such applications.
 
 \subsection{AltBeacon Library}\label{subsec:AltBeaconLibrary}
 Since Android core does not allow scanning for BLE beacons this feature must be implemented in a library extending system features. There are multiple solutions that can be used to scan for beacons such as Estimote SDK \cite{ESDKfA} which was already used in previous thesis \cite{PMRIL}. To change things up BLE beacons are found via AltBeacon Library \cite{ABL}.
 
-Since at the time there was no open and inter-operable specification for proximity beacons, Radius Networks has created the AltBeacon specification as a proposal to solve this problem. It is an open and free specification for BLE beacons with focus to create an open, competitive market for implementation of these devices \cite{AltB}.
+Since there was no open and inter-operable specification for proximity beacons, Radius Networks has created the AltBeacon specification as a proposal to solve this issue. It is an open and free specification for BLE beacons with focus to create an open, competitive market for implementation of these devices \cite{AltB}. Basic configuration of this library can scan for beacons based on this standard and it also supports Eddystone beacons which is Google's open source format. To support already mentioned Estimote beacons this library configuration must be altered to support their detection. Luckily this function can be easily modified to support different kinds of beacons by just one following line of code \cite{ABL, EDDF}.
 
-Basic configuration of this library can scan for beacons based on AltBeacon standard. As a second type of beacons it supports Eddystone which is Google's open source beacon format and calculation of range between the devices which will help with localization. Luckily this library function can be easily modified to support different kinds of beacons by just one following line of code \cite{ABL, EDDF}.
-
-\begin{lstlisting}[caption=Enable all beacons]
+\begin{lstlisting}[caption=Code to enable all beacon types]
 beaconManager.getBeaconParsers().add(
 	new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,
 		i:20-21,i:22-23,p:24-24"));
 \end{lstlisting}
 
+This library uses publish-subscribe design pattern, meaning one scan data is send to multiple clients if they listen for them. Using this approach has an advantage of eliminating the need to run a scan per client. Update to Android 8 introduced a bug in this feature making it unable to confirm the registration of client so the scanner has to be reworked thus postponing the data collection and analysis.
+
 \subsection{Database}\label{subsec:Database}
-%TODO complete
-Database is needed to keep all the Fingerprint data for calculations and there are two types of databases used for this application. First one is SQLite database that is used in Android application to save Fingerprints. This database is default and most used solution in Android applications and there is no need to use other ones. Another type of database used is Couchbase which is implemented on \verb|beacons.uhk.cz| server to keep all Fingerprint data on one place for multiple applications.
-
-\subsubsection{Couchbase database}\label{subsec:CouchbaseDatabase}
-Since SQL based databases can be complex to implement, scale and consuming more data storage space there was a drive to create so called NoSQL databases. Their most important feature is not having a scheme, that makes them easy to scale, and easy to replicate between multiple devices. There are around 225 NoSQL databases at this time and Couchbase is one of them \cite{NOSQLDB}.
-
-Couchbase is distributed, document-based database with its own querying language called N1QL. It is a database focused on simple server configuration and easy use for clients and with built in caching layer and distribution system it does not require any changes in the application. There can be either one server instance of Couchbase or multiple of them can be connected and create a database cluster that holds all the data in multiple location (nodes) \cite{GSWCBS}.
-
-Since SQL is used for decades and it became standard for working with data in databases this approach was extended for usage with JSON and called N1QL. It has all features of the SQL with only difference of being focused on JSON files that has no structure and it is used in Couchebase \cite{WINQL}.
-
-There is a version of Couchbase for mobile called Lite that provides APIs to work with the documents and synchronize with the server instance. Problem of this solution is that Lite version does not implement N1QL and maps data as document views that have to instanced and usually use more data, at least on Android. 
+This solution makes use of two different types of databases to store all the Fingerprint data for calculations. First, is SQLite database implemented in Android mobile application to save Fingerprints from smartphone and smartwatch. This database is default implementation and most commonly used in Android applications. Second database type is Couchbase implemented on the server \verb|beacons.uhk.cz| to keep all Fingerprint data in one place and this enable synchronization and data analysis.
 
 \subsubsection{SQLite database}\label{subsec:SQLiteDatabase}
-SQL (Structured Query Language) is a standard language for storing, manipulating and retrieving data in databases. It is a type of Relational Database that means all data is saved into tables with rows and columns \cite{ItSQL}. These tables usually have set amount of rows with specific names that protect from adding wrong data as en example you cannot add data \verb|Person(name, surname, eye color)| into table \verb|Person(name, surname)| because there is no column named \verb|eye color| in the table.
+SQL (Structured Query Language) is a standard language for storing, manipulating and retrieving data in databases. It is a type of Relational Database, meaning all data is saved into tables with specified rows and columns \cite{WISQLITE}. These tables usually have set amount of rows with specific names that protect from adding wrong data, for example you cannot add data \verb|Person(name, surname, eye color)| into table \verb|Person(name, surname)| because there is no column named \verb|eye color| in the table.
 
-Advantages of these databases are structured data which makes calculation faster but uses more storage space. Data can be only saved once since they can be connected to each other. It supports complex queries for creating, reading, updating and removing data (CRUD) and better security with user and table management. Some disadvantages of this system can be with complexity and inflexibility of database scheme because it can be hard to setup and it does not allow other data then is defined in the tables \cite{ERDMS}.
+Structured data is one of the advantages of this database type and it makes calculation faster but usually uses more storage space. Other advantage is that data can be only saved once since they can be connected to each other. It supports complex queries for creating, reading, updating and removing data (CRUD) and better security with user and table management. Some disadvantages of this system can be with complexity and inflexibility of database scheme because it is hard to setup and does not allow other data then is defined in the tables \cite{ERDMS}. Altering schemes in the future can be really complex since there is the need to parse all previous data to the new tables which does not need to have the same scheme as previous ones.
 
 Since SQL with all the features can consume a lot of hardware resources for a smartphone that is not as fast as a server Android decided to implement SQLite. SQLite has the following noticeable features: self-contained, serverless, zero-configuration, transactional \cite{WISQLITE}.
 
@@ -99,6 +113,15 @@ Since SQL with all the features can consume a lot of hardware resources for a sm
 	\item Zero-configuration = no need for installation or any configuration.
 	\item Transactional = data are protected against failed changes (application crashes, power failure, ...).
 \end{itemize}
+
+\subsubsection{Couchbase database}\label{subsec:CouchbaseDatabase}
+Since SQL based databases can be complex to implement, scale and consuming more data storage space there was a drive to create so called NoSQL databases. Their most important feature is not having a scheme, that makes them easy to scale, and easy to replicate between multiple devices. There are around 225 NoSQL databases at this time and Couchbase is one of them \cite{NOSQLDB}.
+
+Couchbase is distributed, document-based database with its own querying language called N1QL. It is a database focused on simple server configuration and easy use for clients and with built in caching layer and distribution system it does not require any changes in the application. There can be either one server instance of Couchbase or multiple of them can be connected and create a database cluster that holds all the data in multiple location (nodes) \cite{GSWCBS}.
+
+Since SQL is used for decades and it became standard for working with data in databases this approach was extended for usage with JSON and called N1QL. It has all features of the SQL with only difference of being focused on JSON files that has no structure and it is used in Couchebase \cite{WINQL}.
+
+There is a version of Couchbase for mobile called Lite that provides APIs to work with the documents and synchronize with the server instance. Problem of this solution is that Lite version does not implement N1QL and maps data as document views that have to instanced and usually use more data, at least on Android. 
 
 \subsubsection{Comparison}\label{subsec:Comparison}
 Both of these database solutions were tested on Android and SQL proved as a better solution. Not only it takes less storage space it is also able to load data faster. As \tref{tab3} shows SQL lite takes less data space and is almost three times faster in loading all the documents.
