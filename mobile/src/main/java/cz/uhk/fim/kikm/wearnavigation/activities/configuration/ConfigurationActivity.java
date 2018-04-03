@@ -177,6 +177,7 @@ public class ConfigurationActivity extends BaseActivity {
      */
     private void runMetaRefresh() {
         if( mFingerprintApi != null ) {
+            Log.d("Test", "Device t: " + mDevice.getTelephone() + " - ldt: " + mConfiguration.getLastDownloadTime());
             Call<FingerprintMeta> metaCall = mFingerprintApi.getFingerprintsMeta(mDevice.getTelephone(),
                     mConfiguration.getLastDownloadTime());
             metaCall.enqueue(mMetaCallback);

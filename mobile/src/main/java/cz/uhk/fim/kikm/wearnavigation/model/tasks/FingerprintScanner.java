@@ -404,6 +404,10 @@ public class FingerprintScanner extends JobService {
                 // Calculate time variables
                 String bssid = beacon.getBluetoothAddress();
                 long scanTime = currentMillis - mStartTime;
+                // Fixes bug where time = timestamp
+                if(scanTime == currentMillis || scanTime > mScanLength) {
+                    scanTime = 0;
+                }
                 long scanDifference = calculateBeaconScanDifference(scanTime, bssid);
 
                 // Create new BeaconEntry and set data into it
@@ -468,6 +472,10 @@ public class FingerprintScanner extends JobService {
                 // Calculate time variables
                 long currentMillis = System.currentTimeMillis();
                 long scanTime = currentMillis - mStartTime;
+                // Fixes bug where time = timestamp
+                if(scanTime == currentMillis || scanTime > mScanLength) {
+                    scanTime = 0;
+                }
 
                 for (ScanResult scanResult : mWifiManager.getScanResults()) {
                     // Create new WirelessEntry and set its data
@@ -554,6 +562,10 @@ public class FingerprintScanner extends JobService {
                 // Calculate time variables
                 long timestamp = System.currentTimeMillis();
                 long currentScanTime = timestamp - mStartTime;
+                // Fixes bug where time = timestamp
+                if(currentScanTime == timestamp || currentScanTime > mScanLength) {
+                    currentScanTime = 0;
+                }
                 int addedScanTime = sensorTimer.get(sensorType);
 
                 if (addedScanTime == 0 || (currentScanTime - addedScanTime) >= mSensorScanDelay) {
