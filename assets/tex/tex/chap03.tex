@@ -60,9 +60,37 @@ Using directional maps at this location resulted in increase of maximum localiza
 
 In summary, position error can be improved by three aspects: using more devices, using directional map or increasing the number of beacons. There are two main conclusions of this paper. First, confirmed precision degradation when testing near the edge of the room with obstructed signal from nearest beacon. Second, human body does not greatly change radio signal and device can receive reflected signals with sufficient strength. 
 
-\section{SmartFix}\label{sec:SFILOAECWD}
-An Indoor Locating Optimization Algorithm for Energy-Constrained Wearable Devices \cite{SmartFix}. The main goal of this paper is improve energy consumption efficiency for wearable-based indoor localization using WiFi fingerprints. Single real-time experiment of energy consumption was run and split into two main parts: computation of location and collection of fingerprints. According to this experiment, energy consumption caused by collection is occupies 99\% of localization algorithm.
+\section{SmartFix}\label{sec:SmartFix}
+An Indoor Locating Optimization Algorithm for Energy-Constrained Wearable Devices called SmartFix \cite{SmartFix}. The main goal of this paper is improve energy consumption efficiency for wearable-based indoor localization using WiFi fingerprints. Single real-time experiment of energy consumption was run and split into two main parts: computation of location and collection of fingerprints. According to this experiment, energy consumption caused by collection is occupies 99\% of localization algorithm.
 
-This paper proposes novel indoor localization strategy, SmartFix, that can cooperate with any existing indoor localization technology based on WiFi. It enhances accuracy of such algorithm with a little extra energy cost of calculation but a large save of signal collection energy cost. Aided with machine-learning algorithm, it obtains the relative features given the trajectories of users in certain areas and modify the localization results. SmartFix can save 70\% of energy by achieving same localization accuracy compared to the original fingerprint method.
+This paper proposes novel indoor localization strategy, SmartFix, that can cooperate with existing indoor localization technologies based on WiFi. It enhances accuracy of such algorithm with a little extra energy cost of calculation but a large save of signal collection energy cost. Aided with machine-learning algorithm, it obtains the relative features given the trajectories of users in certain areas and modify the localization results. SmartFix can save up to 70\% of energy while achieving the same localization accuracy when compared to the original fingerprint method.
 
-To test this new system it it was implemented with prototypes of TinyLoc \cite{TinyLoc}, MoLoc \cite{MoLoc} and basic WiFi fingerprint method using k-neighbor algorithm.
+To test this new system it was implemented with prototypes of TinyLoc \cite{TinyLoc}, MoLoc \cite{MoLoc} and basic WiFi fingerprint method using k-neighbor algorithm. TinyLoc is more focused on energy efficiency than location accuracy. In contrast SmartFix analyses the history trajectory of people in given area to improve locating results. It refers to user motion features, SmartFix modifies locating results to achieve satisfying accuracy. MoLoc also leverages user motion by collecting trajectory patterns using device built-in sensors.
+
+All previously mentioned prototypes were deployed with and without SmartFix to test its power consumptions. It only needs single real-time RSS signal in the
+locating phase to guarantee excellent energy saving performance. \fref{fig6} shows energy consumption of on-time locating on two specific devices: HTC one and Moto 360. 
+
+\begin{figure}[H]
+	\begin{centering}
+		\includegraphics[width=0.6\textwidth]{img/smart_fix}
+		\par\end{centering}
+	\caption{Energy consumption based on prototypes (source: \cite{SmartFix})\label{fig:SmartFix}}
+	\label{fig6}
+\end{figure}
+
+This paper proposed an tested new localization technology, SmartFix, which main focus is to improve energy efficiency for wearable devices. According to experiment, the probability of error within 2 meter can be reached in 80\% of cases. Meanwhile, energy consumption is 35\% lower than that of MoLoc with the same accuracy, and SmartFix obtains best accuracy with minimal energy cost.
+
+\section{SmartWatch vs. SmartPhone}\label{sec:SWvsSP}
+A comparative study about localization using smartwatch vs. smartphone \cite{SWvsSP}. It presents that positioning accuracy using WiFi based fingerprint implemented on a smartwatch is sufficient for at least room-size locations. Average minimum room size is 10$m^2$ or at least 3 $x$ 3$m$ with maximum of five WiFi APs broadcasting on different channels.
+
+Field study was conducted in six specific locations such as farm, large room, house, two types of medium rooms and one small room. This study collected data using two Android based devices, MotoACTV was used as smartwatch and Samsung Galaxy S3 mini as smartphone. To make fingerprint data more reliable the study collects device orientation (horizontal, vertical) and samples were taken in all four cardinal directions (north, east, south, west).
+
+\begin{figure}[H]
+	\begin{centering}
+		\includegraphics[width=0.9\textwidth]{img/smartwatch_vs_smartphone}
+		\par\end{centering}
+	\caption{Summary table of results (source: \cite{SWvsSP})\label{fig:SWvsSP}}
+	\label{fig8}
+\end{figure}
+
+\fref{fig8} shows summary results of experiments. Most important part of this data is comparison of positioning accuracy between smartwatch and smartphone. In all tests the difference in classification error between the smartphone and smartwatch was at most 5\% if data from all five APs is used. On the other hand it can be 25\% worse when using small amount of APs in large environments. The result of this study is a confirmation that localization using smartwatch is comparable to smartphone and sometimes even better for home environments. The usage of smartwatches is also preferable since it is tightly connected to a penson.
