@@ -105,7 +105,7 @@ SQL (Structured Query Language) is a standard language for storing, manipulating
 
 Structured data is one of the advantages of this database type and it makes calculation faster but usually uses more storage space. Other advantage is that data can be only saved once since they can be connected to each other. It supports complex queries for creating, reading, updating and removing data (CRUD) and better security with user and table management. Some disadvantages of this system can be with complexity and inflexibility of database scheme because it is hard to setup and does not allow other data then is defined in the tables \cite{ERDMS}. Altering schemes in the future can be really complex since there is the need to parse all previous data to the new tables which does not need to have the same scheme as previous ones.
 
-Since SQL with all the features can consume a lot of hardware resources for a smartphone that is not as fast as a server Android decided to implement SQLite. SQLite has the following noticeable features: self-contained, serverless, zero-configuration, transactional \cite{WISQLITE}.
+Since SQL with all its features can consume a lot of hardware resources for a smartphone, Android decided to implement lite version of this database. SQLite has the following noticeable features: self-contained, serverless, zero-configuration, transactional \cite{WISQLITE}.
 
 \begin{itemize}
 	\item Serverless = does not need second process for the server.
@@ -115,16 +115,29 @@ Since SQL with all the features can consume a lot of hardware resources for a sm
 \end{itemize}
 
 \subsubsection{Couchbase database}\label{subsec:CouchbaseDatabase}
-Since SQL based databases can be complex to implement, scale and consuming more data storage space there was a drive to create so called NoSQL databases. Their most important feature is not having a scheme, that makes them easy to scale, and easy to replicate between multiple devices. There are around 225 NoSQL databases at this time and Couchbase is one of them \cite{NOSQLDB}.
+Since SQL based databases can be complex to implement, scale and usually require more data storage space there was a motivation to create so called NoSQL databases. Their most important and significant feature is not having a fixed scheme, that makes them easy to scale and replicate between multiple devices. There are around 225 NoSQL databases at this time and selected Couchbase is one of them \cite{NOSQLDB}.
 
-Couchbase is distributed, document-based database with its own querying language called N1QL. It is a database focused on simple server configuration and easy use for clients and with built in caching layer and distribution system it does not require any changes in the application. There can be either one server instance of Couchbase or multiple of them can be connected and create a database cluster that holds all the data in multiple location (nodes) \cite{GSWCBS}.
+Couchbase is distributed, document-based database with its own querying language called N1QL. It is a database focused on simple server configuration and easy usage for clients, with built in caching layer and distribution system it does not require any changes in the application. There can be either one server instance of Couchbase or multiple connected to create a database cluster which holds all the data in multiple locations (nodes) \cite{GSWCBS}. This data is saved in JSON file format and usually in readable form without any encryption.
 
-Since SQL is used for decades and it became standard for working with data in databases this approach was extended for usage with JSON and called N1QL. It has all features of the SQL with only difference of being focused on JSON files that has no structure and it is used in Couchebase \cite{WINQL}.
+\begin{lstlisting}[caption=JSON format example]
+[
+	{
+		"id":"1",
+		"data":{},
+		"device":{}
+	},
+	{
+		"id":"2",
+		"data":{},
+		"device":{}
+	}
+]
+\end{lstlisting}
 
-There is a version of Couchbase for mobile called Lite that provides APIs to work with the documents and synchronize with the server instance. Problem of this solution is that Lite version does not implement N1QL and maps data as document views that have to instanced and usually use more data, at least on Android. 
+Since SQL is used for decades and it became standard for working with data in databases, Couchbase embraces this approach and extends it for JSON files, this language is called N1QL. It has all the main features of the SQL with some minor improvements \cite{WINQL}. Currently this language can be used only on the server implementation, meaning Android cannot use this feature. Version for mobile application is called Lite and instead of N1QL so called \verb|views| are used, they are objects containing all the selected data from the documents. Major problem of \verb|views| is being very data heavy which is shown in \hyperref[subsubsec:Comparison]{Comparison} section. That is one of two main points why mobile and wear applications use an SQLite instead of Couchbase. Second point is to differentiate between previous solutions and test data consumption and load speed of SQL database.
 
-\subsubsection{Comparison}\label{subsec:Comparison}
-Both of these database solutions were tested on Android and SQL proved as a better solution. Not only it takes less storage space it is also able to load data faster. As \tref{tab3} shows SQL lite takes less data space and is almost three times faster in loading all the documents.
+\subsubsection{Comparison}\label{subsubsec:Comparison}
+Both of these database solutions were tested on Android mobile application to figure out which one is faster and takes less data storage space. As a test 315 fingerprint documents will be loaded and displayed, all of them have more than 500 sub-documents which makes about 150 000 documents. As \tref{tab3} shows SQLite takes less space and is almost three times faster in loading all the documents, that is why it was selected for this project. If Couchbase Lite would have faster query time or supported the use of N1QL it would be preferable solution but it is not at this time.
 
 \begin{table}[h]
 	\begin{center}
@@ -140,43 +153,109 @@ Both of these database solutions were tested on Android and SQL proved as a bett
 	\end{center}
 \end{table}
 
-As shown SQL comes up better but it does not support any data synchronization so there must be custom solution created. If Couchbase Lite would have faster query time it would be preferable solution but it is not at this time.
+Selecting SQL comes with a disadvantage since it does not provide any data synchronization, due to that there must be custom solution created which was already described in \hyperref[sec:Server]{Server} section.
 
 \subsection{TileView}\label{subsec:TileView}
-There are multiple ways to display map image in Android but the main ones have problems while displaying a big image because they will run out of memory. So it is usually better to try custom library or widget created specifically for displaying big image. There is multiple 2D and 3D libraries to display such an image but most of them display image as a whole meaning one big image file. 
+There are multiple ways to display image map in Android, default solutions usually load the whole picture at once. This works for smaller pictures but it does not have to work for bigger ones because the device can run out of memory. To solve this problem it is usually better to try custom library or widget created specifically for displaying such images. One approach is to use 2D or 3D library to display image, these libraries usually work with the image as a whole and implement complex functionality to display it without memory exhaustion. The other approach, also used by Google Maps, is to cut the big image to smaller parts (\verb|tiles|) and display them next to each other. It also makes creating of zoom levels easier for two reasons.
 
-There is another way introduced by Google Maps where map is displayed using small images so called \verb|tiles|. Image is cut into small pieces which is better for device memory management than one big image. Depending on how big the cuts are it can also display multiple zoom levels keeping the map quality high with high and low levels.
+% TODO: Check advantage of tiled maps on the internet
+\begin{itemize}
+	\item Every zoom level has a collection of images, this makes it easy to keep a good quality for zoom since images are not stretched on the screen as single one would be to maintain the same level of zoom.
+	\item When zoomed pictures out of the screen do not have to be kept in memory, this cannot be one with single picture.
+\end{itemize}
 
-% Example of this and how to do it
+% TODO: Example of this and how to do it
 
-\section{Application structure}\label{sec:ApplicationStructure}
-This section describes structure of the applications and since there are two parts of this application (mobile and wear) both of them will be described.
+\section{Application implementation}\label{sec:ApplicationImplementation}
+Implementation of this application is split into two parts, mobile and wear. Both of them have to implement two tasks in order to be able to create fingerprint maps. First, scanner for radio signals which will record Bluetooth Low Energy beacons, WiFi access-points and Cellular towers. Second, communication between both implementation, mobile and wear, to allow sending fingerprint information between them. Those are two core functions for both applications but since the synchronization server is used, mobile part also has to communicate with the server.
 
-\subsection{Mobile application}\label{subsec:MobileApplication}
-Mobile application is the bigger and more complex part that handles scanning, map display and synchronization with the server.
+Both of these applications are programmed in Java language using Android Studio, each of them has a separate configuration and is aimed to different system versions.
 
-\subsubsection{Activities}\label{subsec:Activities}
-Activities are visible screens of the application. They serve as the entry point for a user's interaction with an application, and are also central to how a user navigates within an application (as with the Back button) or between apps (as with the Recents button) \cite{AD}.
+\subsection{Scanner}\label{subsec:Scanner}
+Scans for radio signal and creates a fingerprint with specific position, device and selected sensor information. This additional data, especially about the device, will help with analysis by splitting data into groups.
 
-Main activity for this application is called \verb|ScanActivity|. It displays map with proper building, floor and found Fingerprint in that specific location. It enables users to scan for new beacons and thus create new Fingerprints. Map and controls are implemented using TileView widget that was described in previous section. 
+There are multiple parts to this task and most of them are very computational heavy so it is better to implement it in a separate \verb|Thread| to prevent application from freezing. Android provides multiple solutions for running tasks in separate Threads.
 
-\subsubsection{Model}\label{subsec:Model}
-Model package contains most important classes of the application and it's split into four parts called: adapters, configuration, database and tasks.
+\begin{itemize}
+	\item AsyncTask - Simple solution mainly focused on short running tasks. This implementation is easily created since it handles basic functions like running task, run code before and after task, publish progress to the main Thread and many more.
+	\item Service - Mainly focused on long running tasks and it is run immediately after it is started.
+	\item Custom Thread - One of the hardest solutions because developer has to handle all the task related to Threads life-cycle and be careful to prevent creation of multiple unwanted Threads.
+	\item JobScheduler - One of the newest implementations, it is focused to schedule task and run them when the device has required resources ready and not immediately.
+\end{itemize}
 
-\paragraph{Adapters}\label{subsec:Adapters}\mbox{} \\
-Adapters information. 
+Scanner is run using JobScheduler, it is a new technology and Android wants to develop this feature. Handling scanned data is implemented using publish-subscribe design pattern handled by \verb|BroadcastReceiver|. There are three separate Receivers for each type of signal collected and one more for collecting data from sensors. 
 
-\paragraph{Configuration}\label{subsec:Configuration}\mbox{} \\
-Configuration classes contain settings of the application. It uses Android's shared preferences that are key-value (xml) files to save small amount of application data. Each SharedPreferences file is managed by the framework and can be private or shared. One thing to note is that these files are not encrypted so it is not good to save user sensitive data in them.
+\subsubsection{JobScheduler}\label{subsubsec:JobScheduler}
+This feature was introduced in Android 5.0 and it remains under active development with major changes in Android version 7.0. This platform collects information about jobs that need to run across all the applications. Some information collected about specific jobs are: required network access, is the job periodic, should the job be scheduled after device restart and more. This information is used to schedule jobs to run at, or around, the time they were scheduled. JobScheduler is intelligent about running jobs and it uses so called batching, which is combining multiple jobs to reduce battery consumption \cite{AD, SOTAJS}.
 
-\paragraph{Database}\label{subsec:Database}\mbox{} \\
-Database package contains all classes needed for communication between application and SQL database. First part of this package are Fingerprints classes that correspond with tables and columns of the database. Second part are so called database helpers that handle communication between the application and SQLite database such as tables creation, selects, inserts, updates and deletions.
+\begin{lstlisting}[caption=Schedule Firngerprint scanner job.]
+// Building job to run
+JobInfo.Builder jobBuilder = new JobInfo.Builder(FingerprintScanner.JOB_ID, new ComponentName(getPackageName(), FingerprintScanner.class.getName()));
+jobBuilder.setOverrideDeadline(1000);
+jobBuilder.setPersisted(false);
+jobBuilder.setExtras(bundle);
+// Run created job
+JobScheduler jobScheduler = (JobScheduler) getSystemService( Context.JOB_SCHEDULER_SERVICE );
+jobScheduler.schedule(jobBuilder.build());
+\end{lstlisting}
 
-\paragraph{Tasks}\label{subsec:Tasks}\mbox{} \\
-Tasks contain the most complex classes of this application and that is the Fingerprint scanner that has multiple sub-classes to parse all the necessary data from the scan. Tasks also contain connection with the server for data synchronization and Fingerprint transfers.
+This code is used to schedule Fingerprint scanner. Firstly, a job has to be created with specific ID and class to contain job code. Secondly, job information are provided: this task should start around a second after scheduling, it is not run after device restart and there are custom data send to it via \verb|setExtras()| function. Finally, job scheduler is loaded and this job is run. One thing to remember is to not create a new instance of JobScheduler class since it is a system service.
 
-\subsubsection{Utilities}\label{subsec:Utilities}
-Utilities contain classes not fit to any other category or classified as support ones which usually means classes for animations or warning messages but since this application communicates with the wear device this package also contains classes that handle such communication.
+\subsubsection{BroadcastReceiver}\label{subsubsec:BroadcastReceiver}
+Broadcast messages are send from Android system and other Android applications, similar to the publish-subscribe design pattern. This messages are send when an event occurs such as system boot up, start of device charging or network connectivity change. In addition to system events, custom ones can be created in the application to inform other applications. When a broadcast is sent, the system automatically routes it to application that have subscribed to receive that particular type of broadcast \cite{AD}. Following code illustrates how easy is to send a custom broadcast identified by specific action, which can be system or custom. BLE beacon data is added to be received and parse into Fingerprint. Last line sends the actual broadcast to be received by other applications.
 
-\subsection{Wear application}\label{subsec:WearApplication}
-Wear application is simplified version of its smartphone counterpart. It handles only scanning, display of scanning progress and sending the data to the phone. 
+\begin{lstlisting}[caption=Send broadcast with BLE beacons found.]
+Intent intent = new Intent();
+intent.setAction(ACTION_BEACONS_FOUND);
+intent.putParcelableArrayListExtra(ACTION_BEACONS_DATA, foundBeacons);
+sendBroadcast(intent);
+\end{lstlisting}
+
+Receiving broadcasts in application has two steps. First, register the receiver implementation and specific broadcast message it should receive, this can be done via manifest or dynamically in code. If receiver is registered using manifest, application is launched (if it is not running already) when the broadcast is sent. Second, create an implementation of BroadcastReceiver class that will handle information and data using \verb|onReceive()| function.
+
+There are two BroadcastReceiver used in the Scanner. First, used for WiFi scanning since it is a default Android solution. Second, BLE scanner was modified to use this approach because there are multiple parts of this application that can receive information about found beacons. Other two scanners use Listeners which are interfaces handling communication between system and application.
+
+\subsection{Device communication}\label{subsec:DeviceCommunication}
+In this application device communication is used to send fingerprint data between devices using Bluetooth. Mobile application sends information about the fingerprints such as location and scan duration, these values are same for both devices. Wear application will in return send result data after scan was finished to save it into the mobile database.
+
+First implementation of this feature was build upon Bluetooth chat example application from Google. This implementation was using three separate Thread to make connection, authorize it and then to send the data when device was connected. Both devices had to accept the connection to send the data, which is normal, but there were some connection loss issues where one devices was considered connected and sending data while the second device was disconnected and not receiving data. That is why this solution was removed at early development stages and substituted by Google's Data Layer API.
+
+To limit data consumption of this application on wear it does not run constantly. Before any scan is started mobile informs wear to start the application, after this is done mobile sends fingerprint data to wear part of the application.
+
+% Example of this as a picture.
+
+\subsubsection{Data Layer API}\label{subsec:DataLayerAPI}
+Data Layer is commonly used by Google to send data between their applications, they even have an implementation that gets the data from this layer and sends them to specified applications. This feature is called Google Tag manager and is most commonly used with website applications to send data from the web to Google Analytics.
+
+In Android it has two parts. First, a service that runs when the application is not started to allow passing received data to the application. Second, any activity can implement and Interface that will get received data to process.
+
+\subsection{Server communication}\label{subsec:ServerCommunication}
+As it was already mentioned this part is implemented only on mobile part, even though in a new version of Android Wear OS it could be done by both devices. It is not implemented on wear for one simple reason: to lower power consumption. 
+
+
+%\subsection{Mobile application}\label{subsec:MobileApplication}
+%\subsubsection{Activities}\label{subsec:Activities}
+%Activities are visible screens of the application. They serve as the entry point for a user's interaction with an application, and are also central to how a user navigates within an application (as with the Back button) or between apps (as with the Recents button) \cite{AD}.
+
+%Main activity for this application is called \verb|ScanActivity|. It displays map with proper building, floor and found Fingerprint in that specific location. It enables users to scan for new beacons and thus create new Fingerprints. Map and controls are implemented using TileView widget that was described in previous section. 
+
+%\subsubsection{Model}\label{subsec:Model}
+%Model package contains most important classes of the application and it's split into four parts called: adapters, configuration, database and tasks.
+
+%\paragraph{Adapters}\label{subsec:Adapters}\mbox{} \\
+%Adapters information. 
+
+%\paragraph{Configuration}\label{subsec:Configuration}\mbox{} \\
+%Configuration classes contain settings of the application. It uses Android's shared preferences that are key-value (xml) files to save small amount of application data. Each SharedPreferences file is managed by the framework and can be private or shared. One thing to note is that these files are not encrypted so it is not good to save user sensitive data in them.
+
+%\paragraph{Database}\label{subsec:Database}\mbox{} \\
+%Database package contains all classes needed for communication between application and SQL database. First part of this package are Fingerprints classes that correspond with tables and columns of the database. Second part are so called database helpers that handle communication between the application and SQLite database such as tables creation, selects, inserts, updates and deletions.
+
+%\paragraph{Tasks}\label{subsec:Tasks}\mbox{} \\
+%Tasks contain the most complex classes of this application and that is the Fingerprint scanner that has multiple sub-classes to parse all the necessary data from the scan. Tasks also contain connection with the server for data synchronization and Fingerprint transfers.
+
+%\subsubsection{Utilities}\label{subsec:Utilities}
+%Utilities contain classes not fit to any other category or classified as support ones which usually means classes for animations or warning messages but since this application communicates with the wear device this package also contains classes that handle such communication.
+
+%\subsection{Wear application}\label{subsec:WearApplication}
+%Wear application is simplified version of its smartphone counterpart. It handles only scanning, display of scanning progress and sending the data to the phone. 
