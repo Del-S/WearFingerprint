@@ -6,10 +6,10 @@ This chapter describes all important information about created application. Firs
 		\includegraphics[width=0.6\textwidth]{img/server_architecture}
 		\par\end{centering}
 	\caption{Application architecture (based on \cite{IILUBLEB})}
-	\label{fig057}
+	\label{fig01c05}
 \end{figure}
 
-\fref{fig057} shows basic devices and technologies used in this application. There are three main part of this implementation, mobile, wear and server application. Mobile and wear parts implement scanning for radio signals and are written in Java language for Android system. Server is also programmed in Java to keep implementations close to each other and make future adjustments easier. Main goal of the server is to store scanned data.
+\fref{fig01c05} shows basic devices and technologies used in this application. There are three main part of this implementation, mobile, wear and server application. Mobile and wear parts implement scanning for radio signals and are written in Java language for Android system. Server is also programmed in Java to keep implementations close to each other and make future adjustments easier. Main goal of the server is to store scanned data.
 
 \section{Hardware}\label{sec:Hardware}
 There are multiple hardware devices used in this application. All of them can be seen on \fref{fig057}, where first and the most obvious are smartphone and smartwatch. These devices scan radio signals from WiFi access-points and BLE beacons that are placed in the indoor environment. And a final hardware part is a server holding scanned data from all devices.
@@ -121,16 +121,8 @@ Couchbase is distributed, document-based database with its own querying language
 
 \begin{lstlisting}[caption=JSON format example]
 [
-	{
-		"id":"1",
-		"data":{},
-		"device":{}
-	},
-	{
-		"id":"2",
-		"data":{},
-		"device":{}
-	}
+	{ "id":"1", "name":"Joe", "lastName":"Doe", "address":{} },
+	{ "id":"2", "name":"James", "lastName":"Named", "address":{} }
 ]
 \end{lstlisting}
 
@@ -156,15 +148,28 @@ Both of these database solutions were tested on Android mobile application to fi
 Selecting SQL comes with a disadvantage since it does not provide any data synchronization, due to that there must be custom solution created which was already described in \hyperref[sec:Server]{Server} section.
 
 \subsection{TileView}\label{subsec:TileView}
-There are multiple ways to display image map in Android, default solutions usually load the whole picture at once. This works for smaller pictures but it does not have to work for bigger ones because the device can run out of memory. To solve this problem it is usually better to try custom library or widget created specifically for displaying such images. One approach is to use 2D or 3D library to display image, these libraries usually work with the image as a whole and implement complex functionality to display it without memory exhaustion. The other approach, also used by Google Maps, is to cut the big image to smaller parts (\verb|tiles|) and display them next to each other. It also makes creating of zoom levels easier for two reasons.
+There are multiple ways to display image map in Android, default solutions usually load the whole picture at once. This works for smaller pictures but it does not have to work for bigger ones because the device can run out of memory. To solve this problem it is usually better to try custom library or widget created specifically for displaying such images. One approach is to use 2D or 3D library to display image, these libraries usually work with the image as a whole and implement complex functionality to display it without memory exhaustion. The other approach, also used by Google Maps, is to cut the big image to smaller parts (\verb|tiles|) and display them next to each other. This approach has multiple advantages.
 
-% TODO: Check advantage of tiled maps on the internet
 \begin{itemize}
-	\item Every zoom level has a collection of images, this makes it easy to keep a good quality for zoom since images are not stretched on the screen as single one would be to maintain the same level of zoom.
+	\item Solves performance issues and enables cartographers to aesthetically pleasing maps without worrying about performance impact.
+	\item When user is panning relevant pictures stay displayed while others are loaded, improving user experience.
+	\item Every zoom level has its own collection of images, this makes it easy to keep a good quality for all zoom levels.
 	\item When zoomed pictures out of the screen do not have to be kept in memory, this cannot be one with single picture.
+	\item Zoomed images can have more details.
 \end{itemize}
 
-% TODO: Example of this and how to do it
+Tiles are usually images that have 265x265 pixels but that is not the requirement. There is one tile with the image displayed for the lowest zoom, level 0, where each zoom increase splits this image into 4 tiles. For practical purposes max zoom level is usually around 21 with almost 4,5 trillion tiles.
+
+\begin{figure}[H]
+	\begin{centering}
+		\includegraphics[width=0.6\textwidth]{img/tile_pyramid}
+		\par\end{centering}
+	\caption{Tile pyramid for zoom levels (source: \cite{WTM})\label{fig:TilePyramid}}
+	\label{fig02c05}
+\end{figure}
+
+% How to create tiles?
+% https://github.com/moagrius/TileView/wiki/Creating-Tiles
 
 \section{Application implementation}\label{sec:ApplicationImplementation}
 Implementation of this application is split into two parts, mobile and wear. Both of them have to implement two tasks in order to be able to create fingerprint maps. First, scanner for radio signals which will record Bluetooth Low Energy beacons, WiFi access-points and Cellular towers. Second, communication between both implementation, mobile and wear, to allow sending fingerprint information between them. Those are two core functions for both applications but since the synchronization server is used, mobile part also has to communicate with the server.
@@ -220,42 +225,60 @@ In this application device communication is used to send fingerprint data betwee
 
 First implementation of this feature was build upon Bluetooth chat example application from Google. This implementation was using three separate Thread to make connection, authorize it and then to send the data when device was connected. Both devices had to accept the connection to send the data, which is normal, but there were some connection loss issues where one devices was considered connected and sending data while the second device was disconnected and not receiving data. That is why this solution was removed at early development stages and substituted by Google's Data Layer API.
 
-To limit data consumption of this application on wear it does not run constantly. Before any scan is started mobile informs wear to start the application, after this is done mobile sends fingerprint data to wear part of the application.
+To limit data consumption of this application on wear it does not run constantly. Before any scan is started mobile informs wear to start the application, after this is done mobile sends fingerprint data to wear part of the application which is returned after the scan is done with acquired data.
 
 % Example of this as a picture.
 
 \subsubsection{Data Layer API}\label{subsec:DataLayerAPI}
-Data Layer is commonly used by Google to send data between their applications, they even have an implementation that gets the data from this layer and sends them to specified applications. This feature is called Google Tag manager and is most commonly used with website applications to send data from the web to Google Analytics.
+Data Layer is commonly used by Google to send data between their applications. There is an implementation using this feature called Google Tag manager which is sends data from websites to other Google tools like Analytics or Adwords. In this case is a JavaScript object or variable creating virtual \verb|layer| of website application which contains various \verb|data| points, making its name, \verb|Data Layer| \cite{GTMDL}.
 
-In Android it has two parts. First, a service that runs when the application is not started to allow passing received data to the application. Second, any activity can implement and Interface that will get received data to process.
+Since it proved as a useful solution it was also implemented for Android and it is a part of Google Play services. The Data Layer API allows to store and retrieve data from different kinds of devices, it this case between mobile phone and wear. There are multiple ways to send data depending on what should be sent \cite{AD}.
+
+\begin{itemize}
+	\item Data Item - It provides a data storage that is synchronized between mobile and wearable device. Whenever data changes all devices using this item are then informed about the change and it is identifies by Uri containing creator and path.
+	\item Asset - Used to send binary blobs of data, such as images. It takes care of the data transfer automatically using caching to avoid sending the same data multiple times.
+	\item Message - Good for sending small amounts of data or remote procedure calls, such as controlling mobile media player from wearable. If the device receiving data is connected sender receives a result code confirming successful data send. Although if the device is disconnected right after receiving the result code this information might not be 100\% precise.
+	\item Channel - Transfers large data entities, such as music and movie files. It saves the disk space over Data Item or Asset because it does not create copy of the message on local device before synchronization. It can be also used to transfer streamed data, such as music pulled from a network.
+\end{itemize}
+
+This application uses message system and data items, where messages are send to start wear application and confirm its startup and later Fingerprint data are send via data items. Since application may be either in foreground or background there need to be two solutions to receive the data. First, a service that runs when the application is not started or in the background. Second, any activity can implement an interface that will get received data in foreground.
+
+One important thing to note is, to send the data successfully between the devices they must have the same APK signatures, meaning they must be signed by the same key. For example, debug versions of two applications developed on two different computers will not be able to send data due to this restriction.
 
 \subsection{Server communication}\label{subsec:ServerCommunication}
-As it was already mentioned this part is implemented only on mobile part, even though in a new version of Android Wear OS it could be done by both devices. It is not implemented on wear for one simple reason: to lower power consumption. 
+Main task of communicating with the server is to synchronize data on the mobile, downloading previous fingerprints and upload newly scanned ones. This feature uses server api to transfer data and since this is a very data and computational heavy task it is run in a separate thread same as a scanner, also using a JobScheduler. It was already mentioned that server api is documented in Swagger, this tool can also generate android code to communicate with the server based on defined functions in the documentation. This will generate working code without the requirement of using secondary library but the code is unnecessary complex and so this application uses simple library called Retrofit.
 
+Even though the new version of Android Wear OS makes this feature easier to implement on the wear device, it is still used only in the mobile application for one simple reason: to lower power consumption. 
 
-%\subsection{Mobile application}\label{subsec:MobileApplication}
-%\subsubsection{Activities}\label{subsec:Activities}
-%Activities are visible screens of the application. They serve as the entry point for a user's interaction with an application, and are also central to how a user navigates within an application (as with the Back button) or between apps (as with the Recents button) \cite{AD}.
+\subsubsection{Retrofit}\label{subsec:Retrofit}
+Retrofit is a library turning HTTP API into a Java interface making the implementation simple. Such interface contains calls with parameters based on the api documentation, that can return either raw response or automatically convert the data into Java classes based on configuration. Creating the interface is only one of two parts to make this library working. Second is create an instance of this library's main class with a configuration specific to the api.
 
-%Main activity for this application is called \verb|ScanActivity|. It displays map with proper building, floor and found Fingerprint in that specific location. It enables users to scan for new beacons and thus create new Fingerprints. Map and controls are implemented using TileView widget that was described in previous section. 
+\begin{lstlisting}[caption=Retrofit interface example.]
+public interface ApiConnection {
+	@GET("fingerprints")
+	Call<List<Fingerprint>> getFingerprints(@Header("deviceId") String deviceId,
+		@Query("timestamp") long timestamp,
+		@Query("limit") int limit,
+		@Query("offset") long offset);
+}
+\end{lstlisting}
 
-%\subsubsection{Model}\label{subsec:Model}
-%Model package contains most important classes of the application and it's split into four parts called: adapters, configuration, database and tasks.
+Small example of Retrofit interface class with a function for getting fingerprints. Firstly, Retrofit must be informed which HTTP call it should use, such as GET, POST, PUT or DELETE, part of this information can also be URL path added to the call, \verb|fingerprints| in this case. Secondly, all of the parameters must inform 
+where they should be posted, in header, body or query.
 
-%\paragraph{Adapters}\label{subsec:Adapters}\mbox{} \\
-%Adapters information. 
+\begin{lstlisting}[caption=Retrofit configuration example.]
+Retrofit retrofit = new Retrofit.Builder()
+	.baseUrl("http://beacon.uhk.cz/fingerprint-api/")
+	.addConverterFactory(JacksonConverterFactory.create())
+	.callbackExecutor(Executors.newSingleThreadExecutor())
+	.build();
+\end{lstlisting}
 
-%\paragraph{Configuration}\label{subsec:Configuration}\mbox{} \\
-%Configuration classes contain settings of the application. It uses Android's shared preferences that are key-value (xml) files to save small amount of application data. Each SharedPreferences file is managed by the framework and can be private or shared. One thing to note is that these files are not encrypted so it is not good to save user sensitive data in them.
+There is only one required configuration to make retrofit work and that is defining base URL so the library knows where to post the calls. Some other configurations might be adding data converter which converts the data from Json to Java classes, run calls in different threads or create custom HTTP client.
 
-%\paragraph{Database}\label{subsec:Database}\mbox{} \\
-%Database package contains all classes needed for communication between application and SQL database. First part of this package are Fingerprints classes that correspond with tables and columns of the database. Second part are so called database helpers that handle communication between the application and SQLite database such as tables creation, selects, inserts, updates and deletions.
+\subsection{Application screens}\label{subsec:ApplicationScreens}
+Mobile application has three screens, scanning, surrounding devices, synchronization screen and wear application has only one containing information about the scan.
 
-%\paragraph{Tasks}\label{subsec:Tasks}\mbox{} \\
-%Tasks contain the most complex classes of this application and that is the Fingerprint scanner that has multiple sub-classes to parse all the necessary data from the scan. Tasks also contain connection with the server for data synchronization and Fingerprint transfers.
+\subsubsection{Scanning screen}\label{subsec:ScanningScreen}
+This screen is the core of this application it shows the map of building floor with fingerprint positions as markers. This is implemented using TileView library. Main point of the markers is to create new fingerprints on the same spot and also to display more information about all fingerprints at that spot. Second thing implemented by the markers is to delete last fingerprint group, meaning multiple fingerprints with the same scan identification which can be useful for "broken" or unfit fingerprints. This feature had to be implemented due to issues with WiFi scanning and make to make data more reliable.
 
-%\subsubsection{Utilities}\label{subsec:Utilities}
-%Utilities contain classes not fit to any other category or classified as support ones which usually means classes for animations or warning messages but since this application communicates with the wear device this package also contains classes that handle such communication.
-
-%\subsection{Wear application}\label{subsec:WearApplication}
-%Wear application is simplified version of its smartphone counterpart. It handles only scanning, display of scanning progress and sending the data to the phone. 
