@@ -14,21 +14,21 @@ Lateration refers to the technique of determining position based on distance mea
 		\includegraphics[width=0.48\textwidth]{img/trilateration_3d}
 		\par\end{centering}
 	\caption{2D and 3D Trilateration (source: \cite{TvTHGPSRW})\label{fig:2d_and_3d_trilateration}}
-	\label{fig2}
+	\label{fig01c02}
 \end{figure}
 
-\textbf{Trilateration} uses distance measurements from at least three devices in particular as \enquote{tri} in the name suggests \cite{RAinWILTaS}. \fref{fig2} illustrates usage of Trilateration in 2D and 3D environment. While working in 2D plane will result with only one specific location point. Moving to the 3D plane can create a problem because signal is send in a sphere which could result in more than one position. That is the reason why some systems use at least four signal sources, example of such system is GPS \cite{GNSSGPS}. Advantage is easy implementation and simple calculations. One down side of this approach is that all devices must have synchronized clock \cite{RAinWILTaS}.
+\textbf{Trilateration} uses distance measurements from at least three devices in particular as \enquote{tri} in the name suggests \cite{RAinWILTaS}. \fref{fig01c02} illustrates usage of Trilateration in 2D and 3D environment. While working in 2D plane will result with only one specific location point. Moving to the 3D plane can create a problem because signal is send in a sphere which could result in more than one position. That is the reason why some systems use at least four signal sources, example of such system is GPS \cite{GNSSGPS}. Advantage is easy implementation and simple calculations. One down side of this approach is that all devices must have synchronized clock \cite{RAinWILTaS}.
 
 \medskip
 
-\textbf{Multilateration} also known as hyperbolic positioning is using Time Difference of Arrival (TDoA) instead of Time Of Arrival (ToA) used in previous case. This approach involves the intersections of hyperbolas rather than circles as shown in \fref{fig3}. Main advantage of this method is that only receiving devices must have synchronized clock instead of all \cite{PLTaA}. Multilateration was developed for tracking aircraft position and it is widely used.
+\textbf{Multilateration} also known as hyperbolic positioning is using Time Difference of Arrival (TDoA) instead of Time Of Arrival (ToA) used in previous case. This approach involves the intersections of hyperbolas rather than circles as shown in \fref{fig02c02}. Main advantage of this method is that only receiving devices must have synchronized clock instead of all \cite{PLTaA}. Multilateration was developed for tracking aircraft position and it is widely used.
 
 \begin{figure}[h!]
 	\begin{centering}
 		\includegraphics[width=0.6\textwidth]{img/multilateration}
 		\par\end{centering}
 	\caption{Multilateration (source: \cite{HPwAA})\label{fig:Multilateration}}
-	\label{fig3}
+	\label{fig02c02}
 \end{figure}
 
 Note: At this time term Multilateration is not as strict as it used to be. It can now refer Lateration with more than three devices.
@@ -43,7 +43,7 @@ There are few disadvantages of this approach since it needs complex hardware set
 		\includegraphics[width=0.6\textwidth]{img/angulation}
 		\par\end{centering}
 	\caption{3D location using AoA from Quuppa Intelligent Locating System (source: \cite{QAoA})\label{fig:AoAQuuppa}}
-	\label{fig4}
+	\label{fig03c02}
 \end{figure}
 
 \section{Fingerprinting}\label{sec:Fingerprinting}
@@ -62,14 +62,14 @@ Fingerprinting has two main phases where the first one is fingerprint maps const
 There are multiple advantages of this approach and the most important is that it does not need any additional or specialized hardware. Next one is no need for time synchronization between the stations. Both of these advantages make it simple and cost effective method for localization. On the other hand building of the map is very time consuming and needs heavy calibration. It is also susceptible to changes in environment such as people presence, object movement or relative humidity \cite{IILUBLEB, RSSFofIFD}.
 
 \section{Proximity}\label{sec:Proximity}
-Proximity detection also known as connectivity based positioning calculates only approximate location. Position is determined by cell of origin (CoO) method with known position and limited range \cite{RAinWILTaS}. Specific device location is based on cell of the connected device (\enquote{associated access} point in Wi-Fi 802.11 systems) as shown in \fref{fig5} \cite{WiFiLBS}.
+Proximity detection also known as connectivity based positioning calculates only approximate location. Position is determined by cell of origin (CoO) method with known position and limited range \cite{RAinWILTaS}. Specific device location is based on cell of the connected device (\enquote{associated access} point in Wi-Fi 802.11 systems) as shown in \fref{fig04c02} \cite{WiFiLBS}.
 
 \begin{figure}[h!]
 	\begin{centering}
 		\includegraphics[width=0.6\textwidth]{img/cell_of_origin}
 		\par\end{centering}
 	\caption{Cell of Origin (source: \cite{WiFiLBS})\label{fig:CellOfOrigin}}
-	\label{fig5}
+	\label{fig04c02}
 \end{figure}
 
 Primary advantage of this approach is very easy implementation and no need for complicated algorithms and thus making calculations fast. However, for various reasons devices can be associated to cells that are not in close physical proximity. Such errors can happen for example in multi-floor buildings where floor cells overlap. There are additional methods that can be used to improve localization such as using received signal strength indication (RSSI), manual method (human search) or connecting to device with highest signal strength \cite{WiFiLBS, RAinWILTaS}.

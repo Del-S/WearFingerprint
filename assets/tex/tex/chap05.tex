@@ -12,7 +12,7 @@ This chapter describes all important information about created application. Firs
 \fref{fig01c05} shows basic devices and technologies used in this application. There are three main part of this implementation, mobile, wear and server application. Mobile and wear parts implement scanning for radio signals and are written in Java language for Android system. Server is also programmed in Java to keep implementations close to each other and make future adjustments easier. Main goal of the server is to store scanned data.
 
 \section{Hardware}\label{sec:Hardware}
-There are multiple hardware devices used in this application. All of them can be seen on \fref{fig057}, where first and the most obvious are smartphone and smartwatch. These devices scan radio signals from WiFi access-points and BLE beacons that are placed in the indoor environment. And a final hardware part is a server holding scanned data from all devices.
+There are multiple hardware devices used in this application. All of them can be seen on \fref{fig01c05}, where first and the most obvious are smartphone and smartwatch. These devices scan radio signals from WiFi access-points and BLE beacons that are placed in the indoor environment. And a final hardware part is a server holding scanned data from all devices.
 
 \subsection{Smartphone and Smartwatch}\label{subsec:SmartphoneAndSmartWatch}
 Both smart devices must support scanning of Bluetooth Low Energy beacons that can be done with Bluetooth 4.0 and higher. Secondary requirements are Wi-Fi, GSM and LTE modules to support more data types than just BLE beacons.
@@ -62,7 +62,7 @@ There are multiple beacon manufacturers with their own quality, signal strength,
 		\includegraphics[width=0.6\textwidth]{img/estimote_beacon}
 		\par\end{centering}
 	\caption{Parts of Estimote beacon (source: \cite{RMPFEB})\label{fig:PartsOfEstimoteBeacon}}
-	\label{fig10}
+	\label{fig02c05}
 \end{figure}
 
 Another important thing to note, Beacons are not connected to the Internet and do not collect any data from devices around them. Meaning all the data have to be processed in another device, most commonly a smartphone, and it also makes Beacon safe to use because there is no need to worry about sensitive data theft \cite{10TABB}.
@@ -75,11 +75,11 @@ Implemented application do not necessarily need a server for its core functional
 
 The server infrastructure was built in previous years \cite{IILUBLEB} but it was improved for this solution. It uses NoSQL database to save fingerprints. This type of database does not have fixed scheme, making it easy to save all kinds of data. There are many NoSQL databases, around 250 at this time, to choose from. Selected database is called Couchbase, it saves data in JSON files with its own query language similar to SQL. Part of this database can also replicate data between other devices which could be used in the application part. In the end it was deemed too slow and data heavy for usage in the application, creating the need for creation of a middleman API between Android application and Couchbase database.
 
-As \fref{fig057} shows server has three main parts to work with. First, already mentioned is Couchbase database to keep scanned data. Second, sync gateway that can synchronize data between devices, not used in this implementation. Both of these part were already implemented in previous years \cite{IILUBLEB}. Final part is web application working as a REST API to send data between the server and mobile application. 
+As \fref{fig01c05} shows server has three main parts to work with. First, already mentioned is Couchbase database to keep scanned data. Second, sync gateway that can synchronize data between devices, not used in this implementation. Both of these part were already implemented in previous years \cite{IILUBLEB}. Final part is web application working as a REST API to send data between the server and mobile application. 
 
 This API is written in Java based framework called Spring to keep the code similar to Android. It was documented using Swagger and it handles two main HTTP routes: \verb|fingerprints| and  \verb|fingerprints-meta|. Before any tasks are issued, mobile application checks data on the server using \verb|fingerprints-meta| route which returns count of new fingerprints and last time specific device saved fingerprints on the server. With this information the application knows how many fingerprints to upload and download, in this specific order, to ensure data is stored first. To prevent device memory exhaustion and connection timeout both of these tasks have specific limits, download can process 100 of fingerprints while upload only 20. Server can also generate data files for analysis, split by technology, time, origin device and other filters. To simplify this generation it is similar loading all fingerprints, meaning it does not create file but prints the data directly into the connection stream.
 
-One last thing to note in \fref{fig057} is the connection with sync gateway. Even though it is not used in this implementation for synchronization it is used to save fingerprints into the database. When data is saved into Couchbase directly sync gateway will not display them, that is why the upload must go through the gateway. This is to ensure all previous and next solution can use this feature without loosing any important data.
+One last thing to note in \fref{fig01c05} is the connection with sync gateway. Even though it is not used in this implementation for synchronization it is used to save fingerprints into the database. When data is saved into Couchbase directly sync gateway will not display them, that is why the upload must go through the gateway. This is to ensure all previous and next solution can use this feature without loosing any important data.
 
 \section{Application Software}\label{sec:ApplicationSoftware}
 Software part for smartphone and smartwatch uses Android system which was already described in \hyperref[sec:Android]{Chapter 3}. This section will provide basic information about libraries, technologies and systems used in such applications.
@@ -165,10 +165,12 @@ Tiles are usually images that have 265x265 pixels but that is not the requiremen
 		\includegraphics[width=0.6\textwidth]{img/tile_pyramid}
 		\par\end{centering}
 	\caption{Tile pyramid for zoom levels (source: \cite{WTM})\label{fig:TilePyramid}}
-	\label{fig02c05}
+	\label{fig03c05}
 \end{figure}
 
-% How to create tiles?
+Creating tiles by hand can be really time consuming job even for low zoom levels it can be done automatically by script or program. For example it is possible to create them by slice tool in PhotoShop but this solution support only low level of zoom since it has a limit for amount of such created images. Author of this library provides a solution to this problem using a free tool called ImageMagick, which can resize, crop, cut and create images using a command line making it easy to create a script for all zoom levels required \cite{TileView}.
+
+% Add command and more information about the script
 % https://github.com/moagrius/TileView/wiki/Creating-Tiles
 
 \section{Application implementation}\label{sec:ApplicationImplementation}
@@ -277,8 +279,60 @@ Retrofit retrofit = new Retrofit.Builder()
 There is only one required configuration to make retrofit work and that is defining base URL so the library knows where to post the calls. Some other configurations might be adding data converter which converts the data from Json to Java classes, run calls in different threads or create custom HTTP client.
 
 \subsection{Application screens}\label{subsec:ApplicationScreens}
-Mobile application has three screens, scanning, surrounding devices, synchronization screen and wear application has only one containing information about the scan.
+Mobile application has three screens, map and scanner, surrounding devices, synchronization screen and wear application has only one containing information about the scan.
 
-\subsubsection{Scanning screen}\label{subsec:ScanningScreen}
-This screen is the core of this application it shows the map of building floor with fingerprint positions as markers. This is implemented using TileView library. Main point of the markers is to create new fingerprints on the same spot and also to display more information about all fingerprints at that spot. Second thing implemented by the markers is to delete last fingerprint group, meaning multiple fingerprints with the same scan identification which can be useful for "broken" or unfit fingerprints. This feature had to be implemented due to issues with WiFi scanning and make to make data more reliable.
+\subsubsection{Map and scanner}\label{subsec:MapAndScanner}
+This screen is the core of this application it shows the map of building floor with fingerprint positions as markers. Map is implemented using TileView library described previously in this chapter. It is used to display locations of fingerprint measurements and enable to create new ones or delete previous ones. Deleting was not supposed to be part of the implementation but it proved useful when one or both of the devices collected \enquote{broken} fingerprints, which are usually created by failure in WiFi scanning or failing o send data from mobile to wear device. Deleting removes last created fingerprint group, meaning it deletes one per device type, this is possible because fingerprints have their specific scan id connecting them together.
 
+\begin{figure}[h!]
+	\begin{centering}
+		\includegraphics[width=0.30\textwidth]{img/map_markers}
+		\includegraphics[width=0.30\textwidth]{img/map_markers_own}
+		\par\end{centering}
+	\caption{Map screen with markers\label{fig:map_with_markers}}
+	\label{fig04c05}
+\end{figure}
+
+\fref{fig04c05} shows two screens of the map with markers, which are split by two colors and images. Color combination signifies if the latest fingerprint is from current device (green) or from another one (blue). This is based on fingerprint origin device, which is always mobile, meaning if wear displays as green then fingerprint originated on current mobile phone. Images combination distinguishes between device type, mobile or wear in this case.
+
+Each spot on the map can be clicked, including markers, to display overlay with fingerprint actions. There are two different displays for this overlay. First, when user clicks on existing marker there are options to display information about that specific spot, containing list of the fingerprints, enable user to create new fingerprint on that spot, delete last group or hide this overlay. Second, is displayed when clicked spot does not have previously created fingerprints. This overlay displays only option to add new fingerprint or hide this window. Both of these options are displayed in \fref{fig04c05}.
+
+Original image has 3000 x 2200 pixels but with a low size around 230 kB so it could be displayed as a single image but for already mentioned reasons it is not. The image is cut into four zoom levels with first having 4 images and the final one with 144. Left side of \fref{fig05c05} shows maximum zoom on the mobile screen and right side displays information about fingerprint in a specific spot.
+
+\begin{figure}[h!]
+	\begin{centering}
+		\includegraphics[width=0.30\textwidth]{img/map_zoom}
+		\includegraphics[width=0.30\textwidth]{img/map_list_fingerprints}
+		\par\end{centering}
+	\caption{Maximum map zoom (left), List of fingerprints (right)\label{fig:map_zoom_and_list}}
+	\label{fig05c05}
+\end{figure}
+
+List of fingerprints for a specific spot displays information about origin device by icon, time it was created and enables to delete specific ones from the mobile. It is planned to extend this feature to display all important information about fingerprint, such as ids, device, counts of measurements and even RSSI averages. This would enable to assess fingerprint viability before uploading it on the server.
+
+Important thing to note is deleting fingerprints will not be reported to the server, therefore deleting fingerprints is advised before uploading to the server. Deletion of already uploaded fingerprint on the phone will remove it only from that device and to delete it from the server is only enabled on the server itself. 
+
+\subsubsection{Devices}\label{subsec:Devices}
+% TODO estend this
+Contains multiple screens displaying bluetooth devices and surrounding BLE beacons using the scanner. It was supposed to be used for establishing connection between mobile and wearable device but this is done via Wear OS application and not necessary required since Data Layer API can now send data between devices via WiFi.
+
+\subsubsection{Synchronization}\label{subsec:Synchronization}
+As the name suggests this screen is used to synchronize data between mobile and the server, it shows current fingerprint differences and enables data synchronization based on used input. It does not download or upload the data on its own since it is very data consuming, this it needs to be triggered by the user. Contrary to scanning information it does not display an overlay with the status, instead of that, after every successful upload or download is done it updates counts on the screen. It also shows an animation of top synchronization button and displays a message if it finished successful or failed.
+
+% TODO Image with synchronization screen
+
+It is planned to expand this screen for the use of application configuration to make it more flexible and able to be used in different environments than the current one. There are many changes considered which could influence the scanning results and application use.
+
+\begin{itemize}
+	\item Change scanning properties like maximum length, time periods for each scan or even make scanning periodic. There could also be different settings for wearable device.
+	\item Enable to change server API address and download/upload limits. The API would have to implement same endpoints as current one in this case.
+	\item Add map tiles uploading for different floors or buildings with the possibility to change between them and download fingerprints based on such location.
+	\item User verifications for the application and API with the possibility to change them on this screen.
+\end{itemize}
+
+\subsubsection{Wearable scanner}\label{subsec:WearableScanner}
+Wearable application is meant to be as simple as possible. It has only a single screen since all the other settings are done on mobile application. This screen has two display states and holds device wake lock prevent screen dimming or turning off when there is a scan running. Only reason to keep this wake lock is to display scan information without the need to click on wear screen, this feature could be also implemented as optional with the possibility to change in the phone application settings (currently synchronization) screen. 
+
+% TODO Image for every screen
+
+First screen shows information message about receiving scan data from mobile, when no data is received for 10 seconds it is closed to reduce battery drain. Second screen displays scan status with a progress bar and count of scanned records. When a scan is completed the informations about it stays displayed for tree seconds, after this time the screen is reset to the first one and application is closed. Since the scan can be run with wear at a position where user is not able to check the data, it informs about scan start and end with a short device vibration.
