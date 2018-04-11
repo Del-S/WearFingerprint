@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Locale;
 
 import cz.uhk.fim.kikm.wearnavigation.R;
+import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
+import cz.uhk.fim.kikm.wearnavigation.model.database.DeviceEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.Fingerprint;
 
 public class FingerprintAdapter extends RecyclerView.Adapter {
@@ -25,12 +27,15 @@ public class FingerprintAdapter extends RecyclerView.Adapter {
     private LayoutInflater mInflater;                             // Inflater to inflate views with
     private List<Fingerprint> mFingerprints = new ArrayList<>();  // List od Employees to display
     private SimpleDateFormat mFormatter;
+    private DeviceEntry mDevice;
 
     public FingerprintAdapter(Context context) {
         // Load required instances
         mInflater = LayoutInflater.from(context);
         mContext = context;
         mFormatter = new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault());
+
+        mDevice = Configuration.getConfiguration(context).getDevice(context);
     }
 
     /**
@@ -83,6 +88,25 @@ public class FingerprintAdapter extends RecyclerView.Adapter {
             if(fingerprint.getScanStart() != 0) {
                 fingerprintHolder.description.setText(
                         mFormatter.format(new Date(fingerprint.getScanStart())));
+            }
+
+            DeviceEntry fingerprintDevice = fingerprint.getDeviceEntry();
+            // Sets image resource to the view
+            if(fingerprintDevice != null && fingerprintDevice.getType().equals("wear"))
+                fingerprintHolder.image.setImageResource(R.drawable.map_marker_normal_wear);     // Set wear icon
+            else
+                fingerprintHolder.image.setImageResource(R.drawable.map_marker_normal_phone);    // Set phone icon
+
+            // TODO: add images for wear devices
+            // Set image resource based this device
+            if(mDevice != null && fingerprintDevice != null && (mDevice.equals(fingerprintDevice) ||
+                    (mDevice.getTelephone() != null &&
+                            mDevice.getTelephone().equals(fingerprintDevice.getTelephone())))) {
+                // Sets image resource to the view
+                if( fingerprintDevice.getType().equals("wear"))
+                    fingerprintHolder.image.setImageResource(R.drawable.map_marker_own_wear);     // Set wear icon
+                else
+                    fingerprintHolder.image.setImageResource(R.drawable.map_marker_own_phone);    // Set phone icon
             }
         }
     }

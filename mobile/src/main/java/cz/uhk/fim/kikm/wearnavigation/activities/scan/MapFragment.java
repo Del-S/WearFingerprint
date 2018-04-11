@@ -200,14 +200,24 @@ public class MapFragment extends Fragment implements DatabaseDataInterface {
             // Sets image resource of the marker
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(84,120);
             iw.setLayoutParams(lp);                                 // Sets layout to the ImageView
-            iw.setImageResource(R.drawable.map_marker_normal);      // Sets image resource to the view
+
+            DeviceEntry fingerprintDevice = fingerprint.getDeviceEntry();
+            // Sets image resource to the view
+            if(fingerprintDevice != null && fingerprintDevice.getType().equals("wear"))
+                iw.setImageResource(R.drawable.map_marker_normal_wear);     // Set wear icon
+            else
+                iw.setImageResource(R.drawable.map_marker_normal_phone);    // Set phone icon
 
             // TODO: add images for wear devices
             // Set image resource based this device
-            if(mDevice != null && (mDevice.equals(fingerprint.getDeviceEntry()) ||
+            if(mDevice != null && fingerprintDevice != null && (mDevice.equals(fingerprintDevice) ||
                     (mDevice.getTelephone() != null &&
-                            mDevice.getTelephone().equals(fingerprint.getDeviceEntry().getTelephone())))) {
-                iw.setImageResource(R.drawable.map_marker_own);
+                            mDevice.getTelephone().equals(fingerprintDevice.getTelephone())))) {
+                // Sets image resource to the view
+                if( fingerprintDevice.getType().equals("wear"))
+                    iw.setImageResource(R.drawable.map_marker_own_wear);     // Set wear icon
+                else
+                    iw.setImageResource(R.drawable.map_marker_own_phone);    // Set phone icon
             }
 
             // Adds marker to the map

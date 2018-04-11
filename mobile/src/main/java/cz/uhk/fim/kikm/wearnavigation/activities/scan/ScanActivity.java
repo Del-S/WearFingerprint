@@ -1,13 +1,25 @@
 package cz.uhk.fim.kikm.wearnavigation.activities.scan;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+
 import cz.uhk.fim.kikm.wearnavigation.BaseActivity;
 import cz.uhk.fim.kikm.wearnavigation.R;
+import cz.uhk.fim.kikm.wearnavigation.model.database.Fingerprint;
+import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseCRUD;
 
 /**
  * Displays map with fingerprints and enables different actions with them.
