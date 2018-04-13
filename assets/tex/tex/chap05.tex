@@ -297,7 +297,19 @@ This screen is the core of this application it shows the map of building floor w
 
 Each spot on the map can be clicked, including markers, to display overlay with fingerprint actions. There are two different displays for this overlay. First, when user clicks on existing marker there are options to display information about that specific spot, containing list of the fingerprints, enable user to create new fingerprint on that spot, delete last group or hide this overlay. Second, is displayed when clicked spot does not have previously created fingerprints. This overlay displays only option to add new fingerprint or hide this window. Both of these options are displayed in \fref{fig04c05}.
 
-Original image has 3000 x 2200 pixels but with a low size around 230 kB so it could be displayed as a single image but for already mentioned reasons it is not. The image is cut into four zoom levels with first having 4 images and the final one with 144. Left side of \fref{fig05c05} shows maximum zoom on the mobile screen and right side displays information about fingerprint in a specific spot.
+Adding new fingerprints will create all necessary data for a scan and runs it via already mentioned JobScheduler. This scan has always priority, meaning if there is a non-priority scan running it is canceled and this one is run instead. This is the case when Devices screen initiated a scan which did not finish just yet. When this scan is running all application screens (Activities) display scan information as shown in the \fref{fig05c05}, thus informing about scan status in all parts of the application.
+
+\begin{figure}[H]
+	\begin{centering}
+		\includegraphics[width=0.6\textwidth]{img/scan_status}
+		\par\end{centering}
+	\caption{Scan status}
+	\label{fig05c05}
+\end{figure}
+
+This information window overlays the screen just above the application menu. It informs user about scan status, progress and how many device records were saved until now. It displays information about BLE (B), WiFi (W) and Cellular (C) data collected but it does not show Sensor (S) information to save space.
+
+Original map image has 3000 x 2200 pixels but with a low size around 230 kB so it could be displayed as a single image but for already mentioned reasons it is not. The image is cut into four zoom levels with first having 4 images and the final one with 144. Left side of \fref{fig06c05} shows maximum zoom on the mobile screen and right side displays information about fingerprint in a specific spot.
 
 \begin{figure}[h!]
 	\begin{centering}
@@ -305,7 +317,7 @@ Original image has 3000 x 2200 pixels but with a low size around 230 kB so it co
 		\includegraphics[width=0.30\textwidth]{img/map_list_fingerprints}
 		\par\end{centering}
 	\caption{Maximum map zoom (left), List of fingerprints (right)\label{fig:map_zoom_and_list}}
-	\label{fig05c05}
+	\label{fig06c05}
 \end{figure}
 
 List of fingerprints for a specific spot displays information about origin device by icon, time it was created and enables to delete specific ones from the mobile. It is planned to extend this feature to display all important information about fingerprint, such as ids, device, counts of measurements and even RSSI averages. This would enable to assess fingerprint viability before uploading it on the server.
@@ -313,13 +325,33 @@ List of fingerprints for a specific spot displays information about origin devic
 Important thing to note is deleting fingerprints will not be reported to the server, therefore deleting fingerprints is advised before uploading to the server. Deletion of already uploaded fingerprint on the phone will remove it only from that device and to delete it from the server is only enabled on the server itself. 
 
 \subsubsection{Devices}\label{subsec:Devices}
-% TODO estend this
-Contains multiple screens displaying bluetooth devices and surrounding BLE beacons using the scanner. It was supposed to be used for establishing connection between mobile and wearable device but this is done via Wear OS application and not necessary required since Data Layer API can now send data between devices via WiFi.
+It was supposed to be used for establishing connection between mobile and wearable device but this is done via Wear OS application and not necessarily required since Data Layer API and it also can send data between devices via WiFi. Even though it has no use it was kept to display surrounding devices and mainly BLE beacons.
+
+\begin{figure}[h!]
+	\begin{centering}
+		\includegraphics[width=0.30\textwidth]{img/devices_bl}
+		\includegraphics[width=0.30\textwidth]{img/devices_ble}
+		\par\end{centering}
+	\caption{Bluetooth devices (left), Beacons (right)\label{fig:bl_ble_list}}
+	\label{fig07c05}
+\end{figure}
+
+Left screen of \fref{fig06c05} displays all the Bluetooth devices recorded during last scan, which is 15 seconds long. This scanning feature is not continuous and to display new devices it is needed to start the scan by pressing \enquote{Search} button, this will also clear the available devices list. There is no need to scan for bonded Bluetooth devices since Android keeps them in a separate list, which is good but it does not check if the device is in range or not, this it can display the device that is not available.
+
+Right screen displays only devices broadcasting using Bluetooth Low Energy, those are mainly beacons but it can also be some TVs or wristbands. It displays basic information like name, mac address and last signal strength received. Same as Bluetooth list scanning is not continuous and is initiated by pressing \enquote{Search} button, length of such scan is set for 30 seconds in this case.
+
+There is a possibility for both screens where device does not have a set name, in this case MAC address is displayed instead of missing name. To make this screen more viable it could display more information about devices, plus it could be extended to show WiFi access-points and Cellular towers in range.
 
 \subsubsection{Synchronization}\label{subsec:Synchronization}
 As the name suggests this screen is used to synchronize data between mobile and the server, it shows current fingerprint differences and enables data synchronization based on used input. It does not download or upload the data on its own since it is very data consuming, this it needs to be triggered by the user. Contrary to scanning information it does not display an overlay with the status, instead of that, after every successful upload or download is done it updates counts on the screen. It also shows an animation of top synchronization button and displays a message if it finished successful or failed.
 
-% TODO Image with synchronization screen
+\begin{figure}[H]
+	\begin{centering}
+		\includegraphics[width=0.3\textwidth]{img/synchronization}
+		\par\end{centering}
+	\caption{Synchronization screen}
+	\label{fig08c05}
+\end{figure}
 
 It is planned to expand this screen for the use of application configuration to make it more flexible and able to be used in different environments than the current one. There are many changes considered which could influence the scanning results and application use.
 

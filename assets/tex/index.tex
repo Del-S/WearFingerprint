@@ -28,6 +28,7 @@
 \usepackage{xstring} 
 \usepackage{enumerate}
 \usepackage{csquotes}
+\usepackage{tabularx}
 
 % Cut words in half
 %\hyphenation{Word-cut}
@@ -39,6 +40,8 @@
 % Enable break url with "_" (underscore)
 \expandafter\def\expandafter\UrlBreaks\expandafter{\UrlBreaks%  save the current one
 	\do\_}
+
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
 \providecommand{\LyX}{L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
