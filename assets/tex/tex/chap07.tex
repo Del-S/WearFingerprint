@@ -1,5 +1,9 @@
 \chapter{Conclusion}\label{sec:Conclusion}
+This thesis has introduced a new way to collect radio fingerprints on mobile and wear device, smartphone and smartwatch, to improve indoor stationary localization. This solution also included changes to data distribution between devices. The system consists of server, mobile and wear devices with the Android operating system which supports Bluetooth Low Energy. This system is designed to enable creation of radio-maps and update them anytime. Evaluation of this system was based on the Weighted K-Nearest Neighbors algorithm. This evaluation work only with specifically defined beacons and WiFi access-points to maintain equal environment for all fingerprints. Based on the data acquired in a real world scenario, the results of the localization were evaluated using WiFi, BLE and their combination with addition of data from mobile, wear and their combination.
 
+This evaluation was composed of three main algorithm implementations to figure out how to combine data from multiple device types and improve overall localization accuracy. First, testing data from each device type separate showed lower accuracy of WiFi localization on wear, this was traced back to wear device not possessing the ability to scan for 5 GHz WiFi networks. This actually makes overall localization less accurate when combining the data together, where mean error increased from 0.85 to 1.52 meters. Second, testing one fingerprint per device type and averaging them improved overall accuracy compared to previous evaluation but it is still not as precise and using single mobile device. Third and final evaluation combined data from multiple fingerprints based on device type together % TODO
+
+Overall result of this evaluation is 
 
 \section{Application improvements}
 \label{sec:ApplicationImprovements}

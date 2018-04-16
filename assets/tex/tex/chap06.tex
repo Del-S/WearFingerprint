@@ -277,35 +277,43 @@ Comparing this data with \tref{tab04c06} shows improvement in BLE precision but 
 When comparing this figure with \fref{fig04c06} its shows decrease of median accuracy mainly for WiFi which also reflects on combined evaluation. Overall accuracy improved because errors are more clustered together and more evenly spread, there is also decrease of maximum error from 10 to 5.78 making it more viable in complex environments.
 
 \subsection{Combining fingerprint data}\label{sec:CombiningFingerprintData}
-Last evaluations did not prove tangible improvement of localization accuracy using wear technology in combination with mobile. For this reason next evaluation takes a different approach in combining data from multiple fingerprints based on device into one. Fingerprints are grouped based scan id, which identifies them being taken at the same place and time using different devices. All the data of such fingerprints are combined into single one reducing count of data for evaluation but hopefully increasing accuracy. Since all data from fingerprints are combined the information about origin device is lost and there is no way to compare the technologies against each other.
+Last evaluations did not prove tangible improvement of localization accuracy using wear technology in combination with mobile. For this reason next evaluation takes a different approach in combining data from multiple fingerprints based on device into one. Fingerprints are grouped based scan id, which identifies them being taken at the same place and time using different devices. Data of such fingerprints are combined into single one, reducing count of data for evaluation but hopefully increasing accuracy. Since there are multiple fingerprints combined the information about origin device is lost and there is no way to compare the technologies against each other.
+
+There are two possible ways this will be implemented. First, copy all data into one fingerprint. Second, copy only BLE data and keep WiFi from phone, because it is known that wear WiFi precision is not sufficient and worsens the accuracy.
 
 \begin{table}[h]
 	\begin{center}
-		\begin{tabular}{ l C{2cm} C{2cm} C{2cm} }
-			\hline
-			& BLE & WiFi & Combined \\ 
-			\hline	
-			Mean & 2.12 & 0.93 & 0.88 \\
-			Median & 1.73 & 0.87 & 0.86 \\
-			Maximum & 13.99 & 7.19 & 6.99 \\
-			\hline
-		\end{tabular}
-		\caption{List of errors for fingerprint combining}
+		\resizebox{\textwidth}{!}{
+			\begin{tabular}{ l C{2cm} C{2cm} C{2cm} | C{2cm} C{2cm} C{2cm} }
+				\cline{2-7}
+				& \multicolumn{3}{c|}{WiFi with BLE} & \multicolumn{3}{c}{BLE only} \\
+				\hline
+				& BLE & WiFi & Combined & BLE & WiFi & Combined \\ 
+				\hline	
+				Mean & 2.12 & 0.93 & 0.88 & 2.12 & 0.88 & 0.83 \\
+				Median & 1.73 & 0.87 & 0.86 & 1.73 & 0.80 & 0.83 \\
+				Maximum & 13.99 & 7.19 & 6.99 & 13.99 & 8.00 & 7.04 \\
+				\hline
+			\end{tabular}
+		}
+		\caption{List of errors for fingerprint combination}
 		\label{tab07c06}
 	\end{center}
 \end{table}
 
-This approach seems to be big overall improvement in accuracy with a decrease when considering maximum error for BLE. Previous evaluations proved that wear device does not provide sufficient accuracy for WiFi and this approach seems to get around that using 5 GHz records from mobile device and BLE precision is improved by the data from both devices providing better accuracy. Combining these two radio technologies results in the best overall accuracy compared to previous evaluations.
+This approach as a whole seems to be big overall improvement in accuracy with a decrease when considering maximum error for BLE. Copying all data together improves precision compared to previous evaluation but it makes it only comparable to using mobile only. In numbers from \tref{tab05c06} mobile errors are 0.85m mean, 0.88m median and 6.06m maximum compared to 0.88m mean, 0.86m median and 6.99m maximum of this measurement. Improvement is only in median but other two values increase in comparison. 
+
+Second approach of copying only BLE records to mobile fingerprints and keep its current WiFi precision while improving BLE proved to be finally better than only mobile precision. Comparing data from \tref{tab07c06} shows decrease of error for mean from 0.85 to 0.83 meters which is around 2.4\% and median from 0.88 to 0.83 meters reaching to 6\% improvement over mobile. One value that goes up is maximum error from 6.06 to 7.04 resulting in 16\% increase of this error.
 
 \begin{figure}[h!]
 	\begin{centering}
-		\includegraphics[width=0.5\textwidth]{img/wknn_errors_combined}
+		\includegraphics[width=0.6\textwidth]{img/wknn_errors_combined}
 		\par\end{centering}
 	\caption{Comparison of localization accuracy for combining fingerprints}
 	\label{fig08c06}
 \end{figure}
 
-\fref{fig08c06} shows BLE error somewhere between classic approach and testing of multiple fingerprints since it has more clustered values compared to classic one but not as multiple fingerprints testing. However, WiFi shows the best localization precision and can achieve 0 meters error for multiple fingerprints. 
+\fref{fig08c06} shows visualization of errors for both approaches. BLE errors are same for both cases and they seem to be somewhere between classic approach and testing of multiple fingerprints since it has more clustered values compared to classic one but not as multiple fingerprints testing. However, WiFi shows the best localization precision of all previous iterations. Both of these approaches seems to be comparable and each one has different merit to it, combination of all data seems to increase mean and median but lower down the maximum errors being more reliable in problematic places where the other one is the opposite.
 
 \subsection{Map comparison}\label{sec:MapComparison}
 To confirm previous results all errors were displayed on the map to compare them and also to find problematic spots of the evaluation. These maps contain only combined error of radio technologies to make it easier to read and not complicate it with differences between BLE and WiFi. There is also one other slight change to displayed result data where errors under 200 centimeters are set to display as a circle with such error which is mainly visible in the last image of \fref{fig09c06} because there are multiple fingerprints with 0 meters error.
@@ -315,13 +323,14 @@ To confirm previous results all errors were displayed on the map to compare them
 		\includegraphics[width=0.4\textwidth]{img/combined_error_classic}
 		\includegraphics[width=0.4\textwidth]{img/combined_error_multiple_f}
 		\includegraphics[width=0.4\textwidth]{img/combined_error_f_combination}
+		\includegraphics[width=0.4\textwidth]{img/phone_error}
 		\par\end{centering}
-	\caption{Maps of errors for all algorithms}
+	\caption{Maps of errors for all algorithms with last one for mobile error only}
 	\label{fig09c06}
 \end{figure}
 
-\fref{fig09c06} shows map images for all previously described and evaluated algorithms. Top left image shows errors for classic evaluation ignoring device of origin. Top right is for next round of evaluation which takes two fingerprints with different device origin, calculates their position and averages it to improve accuracy. Finally the bottom picture is for the last evaluation which combines multiple fingerprints into one. 
+\fref{fig09c06} shows map images for all previously described and evaluated algorithms and image with error only from mobile device. Top left image shows errors for classic evaluation ignoring device of origin. Top right is for next round of evaluation which takes two fingerprints with different device origin, calculates their position and averages it to improve accuracy. Bottom left picture is for the last evaluation which combines multiple fingerprints into one. Finally picture on the bottom right displays error just from phone device for a comparison with algorithm using data from wear.  
 
 Classic evaluation shows a big amount of orange circles, which means that error of a specific fingerprint is over 3 meters, and most of them seem to be in the middle of Campus building where there are no beacons placed associated with this floor. The other problematic spots seems to be in the south part of the building (bottom part of the map). Rest of the places are not considered as problematic since they usually have only one fingerprint with error over 3 meters. There is 119 fingerprints with error higher than three which is around 14\%.
 
-Moving to the second image, it shows a big improvement of the localization for all positions and filtering out which places may actually be problematic. Bringing count of fingerprints with high error from 119 to 35 which is just 4\%. As for final image, it illustrates the best precision of all algorithms with 82 fingerprints with 0 error and just 15 above 3 meters bringing it just under 2\%.   
+Moving to the second image, it shows a big improvement of the localization for all positions and filtering out which places may actually be problematic. Bringing count of fingerprints with high error from 119 to 35 which is just 4\%. As for final image, it illustrates the best precision of all algorithms with 82 fingerprints with 0 error and just 15 above 3 meters bringing it just under 2\%.
