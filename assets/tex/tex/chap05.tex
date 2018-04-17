@@ -170,8 +170,14 @@ Tiles are usually images that have 265x265 pixels but that is not the requiremen
 
 Creating tiles by hand can be really time consuming job even for low zoom levels it can be done automatically by script or program. For example it is possible to create them by slice tool in PhotoShop but this solution support only low level of zoom since it has a limit for amount of such created images. Author of this library provides a solution to this problem using a free tool called ImageMagick, which can resize, crop, cut and create images using a command line making it easy to create a script for all zoom levels required \cite{TileView}.
 
-% Add command and more information about the script
-% https://github.com/moagrius/TileView/wiki/Creating-Tiles
+\begin{lstlisting}[caption=Creating tiles using ImageMagick]
+C:\*path to imagemagick*\convert C:\*path to big image*.png 
+	-crop 256x256 
+	-set filename:tile "%%[fx:page.x/256]_%%[fx:page.y/256]" +repage +adjoin 
+	"C:\*path to tile folder*\tile-%%[filename:tile].png"
+\end{lstlisting}
+
+This code will split image.png into 256x256 tiles, and name them \enquote{tile-i-j.png}, where \enquote{i} is the column index and \enquote{j} is the row index. More information can be found in the TileView wiki \cite{TileViewWiki}.
 
 \section{Application implementation}\label{sec:ApplicationImplementation}
 Implementation of this application is split into two parts, mobile and wear. Both of them have to implement two tasks in order to be able to create fingerprint maps. First, scanner for radio signals which will record Bluetooth Low Energy beacons, WiFi access-points and Cellular towers. Second, communication between both implementation, mobile and wear, to allow sending fingerprint information between them. Those are two core functions for both applications but since the synchronization server is used, mobile part also has to communicate with the server.
@@ -362,9 +368,108 @@ It is planned to expand this screen for the use of application configuration to 
 	\item User verifications for the application and API with the possibility to change them on this screen.
 \end{itemize}
 
-\subsubsection{Wearable scanner}\label{subsec:WearableScanner}
+\subsubsection{Wear scanner}\label{subsec:WearableScanner}
 Wearable application is meant to be as simple as possible. It has only a single screen since all the other settings are done on mobile application. This screen has two display states and holds device wake lock prevent screen dimming or turning off when there is a scan running. Only reason to keep this wake lock is to display scan information without the need to click on wear screen, this feature could be also implemented as optional with the possibility to change in the phone application settings (currently synchronization) screen. 
 
-% TODO Image for every screen
+\begin{figure}[H]
+	\begin{centering}
+		\includegraphics[width=0.3\textwidth]{img/wear_waiting_edited}
+		\hspace{0.5cm}
+		\includegraphics[width=0.3\textwidth]{img/wear_scanning_edited}
+		\par\end{centering}
+	\caption{Wear scanning screens}
+	\label{fig09c05}
+\end{figure}
 
 First screen shows information message about receiving scan data from mobile, when no data is received for 10 seconds it is closed to reduce battery drain. Second screen displays scan status with a progress bar and count of scanned records. When a scan is completed the informations about it stays displayed for tree seconds, after this time the screen is reset to the first one and application is closed. Since the scan can be run with wear at a position where user is not able to check the data, it informs about scan start and end with a short device vibration.
+
+\subsection{Interesting code examples}\label{subsec:Interesting code examples}
+This application is collection of complex code and functions and some interesting parts were selected to describe in more detail.
+
+\subsubsection{Sending Fingerprint to Wear}\label{subsubsec:SendingFingerprintToWear}
+Core functionality of communication between both devices. This code can be found in a WearDataSender class of mobile application and it sends Fingerprint data to the wear using Data Layer API right after wear application is started.
+
+\begin{lstlisting}[caption=Sending Fingerprint to Wear]
+if(mFingerprint != null) {
+	mFingerprint.setDeviceEntry(null);
+	
+	PutDataMapRequest dataMapRequest = PutDataMapRequest.create(DataLayerListenerService.SCAN_PATH);
+	DataMap dataMap = dataMapRequest.getDataMap();
+	ParcelableUtils.putParcelable(dataMap, DataLayerListenerService.SCAN_DATA, mFingerprint);
+	
+	PutDataRequest request = dataMapRequest.asPutDataRequest();
+	request.setUrgent();
+	Wearable.getDataClient(mContext).putDataItem(request);
+	
+	mFingerprint = null;
+}
+\end{lstlisting}
+
+Since this class handles starting wear application and also sending the data it has Fingerprints saved as a global variable and to be send it must not be empty. Only one change is done to the fingerprint before it is send, which is removing of origin device information to be filled in the wear. When fingerprint is prepared it must be converted into Parcelable DataMap which is an object that is saved into the Data Layer. This data is identified by a String key so application can save multiple objects into this map. Next part of code creates a request using this data and sets its mode to urgent to ensure fast delivery to all devices that listen to this information. Request is completed at this point and can be send via DataClient which can be loaded from the class Wearable wit final line of code clearing the variable containing fingerprint to prevent its sending multiple times.
+
+Data Layer identifies all the data by a specific Uri and when the data is changed it sends an information to all devices, meaning each fingerprint must be different for sending notification about data change to the devices. Luckily every fingerprint has its own specific id and scan id which is always different so this feature does not pose any problem to the data sending.
+
+\subsubsection{Parsing beacon information}\label{subsubsec:ParsingBeaconInformation}
+None of the scanner parts uses default classes to contain scanned information. With each class custom data must be parsed from default ones during the scanning and following code, taken from FingerprintScanner class, shows how to parse beacon data.
+
+\begin{lstlisting}[caption=Parsing beacon information]
+String bssid = beacon.getBluetoothAddress();
+
+long scanTime = currentMillis - mStartTime;
+if(scanTime == currentMillis) {
+	scanTime = 0;
+}
+long scanDifference = calculateBeaconScanDifference(scanTime, bssid);
+
+BeaconEntry newBeacon = new BeaconEntry();
+newBeacon.setBssid(bssid);
+newBeacon.setDistance((float) beacon.getDistance());
+newBeacon.setRssi(beacon.getRssi());
+newBeacon.setTimestamp(currentMillis);
+newBeacon.setScanTime(scanTime);
+newBeacon.setScanDifference(scanDifference);
+
+return newBeacon;
+\end{lstlisting}
+
+First loaded information is device mac address because it is used to calculate time differences between the last time recorded and current time which is done in following part. After all time values are calculated BeaconEntry can be created containing all required data and immediately returned.
+
+Setting scanTime to 0 works as a protection against having it the same as currentMillis because start time of the scan might not have been set just yet. This is needed mainly for WiFi scanning because these parsing classes have to be set just before running scanner code which leaves few milliseconds where data can be started before scan is actually stared considering WiFi scan cannot be controlled. It could be also solved by not recording this data but since it is only a milliseconds space it was decided that environment will not change enough to make the data irrelevant and so they are recorded too.
+
+\subsubsection{Map configuration}\label{subsubsec:MapConfiguration}
+Map is the main part of the application and handles multiple functions and mode thus required a lot of the settings to work properly. It also has many functions which can be configured or disabled based on the implementation required. This map and the code is implemented in MapFragment class.
+
+\begin{lstlisting}[caption=Map configuration]
+mMap.setSize(MAP_WIDTH, MAP_HEIGHT);
+mMap.addDetailLevel(1.000f, "tiles/j3np/1000/j3np-%d_%d.png");
+mMap.addDetailLevel(0.500f, "tiles/j3np/500/j3np-%d_%d.png");
+mMap.addDetailLevel(0.250f, "tiles/j3np/250/j3np-%d_%d.png");
+mMap.addDetailLevel(0.125f, "tiles/j3np/125/j3np-%d_%d.png");
+
+mMap.setScaleLimits(0, 2); 
+mMap.setScale(0.50F);
+
+... Setup markers and hotspots ...
+
+frameTo(MAP_WIDTH / 2, MAP_HEIGHT / 2);
+
+mMap.setShouldRenderWhilePanning(true);
+mMap.setShouldLoopScale(false);
+\end{lstlisting}
+
+First part contains setting map size which is 3000x3000 pixels and configure zoom levels with their specific tile images based on given path, setting zoom levels one by one makes it highly modifiable with the possibility to have different designs for each zoom level. Next part sets zoom values, such as allowed zoom levels and initial zoom of the map. Next part is setting up markers and hotspots which will be described later. Calling function frameTo centers the map with a delay because if is done directly it will not work. Final part of this code enables loading when map is panning and disables returning to maximum zoom after double clicking while being zoomed in, be on zoom level 2 in this case.
+
+\begin{lstlisting}[caption=Setup markers and hotspots]
+mMap.setMarkerTapListener(mMarkerTapListener);
+mMap.defineBounds(0, 0, MAP_WIDTH, MAP_HEIGHT);
+mMap.setMarkerAnchorPoints(-0.5f, -0.5f);
+
+HotSpot hotSpot = new HotSpot();
+hotSpot.set(0, 0, MAP_WIDTH, MAP_HEIGHT);
+mMap.addHotSpot(hotSpot);
+mMap.setHotSpotTapListener(mHotspotTapListener);
+\end{lstlisting}
+
+First part of the code sets variables for map markers, such as displaying control window after clicking, define bounds and anchor point for marker centering in horizontally and vertically. Defining bounds to the markers is very important information because it enables to calculate real pixel location from map absolute one since location on the map changes based on how much the map is zoomed but for scanning the real fingerprint location is needed.  This code does not actually display any markers on the map that is done later in the code.
+
+Second part works similarly to previous one but it does not set the click function only to markers but creates an invisible overlay over the whole map, thus effectively enabling to click on any part of the map to display control window for fingerprints.

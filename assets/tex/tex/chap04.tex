@@ -20,9 +20,14 @@ There are multiple versions of Android system at this time and every single one 
 
 The highest part of the Android system stack are applications which extend device functionality and are written primarily in Java programming language \cite{SoASTaD}. These application are packaged into \verb|.apk| file, which is a zip archive, containing all application files like Java classes, layouts, images and more. The most important file is \verb|AndroidManifest.xml| that contains all meta-data about the application, such as permissions, package name, used components, versions and so forth. These application can be shared, for a nominal fee, via official market called Google Play. At the end of 2017 there were over three and a half million applications available in Google Play Store \cite{SoASTaD, NoAAiGPS, NoAA}.
 
-Android is platform designed to be open source and free which makes it easy to create malicious applications. These application can bypass existing security and steal sensitive data, use telephony services or even gain control over the device \cite{ASIMPD}. Android has multiple ways to protect against such applications one of the most notable ones are Android Permission Framework and Google Play Protect \cite{SoASTaD}.
+Application permissions maintain security for the system and users. Android requires that application declares the permissions it needs before it can use certain system data and features. Depending on how sensitive the area is, the system may grant the permission automatically, or it may ask the user to approve the request. Following example shows how to set permission as a developer in the application, Internet is granted automatically but location must be manually granted by the user.
 
-%T_ODO: describe Permissions and google play protect
+\begin{lstlisting}[caption=Application permission settings]
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+\end{lstlisting}
+
+Android is platform designed to be open source and free which makes it easy to create malicious applications. These application can bypass existing security and steal sensitive data, use telephony services or even gain control over the device \cite{ASIMPD}. Android has multiple ways to protect against such applications one of the most notable ones are Android Permission Framework and Google Play Protect \cite{SoASTaD}.
 
 \section{Wear technologies}\label{sec:WearTechnologies}
 Interactive wearable, as an example smartwatches, is a new part of mobile computers. Wear devices are categorically different from phones or tables in term of usage, design and user interfaces (UI). According to the app design guidelines by major vendors, users interact with wearable devices frequently throughout daily use. Each interaction is short, often less than 10 seconds, and is dedicated to simple tasks \cite{UtCoAWO}. 
@@ -100,5 +105,16 @@ Developing application for this system can be done in a custom made program Tize
 Even though wear version of Tizen OS is deployed only on Samsung products it overtook Android Wear in market shares in the beginning of 2017 but that might change with the release of Wear 2.0. 
 
 \subsection{WatchOS}\label{sec:WatchOS}
-Apple started working on smartwatches around year 2002 inspired by sportswatches from Nike with actual results in 2014 when Apple Watch was revealed to be released in 2015.
-%http://www.businessinsider.com/a-timeline-of-how-the-apple-watch-was-created-2015-3
+Apple started working on smartwatches around year 2002 inspired by sportswatches from Nike with actual results in 2014 when Apple Watch was revealed to be released in 2015. With its release it introduced its own system watchOS, based on iOS, which is the youngest of all three mentioned but the most popular \cite{ATOHAWWC}. watchOS is currently developed and deployed only for Apple Watches same as Tizen for Samssung making Google's WearOS only system to be implemented by multiple wear manufacturers. First version of watchOS was based on the same principal as watchOS because it required mobile device to use its applications but Apple quickly moved from this interaction in version 2.0. Next versions brought many improvements, such as running application in background, improved design and support completely mobile independent application from version 4.0 \cite{WOS9To5MAC}.
+
+Applications of this system consist of two related bundles: a Watch app and a WatchKit extension. The Watch app bundle contains the storyboards and resource files associated with application user interfaces. The WatchKit extension bundle lives inside the Watch app and contains the code for managing those interfaces and for responding to user interactions \cite{AppleDev}.
+
+\begin{figure}[H]
+	\begin{centering}
+		\includegraphics[width=0.6\textwidth]{img/apple_watchOs}
+		\par\end{centering}
+	\caption{WatchOS showcase (source: \cite{HTFAIAAW})\label{fig:WatchOS}}
+	\label{fig06c04}
+\end{figure}
+
+Application development for WatchOS can be done using Xcode which is a free program to develop applications for iOS created by Apple. Main programming language used in this program is Swift which is also created by Apple and based on C and Object-C language, which can be also used to program iOS applications. Swift is an open source language focused on being easy to understand and still powerful and fast. Same as previous wear systems created applications can be deployed using App Store similar to Google Play or Tizen store.
