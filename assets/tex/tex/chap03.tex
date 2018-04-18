@@ -1,20 +1,20 @@
 \chapter{Related Work}\label{sec:RelatedWork}
-Since this is not a novel idea there are some completed solutions and paper written about Fingerprint collection using multiple devices. This chapter will describe few selected solution close to this one for comparison.
+This is not a novel idea and there are already some completed solutions and papers written about Fingerprint collection using multiple devices. This chapter will describe few selected solutions close to this one as a comparison.
 
 \section{Improving Precision by Using Multiple Wearable Devices}\label{sec:IPUMWD}
-Focused on improving indoor localization using BLE-based fingerprinting with multiple devices \cite{IPBLEIUMWD}. Using combination of smart phone and wear should in this case prevent signal obstruction from human body and at least one of the devices should receive beacon signal. Unfortunately due to low BLE sensibility of wear devices, authors decided to supplement them with smartphone, in this case with Nexus 5 running Android 4.4.
+Focuses on improving indoor localization using BLE-based fingerprinting with multiple devices \cite{IPBLEIUMWD}. Using combination of smartphone and wear should in this case prevent signal obstruction from human body and at least one of the devices should receive beacon signal. Unfortunately due to low BLE sensibility of wear devices, authors decided to supplement them with second mobile device, in this case with Nexus 5 running Android 4.4.
 
-This paper proposes calculating medians using 800 millisecond tests where user can move at most one meter. For all medians at the same position is calculated average and variance, based on which a normal distribution is used to model the potential variation of RSSI. One thing to note is that fingerprint maps are built based on facing direction. There are five main scenarios tested
+This paper proposes calculating medians from 800 millisecond tests where user can move one meter at most. Average and variance is calculated for all medians with the same position, based on these values a normal distribution is used to model the potential variation of RSSI. One thing to note is that fingerprint maps are also built based on facing direction. There are five main scenarios tested
 
 \begin{itemize}
-	\item P1: device held in hand where body does not obstruct its LOS path to all beacons,
-	\item P2: device is put in breast pocket and LOS may be obstructed to some beacons,
+	\item P1: single device held in hand where body does not obstruct its line of sight (LoS) path to all beacons,
+	\item P2: one device is placed in breast pocket where LoS may be obstructed to some beacons,
 	\item P3: user holds smartphone in hand and wears a smartwatch on one wrist,
-	\item P4: one device is put in the breast pocket and the other is on one wrist,
+	\item P4: single device is placed in the breast pocket and the other is on one wrist,
 	\item P5: one device is in the breast pocket, and two other devices, each on one wrist.
 \end{itemize} 
 
-Firstly, four of these scenarios were tested in a 15x8 meters entrance hall with four deployed beacons in the corners and ten measurement positions. In this location using multiple devices can improve position precision and reduce error by 57\%. \tref{tab1} shows mean errors for previously mentioned cases where using more devices improves localization. However there is one position where case P4 will result with higher error then P3 due to building structure and signal obstruction for nearest beacons.
+At first, four of these scenarios were tested in a 15x8 meters entrance hall with four deployed beacons in the corners and ten measurement positions. Using multiple devices in this location improved position precision and reduced error by 57\%. \tref{tab1} shows mean errors for previously mentioned cases in this location where using more devices improves localization. However there is one position where case P4 will result with higher error than P3 due to building structure and signal obstruction for nearest beacons.
 
 \begin{table}[h]
 	\begin{center}
@@ -31,7 +31,7 @@ Firstly, four of these scenarios were tested in a 15x8 meters entrance hall with
 	\end{center}
 \end{table} 
 
-Secondly, all of previously mentioned scenarios were tested in a conference room with unified ceiling and desks near the walls. This location is used to investigate the impact of beacon density to position precision. Three following combinations of beacons are used
+Second case, all of previously mentioned scenarios were tested in a conference room with unified ceiling and desks near the walls. This location is used to investigate the impact of beacon density to position precision. Three following combinations of beacons are used
 
 \begin{itemize}
 	\item A: four beacons at the corners,
@@ -58,17 +58,16 @@ Using directional maps at this location resulted in increase of maximum localiza
 	\end{center}
 \end{table} 
 
-In summary, position error can be improved by three aspects: using more devices, using directional map or increasing the number of beacons. There are two main conclusions of this paper. First, confirmed precision degradation when testing near the edge of the room with obstructed signal from nearest beacon. Second, human body does not greatly change radio signal and device can receive reflected signals with sufficient strength. 
+In summary, position error can be improved by three aspects: using more devices, using directional map or increasing the number of beacons. There are two main conclusions of this paper. First, confirmed precision degradation when testing near the edge of the room with obstructed signal to nearest beacons. Second, human body does not greatly change radio signal and device can receive reflected signals with sufficient strength. 
 
 \section{SmartFix}\label{sec:SmartFix}
-An Indoor Locating Optimization Algorithm for Energy-Constrained Wearable Devices called SmartFix \cite{SmartFix}. The main goal of this paper is improve energy consumption efficiency for wearable-based indoor localization using WiFi fingerprints. Single real-time experiment of energy consumption was run and split into two main parts: computation of location and collection of fingerprints. According to this experiment, energy consumption caused by collection is occupies 99\% of localization algorithm.
+Complete name of this paper is \enquote{An Indoor Locating Optimization Algorithm for Energy-Constrained Wearable Devices called SmartFix} \cite{SmartFix}. The main goal of this paper is to improve energy consumption efficiency for wearable-based indoor localization systems using WiFi fingerprinting. At the begging single real-time experiment of energy consumption was run and split into two main parts: computation of location and collection of fingerprints. According to this experiment, energy consumption for data collection is 99\% of localization algorithm.
 
-This paper proposes novel indoor localization strategy, SmartFix, that can cooperate with existing indoor localization technologies based on WiFi. It enhances accuracy of such algorithm with a little extra energy cost of calculation but a large save of signal collection energy cost. Aided with machine-learning algorithm, it obtains the relative features given the trajectories of users in certain areas and modify the localization results. SmartFix can save up to 70\% of energy while achieving the same localization accuracy when compared to the original fingerprint method.
+This paper proposes novel indoor localization strategy, SmartFix, that can cooperate with an existing indoor localization technologies based on WiFi to decrease power consumption. It enhances accuracy of such algorithm with a little extra energy cost of calculation but a large decrease of power consumption for signal collection. Aided with machine-learning algorithm, it obtains the relative features given the trajectories of users in certain areas and modify the positioning results. SmartFix can save up to 70\% of energy while achieving the same localization accuracy when compared to the original fingerprint method.
 
-To test this new system it was implemented with prototypes of TinyLoc \cite{TinyLoc}, MoLoc \cite{MoLoc} and basic WiFi fingerprint method using k-neighbor algorithm. TinyLoc is more focused on energy efficiency than location accuracy. In contrast SmartFix analyses the history trajectory of people in given area to improve locating results. It refers to user motion features, SmartFix modifies locating results to achieve satisfying accuracy. MoLoc also leverages user motion by collecting trajectory patterns using device built-in sensors.
+To test this new system it was implemented with prototypes of TinyLoc \cite{TinyLoc}, MoLoc \cite{MoLoc} and basic WiFi fingerprinting method using K-Nearest Neighbors algorithm. TinyLoc is more focused on energy efficiency than location accuracy. In contrast SmartFix analyses the history of people trajectory in given area to improve localization results by referring to user motion features. SmartFix then modifies positional results to achieve satisfying accuracy. MoLoc, same as SmartFix, also leverages user motion by collecting trajectory patterns using device built-in sensors to improve localization.
 
-All previously mentioned prototypes were deployed with and without SmartFix to test its power consumptions. It only needs single real-time RSS signal in the
-locating phase to guarantee excellent energy saving performance. \fref{fig01c03} shows energy consumption of on-time locating on two specific devices: HTC one and Moto 360. 
+All previously mentioned prototypes were deployed with and without SmartFix to test their power consumptions. This algorithm only needs a single real-time RSS signal in the locating phase to guarantee excellent energy saving performance. \fref{fig01c03} shows power consumption of on-time locating on two specific devices: HTC one and Moto 360. 
 
 \begin{figure}[H]
 	\begin{centering}
@@ -78,12 +77,12 @@ locating phase to guarantee excellent energy saving performance. \fref{fig01c03}
 	\label{fig01c03}
 \end{figure}
 
-This paper proposed an tested new localization technology, SmartFix, which main focus is to improve energy efficiency for wearable devices. According to experiment, the probability of error within 2 meter can be reached in 80\% of cases. Meanwhile, energy consumption is 35\% lower than that of MoLoc with the same accuracy, and SmartFix obtains best accuracy with minimal energy cost.
+This paper proposed an tested new localization technology, SmartFix, which main focus is to improve energy efficiency on wearable devices. According to the experiment, probability of error within 2 meter can be reached in 80\% of cases. Meanwhile, energy consumption is 35\% lower than that of MoLoc with the same accuracy. Results show that implementing SmartFix obtains the best accuracy with minimal energy cost.
 
 \section{SmartWatch vs. SmartPhone}\label{sec:SWvsSP}
-A comparative study about localization using smartwatch vs. smartphone \cite{SWvsSP}. It presents that positioning accuracy using WiFi based fingerprint implemented on a smartwatch is sufficient for at least room-size locations. Average minimum room size is 10$m^2$ or at least 3 $x$ 3$m$ with maximum of five WiFi APs broadcasting on different channels.
+It is a comparative study about localization using smartwatch vs. smartphone \cite{SWvsSP} which presents that positioning accuracy using WiFi based fingerprints implemented on smartwatch is sufficient for at least room-size locations. Average minimum room size is 10$m^2$ or at least 3$x$3 meters with maximum of five WiFi APs broadcasting using different channels.
 
-Field study was conducted in six specific locations such as farm, large room, house, two types of medium rooms and one small room. This study collected data using two Android based devices, MotoACTV was used as smartwatch and Samsung Galaxy S3 mini as smartphone. To make fingerprint data more reliable the study collects device orientation (horizontal, vertical) and samples were taken in all four cardinal directions (north, east, south, west).
+Field study was conducted in six specific locations, such as farm, large room, house, two types of medium rooms and one small room. This study collected data using two Android based devices, smartwatch MotoACTV was used and smartphone Samsung Galaxy S3 mini. To make fingerprint data more reliable the study also collects device orientation (horizontal, vertical) and data were taken in all four cardinal directions (north, east, south, west).
 
 \begin{figure}[H]
 	\begin{centering}
@@ -93,4 +92,4 @@ Field study was conducted in six specific locations such as farm, large room, ho
 	\label{fig02c03}
 \end{figure}
 
-\fref{fig02c03} shows summary results of experiments. Most important part of this data is comparison of positioning accuracy between smartwatch and smartphone. In all tests the difference in classification error between the smartphone and smartwatch was at most 5\% if data from all five APs is used. On the other hand it can be 25\% worse when using small amount of APs in large environments. The result of this study is a confirmation that localization using smartwatch is comparable to smartphone and sometimes even better for home environments. The usage of smartwatches is also preferable since it is tightly connected to a penson.
+\fref{fig02c03} shows result of these experiments. Most important part of this summary is comparison of positioning accuracy between smartwatch and smartphone. In all tests the difference in classification error between the smartphone and smartwatch was at most 5\% if all five APs were used. On the other hand it can be up to 25\% worse when using small amount of APs in large environments. This study confirms that localization using smartwatch can  be comparable to smartphone and sometimes even better for home environments. The usage of smartwatches is also preferable since it is tightly connected to a penson.

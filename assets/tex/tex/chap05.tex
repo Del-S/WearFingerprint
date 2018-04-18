@@ -82,7 +82,7 @@ This API is written in Java based framework called Spring to keep the code simil
 One last thing to note in \fref{fig01c05} is the connection with sync gateway. Even though it is not used in this implementation for synchronization it is used to save fingerprints into the database. When data is saved into Couchbase directly sync gateway will not display them, that is why the upload must go through the gateway. This is to ensure all previous and next solution can use this feature without loosing any important data.
 
 \section{Application Software}\label{sec:ApplicationSoftware}
-Software part for smartphone and smartwatch uses Android system which was already described in \hyperref[sec:Android]{Chapter 3}. This section will provide basic information about libraries, technologies and systems used in such applications.
+Software part for smartphone and smartwatch uses Android system which was already described in \hyperref[sec:WearOS]{Chapter 3}. This section will provide basic information about libraries, technologies and systems used in such applications.
 
 \subsection{AltBeacon Library}\label{subsec:AltBeaconLibrary}
 Since Android core does not allow scanning for BLE beacons this feature must be implemented in a library extending system features. There are multiple solutions that can be used to scan for beacons such as Estimote SDK \cite{ESDKfA} which was already used in previous thesis \cite{PMRIL}. To change things up BLE beacons are found via AltBeacon Library \cite{ABL}.
