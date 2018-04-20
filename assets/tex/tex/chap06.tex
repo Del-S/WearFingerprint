@@ -237,7 +237,7 @@ Combining data from both wireless technologies together and comparing devices sh
 	\label{fig06c06}
 \end{figure}
 
-To compare both technologies more precisely all fingerprint errors were sorted are displayed in \fref{fig06c06}. The image confirms information that using wear device fingerprints will result in higher error than mobile but there is few places where using wear is better, unfortunately there is not a lot of them. 
+To compare both technologies more precisely all fingerprint errors were sorted are displayed in \fref{fig06c06}. The image confirms information that using wear device fingerprints will result in higher error than mobile but there are few places where using wear is better, unfortunately not a lot of them. 
 
 \subsection{Testing multiple fingerprints}\label{sec:TestingMultipleFingerprint}
 Previous method is testing only single fingerprint against all other ones without the device type information. Improving upon previous design this evaluation selects multiple, two in this case, fingerprints with different device origins and runs the WKNN algorithm on them. These fingerprints have to be from the same location and also from the same scan group, which is identified by their scan id. All of these fingerprints have their location calculated and this information is then averaged to increase the location precision. This algorithm supports multiple technologies and it could be improved to support weights where specific technology, such as mobile, could have higher weight to reduce influence of technologies with worse precision.
