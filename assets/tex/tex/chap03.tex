@@ -7,8 +7,8 @@ This paper focuses on improving indoor localization using BLE-based fingerprinti
 It proposes calculating medians from 800 millisecond tests where user can move only one meter from starting position at most. Average and variance is calculated for all medians with the same position, based on these values a normal distribution is used to model the potential variation of RSSI. Important thing to note is that fingerprint maps are also built based on facing direction. These maps are tested using five main scenarios
 
 \begin{itemize}
-	\item P1: single device held in hand where body does not obstruct its line of sight (LoS) path to all beacons,
-	\item P2: one device is placed in breast pocket where LoS may be obstructed to some beacons,
+	\item P1: single device held in hand where body does not obstruct its line of sight (LOS) path to all beacons,
+	\item P2: one device is placed in breast pocket where LOS may be obstructed to some beacons,
 	\item P3: user holds smartphone in hand and wears a smartwatch on one wrist,
 	\item P4: single device is placed in the breast pocket and the other is on one wrist,
 	\item P5: one device is in the breast pocket, and two other devices, each on one wrist.
@@ -79,7 +79,7 @@ All previously mentioned prototypes were deployed with and without SmartFix to t
 
 This paper proposed an tested new localization technology, SmartFix, which main focus is to improve energy efficiency on wearable devices. According to the experiment, probability of error within 2 meters can be reached in 80\% of cases. Meanwhile, energy consumption is 35\% lower than that of MoLoc with the same accuracy. Results show that implementing SmartFix obtains the best accuracy with minimal energy cost.
 
-\section{SmartWatch vs. SmartPhone}\label{sec:SWvsSP}
+\section{Smartwatch vs. Smartphone}\label{sec:SWvsSP}
 It is a comparative study about localization using smartwatch vs. smartphone \cite{SWvsSP} which presents that positioning accuracy using WiFi based fingerprints implemented on smartwatch is sufficient for at least room-size locations. Average minimum room size is 10$m^2$ or at least 3$x$3 meters with maximum of five WiFi APs broadcasting using different channels.
 
 Field study was conducted in six specific locations, such as farm, large room, house, two types of medium rooms and one small room. This study collected data using two Android based devices, smartwatch MotoACTV was used and smartphone Samsung Galaxy S3 mini. To make fingerprint data more reliable the study also collects device orientation (horizontal, vertical) and data were taken in all four cardinal directions (north, east, south, west).

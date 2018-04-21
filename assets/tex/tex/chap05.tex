@@ -9,13 +9,13 @@ This chapter describes all important information about created application. Firs
 	\label{fig01c05}
 \end{figure}
 
-\fref{fig01c05} shows core devices and technologies used in this application. There are three main devices of this implementation, mobile, wear and server. Mobile and wear parts implement scanning for radio signals and they are written in Java language for Android system. Server is also programmed in Java to keep implementations close to each other and make future adjustments easier.
+\fref{fig01c05} shows core devices and technologies used in this application. There are three main devices of this implementation, mobile, wear and the server. Mobile and wear parts implement scanning for radio signals and they are written in Java language for Android system. Server is also programmed in Java to keep implementations close to each other and make future adjustments easier.
 
 \section{Hardware}\label{sec:Hardware}
-There are multiple kinds of hardware devices used in this application. All of them can be seen on \fref{fig01c05}, where first and the most important are smartphone and smartwatch. These devices scan for radio signals from WiFi access-points and BLE beacons that are placed in the indoor environment. Final hardware part is the server containing scanned data from all devices and supporting their synchronization between them.
+There are multiple kinds of hardware devices used in this application. All of them can be seen on previous \fref{fig01c05}, where first and the most important are smartphone and smartwatch. These devices scan for radio signals from WiFi access-points and BLE beacons that are placed in the indoor environment. Final hardware part is the server containing scanned data from all devices and supporting synchronization between them.
 
 \subsection{Smartphone and Smartwatch}\label{subsec:SmartphoneAndSmartWatch}
-Both smart devices must support scanning of Bluetooth Low Energy (BLE), which is supported from Bluetooth 4.0, and WiFi signals. Secondary requirements are GSM and LTE modules to support more data types than just BLE and WiFi.
+Both smart devices must support scanning of Bluetooth Low Energy (BLE), which is supported from Bluetooth 4.0, and WiFi signals. Secondary requirements are GSM and LTE modules to support more data types than BLE and WiFi.
 
 \subsubsection{Smartphone}\label{subsubsec:Smartphone}
 Main part of the application is developed and tested on Redmi Note 4 from Chinese company Xiaomi. It is running customized version of Android 6.0 called MIUI. Even thought system was customized, in core it is still Android so there are no problems in that regard \cite{XRN4LTE}. This phone has Bluetooth 4.1 with LE support and WiFi 802.11 a/b/g/n chip, thus main requirements for the hardware are met. Concerning secondary requirements, all them are also met with GSM and LTE support like most modern smartphones do \cite{XRN4FPS}.
@@ -23,7 +23,7 @@ Main part of the application is developed and tested on Redmi Note 4 from Chines
 One interesting thing about Xioami smartphones is their locked bootloader. It prevents users from any manual updates but most importantly from reseting the device to factory settings. For unlocking bootloader owner has to create an account on Xiaomi website and put a request to unlock it, which is usually processed within two weeks period and there is no actual guarantee of it being approved. After evaluation process is complete user will be notified via sms about the result of such request.
 
 \subsubsection{Smartwatch}\label{subsubsec:Smartwatch}
-Before development for wear device could begin it was required to find suitable smartwatches running Android Wear 2.0 system. This iteration was quite new at the time, which made it harder to select such device because there were not so many options. During selection process there were around twenty smartwatches with this system and only five of them were selected for closer inspection based on few technical articles \cite{BAWW, BAWW18, BAWW17}.
+Before development for wear device could begin it was required to find suitable smartwatches running Android Wear 2.0 system. This iteration was quite new at the time, which made it harder to select such device because there were not so many options to choose from. During selection process there were around twenty smartwatches with this system and only five of them were selected for a closer inspection based on few technical articles \cite{BAWW, BAWW18, BAWW17}.
 
 \begin{table}[h]
 	\scriptsize
@@ -42,19 +42,17 @@ Before development for wear device could begin it was required to find suitable 
 	\end{center}
 \end{table}
 
-Only one smartwatch could be selected out of five displayed in \tref{tab2} based on hardware requirements, website articles and customer experience. First, wear device had to support BLE and Wi-Fi which all of them do. Second, it must have been sold in Czech Republic (CR) because it makes shipping and warranty dealings easier. Only three of five devices were sold in Czech Republic at that time so others were taken out of the consideration. Final decision was made based on extensive research of customer reviews in shopping sites, such as Amazon, CZC, Heureka, Alza, wear official websites \cite{LGWSP, LGWST, HW2, PM600, AZW3} and other tech sites \cite{BAWW, BAWW18, BAWW17}. In the end, selected device was Huawei Watch 2 since requirements were met and there were not too many problems found in reviews.
+Only one smartwatch could be selected out of the five displayed in \tref{tab2}. Selection was made based on hardware requirements, website articles and customer experience. First, wear device had to support BLE and WiFi, which all of them do. Second, it must have been sold in Czech Republic (CR) because it makes shipping and warranty dealings easier. Only three of five devices were sold in Czech Republic at that time so others were taken out of the consideration. Final decision was made based on extensive research of customer reviews in shopping sites, such as Amazon, CZC, Heureka, Alza, wear official websites \cite{LGWSP, LGWST, HW2, PM600, AZW3} and other tech sites \cite{BAWW, BAWW18, BAWW17}. In the end, selected device was Huawei Watch 2 since requirements were met and there were not too many problems found in reviews.
 
-Initial setup of the wear device was composed of two main parts. First, update wear system which took about one to two hours. Second task was to setup the watch and copy Google account, this is where some problem were encountered. Copying of accounts from Redmi Note 4 to the watch never completed successfully. To fix this problem another smartphone (Huawei Y5 II) was used to copy the account and as it was already mentioned, only single device can be connected to smartwatch. Connecting to new smartphone forces a factory reset and removal of all data, luckily there is a workaround for this issue handled via Android Debug Bridge by following this \cite{HtPAWW} article. In short it resets the information about connected mobile device in wear and starts new bluetooth connection search.
+Initial setup of the wear device was composed of two main parts. First, update wear system which took about one to two hours. Second, setup the watch and copy Google account information into it, this is where some problem were encountered. Copying of accounts from Redmi Note 4 to the watch never completed successfully. To fix this problem another smartphone (Huawei Y5 II) was used to copy the account and as it was already mentioned, only single device can be connected to smartwatch. Connecting to new smartphone forces a factory reset and removal of all data from wear device. Luckily, there is a workaround for this issue handled via Android Debug Bridge by following this \cite{HtPAWW} article. In short it resets the information about connected mobile device and starts new bluetooth connection search.
 
-Since Google wants to focus also on iOS devices technology Android Wear 2.0 was rebranded to WearOs by Google to remove confusion in the future \cite{AWITFNM}. This forced an update on wear devices, updating it to the newest Android version which resulted in some changes during development process. First, was an implementation bug in scanning library that was introduced and had to be fixed. Second and bigger problem was inability to deploy new version of the application from Android Studio to the watch. This, for some reason, effected the main computer used to develop this application and it was fixed by using another one.
+Since Google wants to focus also on iOS device technology, Android Wear 2.0 was rebranded to WearOs by Google to remove confusion in the future \cite{AWITFNM}. This forced an update on wear devices, updating it to the newest Android version which resulted in some changes during development process. First, was an implementation bug in scanning library that was introduced and had to be fixed. Second and bigger problem was the inability to deploy new version of the application from Android Studio to the watch. This, for some reason, effected the main computer used to develop this application and it was fixed by using another one.
 
 \subsection{Radio signal devices}\label{subsec:RSD}
-Hardware devices used for send radio signals are BLE beacons, WiFi access-points and Cellular towers. Only first two types of these devices can be placed inside the building and are most commonly used for indoor localization. Signal from cellular towers is only a complimentary data that does not have to be used and cannot be influenced since they are placed outside by telecommunication companies.
+Hardware devices used to send out radio signals are BLE beacons, WiFi access-points and Cellular towers. Only first two types of these devices can be placed inside of the building and are most commonly used for indoor localization. Signal from cellular towers is only a complimentary information that does not have to be used and cannot be influenced since they are placed outside by telecommunication companies.
 
 \subsubsection{BLE beacons}\label{subsec:BLEBeacons}
-Beacons are small devices that can be easily placed in almost any environment. Only thing they do is send an information packets using Bluetooth and nothing else. They are commonly used in museums, airports and as of late for indoor localization \cite{10TABB}. Beacons have their own battery powering them which can last around a year or two without charging because of the new Bluetooth Low Energy (BLE) standard. This technology drastically reduces power consumption and introduces new configuration options regarding advertising interval and transmitter output power \cite{IPSBOBLE}. More in depth description of this technology and devices was written by Pavel Kriz et al. \cite{IILUBLEB}.
-
-There are multiple beacon manufacturers, each with their own quality, signal strength, battery life and other hardware differences. Changes can also be found in software (packet) specifications for beacons, meaning data they send have different formats but it does not mean other systems cannot see them. Some software changes are usually have to be made to detect different kinds of beacons but they are documented and not hard to make. Beacons are also usually platform independent, making them work with multiple systems, such as Android or iOS \cite{IPSBOBLE, 10TABB}. Beacons used in this thesis are from a company called Estimote and they are most commonly used.
+Beacons are small devices that can be easily placed in almost any environment. Only thing they do is send an information packets using bluetooth and nothing else. They are commonly used in museums, airports and as of late for indoor localization \cite{10TABB}. Beacons have their own battery powering them which can last around a year or two without charging because of the new Bluetooth Low Energy (BLE) standard. This technology drastically reduces power consumption and introduces new configuration options regarding advertising interval and transmitter output power \cite{IPSBOBLE}. More in depth description of this technology and devices was written by Pavel Kriz et al. \cite{IILUBLEB}.
 
 \begin{figure}[H]
 	\begin{centering}
@@ -64,29 +62,31 @@ There are multiple beacon manufacturers, each with their own quality, signal str
 	\label{fig02c05}
 \end{figure}
 
-Another important thing to mention, beacons are not connected to the Internet and do not collect any data from devices around them. That is why the data have to be processed in another device, most commonly a smartphone, but it also makes beacon safe to use because there is no need to worry about theft of user sensitive data \cite{10TABB}.
+There are multiple beacon manufacturers, each with their own quality, signal strength, battery life and other hardware differences. Changes can also be found in software (packet) specifications for beacons, meaning data they send have different formats but it does not mean other systems cannot see them. Some software changes are usually have to be made to detect different kinds of beacons but they are documented and not hard to make. Beacons are also usually platform independent, making them work with multiple systems, such as Android or iOS \cite{IPSBOBLE, 10TABB}. Beacons used in this thesis are from a company called Estimote and they are most commonly used.
+
+Another important thing to mention, beacons are not connected to the Internet and do not collect any data from devices around them. That is why all data have to be processed in another device, most commonly a smartphone, but it also makes beacon safe to use because there is no need to worry about theft of user sensitive data \cite{10TABB}.
 
 \subsubsection{WiFi access-points}\label{subsec:WiFiAccessPoints}
-WiFi signals are commonly used in indoor localization due to their presence almost anywhere and high precision. In this case several WiFi transmitters of the \verb|eduroam| network made by Cisco were used. This network allows users (researchers, teachers, students, staff) from participating institutions to securely access the Internet from any eduroam-enabled institution \cite{Eduroam}. Access-points are permanently deployed on every floor of Campus building and cannot be influenced or their settings changed, they are also usually at least two per location to enable transmitting in 2.4 GHz and 5 GHz band.
+WiFi signals are most common devices used in indoor localization due to their presence almost anywhere and high precision. In this case, several WiFi transmitters of the \verb|eduroam| network made by Cisco were used. This network allows users (researchers, teachers, students, staff) from participating institutions to securely access the Internet from any eduroam-enabled institution \cite{Eduroam}. Access-points are permanently deployed on every floor of the Campus building and cannot be influenced or have their settings changed, they are also usually at least two per location to enable transmitting in 2.4 GHz and 5 GHz band.
 
 \section{Server}\label{sec:Server}
-This application does not necessarily need a server for its core functionality but it is common and faster to run an analysis of the data and other heavy computational work on a different and usually faster device. Functionality of the server is to provide a backup of the data and also work as a synchronization point to enable other devices to download fingerprints and upload new ones.
+This application does not necessarily need a server for its core functionality but it is common and faster to run an analysis of collected data and other heavy computational work on a different and usually faster device. Functionality of the server is to provide a backup of the data and also work as a synchronization point to enable other devices to download fingerprints and upload newly collected ones.
 
-The server infrastructure was built in previous years \cite{IILUBLEB} but it was modified for this solution. In its core server uses NoSQL database to save fingerprints. This type of database does not have fixed scheme, making it easy to save all kinds of data without any constraints. There are many implementations of NoSQL databases, currently over 225, to choose from. Selected database is called Couchbase, it saves data in JSON files with its very own query language similar to SQL. Part of this database can also replicate data between other devices which could be used in the application part but it was deemed too slow and data heavy for use in the application. Not using this feature created the need for development of a middleman API between Android application and Couchbase database.
+The server infrastructure was built in previous years \cite{IILUBLEB} but it was modified for this solution. In its core server uses NoSQL database to save fingerprints. This type of database does not have a fixed scheme, making it easy to save all kinds of data without any constraints. There are many implementations of NoSQL databases, currently over 225, to choose from. Selected database is called Couchbase, it saves data in JSON files with its very own query language similar to SQL. Part of this database can also replicate data between other devices which could be used in the application part but it was deemed too slow and data heavy for use in this application. Not using this feature created the need for development of a middleman API for communication between Android application and Couchbase database.
 
-As \fref{fig01c05} shows server has three main parts to work with. First, already mentioned Couchbase database to keep scanned data. Second, sync gateway that can synchronize data between devices, which is not used in this implementation but there is a connection to it for specific reason mentioned later. As it was mentioned these two parts were already implemented in previous years \cite{IILUBLEB}. Final part is newly created web application working as a REST API to send data between the server and mobile application. 
+As \fref{fig01c05} shows server has three main parts to work with. First, already mentioned Couchbase database to keep scanned data. Second, sync gateway that can synchronize data between devices, which is not used in this implementation but there is a connection to it for specific reason described later. As it was mentioned, these two parts were already implemented in previous years \cite{IILUBLEB}. Final part is a newly created web application working as a REST API to send data between the server and mobile application. 
 
-This API is written in Java based framework called Spring to keep the code similar to Android. Before implementation is was documented using Swagger and it handles two main HTTP routes: \verb|fingerprints| and  \verb|fingerprints-meta|. Before any tasks are issued, mobile application checks meta data on the server using \verb|fingerprints-meta| route which returns count of new fingerprints and last time specific device saved new ones on the server. With this information the application calculates how many fingerprints to upload and download, both of these task run in parallel to speed up the process. To prevent device memory exhaustion and connection timeouts both of these tasks have specific limits, download can process 100 of fingerprints while upload only 20 per call. Server can also generate data files for analysis, split by technology, time, origin device and other filters. To simplify this generation it is similar to loading all fingerprints, it does not create file with the data but prints the them directly into the connection stream.
+This API is written in Java-based framework called Spring to keep the code similar to Android. Before implementing, it was documented using Swagger and it handles two main HTTP routes: \textbf{fingerprints} and \textbf{fingerprints-meta}. Mobile application checks meta data on the server before any tasks can be run. It is done by calling \textbf{fingerprints-meta} route which returns count of new fingerprints and last time current device saved new ones on the server. With this information the application calculates how many fingerprints to upload and download, both of these task run in parallel to speed up the process. To prevent device memory exhaustion and connection timeouts both of these tasks have specific limits, download can process 100 of fingerprints while upload only 20 per call. Server can also generate data files for analysis, split by technology, time, origin device and other filters. To simplify this generation it is similar to loading of all fingerprints, it does not create file with the data but prints the them directly into the connection stream.
 
-One last thing to note in \fref{fig01c05} is the connection with sync gateway. Even though it is not used in this implementation for synchronization it is used to save fingerprints into the database. When data is saved into Couchbase directly sync gateway will not be able to display them, that is why the upload goes through the gateway. It ensures all previous and next solution will be able to use this feature without loosing any important data.
+One last thing to note in \fref{fig01c05} is the connection with sync gateway. Even though it is not used in this implementation for synchronization, it is used to save fingerprints into the database. When data is saved into the Couchbase directly, sync gateway will not be able to display them, that is why the upload goes through the gateway. It ensures all previous and next solutions will be able to use this feature without loosing any important data.
 
 \section{Application Software}\label{sec:ApplicationSoftware}
-Software part for smartphone and smartwatch is built for Android system which was already described in \hyperref[sec:WearOS]{Chapter 3}. This section will provide basic information about libraries, technologies and systems used in these applications.
+Software part for smartphone and smartwatch is built on Android system which was already described in \hyperref[sec:WearOS]{Chapter 3}. This section will provide basic information about libraries, technologies and systems used in these applications.
 
 \subsection{AltBeacon Library}\label{subsec:AltBeaconLibrary}
 Android core does not allow scanning for BLE beacons, that is why this feature must be implemented in a library extending system features. There are multiple solutions that can be used to scan for beacons such as Estimote SDK \cite{ESDKfA} which was already used in previous thesis \cite{PMRIL}. To change things up BLE beacons are scanned using AltBeacon Library \cite{ABL}.
 
-At the time there was no open and inter-operable specification for proximity beacons, enabling Radius Networks to create the AltBeacon specification as a proposal to solve this issue. It is an open and free specification for BLE beacons with focus to create an open, competitive market for implementation of these devices \cite{AltB}. Basic configuration of this library can scan for beacons based on this standard and it also supports Eddystone beacons which is Google's open-source format. To support already mentioned and used Estimote beacons this library configuration must be altered to support their detection. Luckily, scanner function can be easily modified to support different kinds of beacons by just one line of code \cite{ABL, EDDF}.
+There was no open and inter-operable specification for proximity beacons at the time and Radius Networks decided to create the AltBeacon specification as a proposal to solve this issue. It is an open and free specification for BLE beacons with the focus to create an open and competitive market for implementation of these devices \cite{AltB}. Basic configuration of this library can scan for beacons based on this standard but it also supports Eddystone beacons which is Google's open-source format. To support, already mentioned and used Estimote beacons, this library configuration must be altered to support their detection. Luckily, scanner function can be easily modified to support different kinds of beacons by adding just one line of the code \cite{ABL, EDDF}.
 
 \begin{lstlisting}[caption=Code to enable all beacon types]
 beaconManager.getBeaconParsers().add(
@@ -94,15 +94,15 @@ beaconManager.getBeaconParsers().add(
 		i:20-21,i:22-23,p:24-24"));
 \end{lstlisting}
 
-This library uses publish-subscribe design pattern, meaning one scan data is send to multiple clients if they listen for them. Using this approach has an advantage of eliminating the need to run scan per client. Update to Android 8 introduced a bug in this feature making it unable to confirm the registration of client so the scanner had to be reworked to work around this bug, thus postponing the data collection and analysis.
+This library uses publish-subscribe design pattern, meaning one scan data is send to multiple clients if they listen for them. Using this approach has an advantage of eliminating the need to run scan per client. Update to Android 8 introduced a bug in this feature making it unable to confirm the registration of a client so the scanner had to be reworked to work around this bug, thus postponing the data collection and analysis.
 
 \subsection{Database}\label{subsec:Database}
-This solution makes use of two different types of databases to store all the fingerprint data for calculations. First, SQLite database implemented in Android mobile application to save fingerprints from smartphone and smartwatch. This database is default implementation and most commonly used in Android. Second database type is Couchbase implemented on the server \verb|beacons.uhk.cz| to keep all fingerprints in one place and also enable synchronization plus data analysis.
+This solution makes use of two different types of databases to store all the fingerprint data for calculations. First, SQLite database implemented in Android mobile application to save fingerprints from smartphone and smartwatch. This database is a default implementation and most commonly used in Android. Second database type is Couchbase, implemented on the server \textbf{beacons.uhk.cz} to keep all fingerprints in one place and also enable synchronization plus data analysis.
 
 \subsubsection{SQLite database}\label{subsec:SQLiteDatabase}
 SQL (Structured Query Language) is a standard language for storing, manipulating and retrieving data in databases. It is a type of relational database, meaning all data is saved into tables with specified rows and columns \cite{WISQLITE}. These tables usually have a set amount of rows with specific names that protect from adding wrong data, for example, you cannot add data \verb|Person(name, surname, eye color)| into table \verb|Person(name, surname)| because there is no column named \verb|eye color| in the table.
 
-Structured data is one of the advantages for this database type and it makes calculation faster but as a drawback it uses more storage space. Other advantage is that data can be saved only once and can be connected to each other. It supports complex queries for creating, reading, updating and removing data (CRUD) and better security with user and table management. Some disadvantages of this system can be in complexity and inflexibility of database schema because it is hard to setup and does not allow other data not defined in the tables \cite{ERDMS}. Altering schemes in the future can be really complex since there is the need to parse current data into newly created tables which do not need to have the same schema as current ones.
+Structured data is one of the advantages for this database type and it makes calculation faster but as a drawback it uses more storage space. Other advantage is that data can be saved only once and can be connected to each other. It supports complex queries for creating, reading, updating and removing data (CRUD) and better security with user and table management. Some disadvantages of this system can be in complexity and inflexibility of database schema because it is hard to setup and does not allow saving of data not defined in the tables \cite{ERDMS}. Altering schemes in the future can be really complex since there is the need to parse current data into newly created tables which do not need to have the same schema as current ones.
 
 Since SQL with all its features can consume a lot of hardware resources for a smartphone, Android decided to implement lite version of this database. SQLite has the following noticeable features: self-contained, serverless, zero-configuration, transactional \cite{WISQLITE}.
 
@@ -114,9 +114,9 @@ Since SQL with all its features can consume a lot of hardware resources for a sm
 \end{itemize}
 
 \subsubsection{Couchbase database}\label{subsec:CouchbaseDatabase}
-SQL based databases can be complex to implement, scale and usually require more data storage space and it created a motivation to develop so called NoSQL databases. Their most important and significant feature is not having a fixed schema, that makes them easy to scale and replicate between multiple devices. There are over 225 NoSQL databases at this time and selected Couchbase is one of them \cite{NOSQLDB}.
+SQL-based databases can be complex to implement, scale and usually require more data storage space. This created a motivation to develop so called NoSQL databases. Their most important and significant feature is not having a fixed schema, that makes them easy to scale and replicate between multiple devices. There are over 225 NoSQL databases at this time and selected Couchbase is one of them \cite{NOSQLDB}.
 
-Couchbase is distributed, document-based database with its own querying language called N1QL. It is a database focused on simple server configuration and easy usage for clients, with built in caching layer and distribution system it does not require any changes in the application. There can be either one server instance of Couchbase or multiple connected effectively create a database cluster which holds all the data in multiple locations (nodes) \cite{GSWCBS}. This data is saved in JSON file format and usually in readable form without any encryption.
+Couchbase is distributed, document-based database with its own querying language called N1QL. It is a database focused on simple server configuration and easy usage for clients, with built-in caching layer and distribution system it does not require any changes in the application. There can be either one server instance of Couchbase or multiple connected effectively creating a database cluster which holds all the data in multiple locations (nodes) \cite{GSWCBS}. This data is saved in JSON file format and usually in readable form without any encryption.
 
 \begin{lstlisting}[caption=JSON format example]
 [
@@ -125,13 +125,14 @@ Couchbase is distributed, document-based database with its own querying language
 ]
 \end{lstlisting}
 
-Since SQL language is used for decades and it became the standard for working with data in databases, Couchbase embraces this approach and extends it for JSON files, creating new language called N1QL. It has all the main features of the SQL with some minor improvements \cite{WINQL}. Currently this language can be used only on the server implementation and it is not supported in Android. Version of this database for mobile application is called Lite and so called \verb|views| are used instead of N1QL. Views are objects containing selected data from database documents and their major problem is being very data heavy which is shown in following section. That makes it one of two main reasons why mobile application uses an SQLite instead of Couchbase. Second point is to differentiate between previous solutions and test data consumption and load speed of SQL database.
+Since SQL language is used for decades and it became the standard for working with data in databases, Couchbase embraces this approach and extends it for JSON files, creating a new language called N1QL. It has all the main features of the SQL with some minor improvements \cite{WINQL}. Currently this language can be used only on the server implementation and it is not supported in Android. Version of this database for mobile application is called Lite and so called \textbf{views} are used instead of N1QL. Views are objects containing selected data from database documents and their major problem is being very data heavy which is shown in the following section. This makes it one of two main reasons why mobile application uses an SQLite instead of Couchbase. Second point is to differentiate between previous solutions and test data consumption and loading speed of SQL database.
 
 \subsubsection{Comparison}\label{subsubsec:Comparison}
-Both of previously mentioned database solutions were tested in Android mobile application to figure out which one is faster and takes less data storage space. As a test, 315 fingerprint documents were be loaded and displayed, all of them have more than 500 sub-documents which makes about 150 000 documents. As \tref{tab3} shows, SQLite takes less space and is almost three times faster in loading all the documents, that is why it was selected for this project. If Couchbase Lite would have faster query time or supported the use of N1QL it would be preferable solution but it is not at this time.
+Both of previously mentioned database solutions were tested in Android mobile application to figure out which one is faster and takes less data storage space. As a test, 315 fingerprint documents were loaded and displayed, all of them have more than 500 sub-documents which makes about 150 000 documents in total. As shown in the \tref{tab3}, SQLite takes less storage space and is almost three times faster in loading all the documents, that is why it was selected for this project. If Couchbase Lite would have faster query time or supported the use of N1QL it would be a preferable solution but it is not at this time.
 
 \begin{table}[h]
 	\begin{center}
+		\scriptsize
 		\begin{tabular}{| l | c | c |}
 			\hline
 			Database type & Data size & Loading speed (315 documents) \\ \hline
@@ -144,20 +145,18 @@ Both of previously mentioned database solutions were tested in Android mobile ap
 	\end{center}
 \end{table}
 
-Selecting SQL comes with a disadvantage since it does not provide any data synchronization, due to that custom solution must have been created which was already described in \hyperref[sec:Server]{Server} section.
+Selecting SQL comes with a disadvantage since it does not provide any data synchronization, due to that, a custom solution must have been created which was already described in the \hyperref[sec:Server]{Server} section.
 
 \subsection{TileView}\label{subsec:TileView}
-There are multiple ways to display image map in Android, default solutions usually load the whole picture at once. This works for smaller pictures but it does not necessarily work for bigger ones because the application can run out of memory. To solve this problem it is usually better to try external library or widget created specifically for displaying such images. One approach is to use 2D or 3D library to display image, these libraries usually work with the image as a whole and implement complex functionality to display it without memory exhaustion. The other approach, also used by Google Maps, is to cut the big image to smaller parts (\verb|tiles|) and display them next to each other recreating overall image. This approach has multiple advantages.
+There are multiple ways to display image map in Android, default solutions usually load the whole picture at once. This works for smaller pictures but it does not necessarily work for bigger ones because the application can run out of allocated memory. To solve this problem it is usually better to try external library or widget created specifically for displaying such images. One approach is to use 2D or 3D library to display image, these libraries usually work with the image as a whole and implement complex functionality to display it without memory exhaustion. The other approach, also used by Google Maps, is to cut the big image to smaller parts, called \textbf{tiles}, display them next to each other and recreating overall image. This approach has multiple advantages.
 
 \begin{itemize}
 	\item Solves performance issues and enables cartographers to create aesthetically pleasing maps without the need to worry about performance impact.
 	\item When user is panning, relevant pictures stay displayed while others are loaded, thus improving user experience.
 	\item Every zoom level has its own collection of images, this makes it easy to keep a good image quality for all zoom levels.
-	\item When zoomed pictures out of the screen do not have to be kept in memory, this cannot be done with other solutions because image is not split into parts.
+	\item When zoomed in, pictures out of the screen do not have to be kept in memory, this cannot be done with other solutions because image is not split into parts.
 	\item Zoomed image can have more details than original one.
 \end{itemize}
-
-Tiles are usually images that have 265x265 pixels but that is not the requirement. There is one tile with the image displayed for the lowest zoom, level 0, where each zoom increase splits this image into 4 tiles. For practical purposes maximum zoom level is usually around 21 with almost 4.5 trillion tiles.
 
 \begin{figure}[H]
 	\begin{centering}
@@ -167,7 +166,9 @@ Tiles are usually images that have 265x265 pixels but that is not the requiremen
 	\label{fig03c05}
 \end{figure}
 
-Creating tiles by hand can be really time consuming job, even for low zoom levels, but it can be done automatically by script or program. For example, it is possible to create them by slice tool in PhotoShop but this solution supports only low level of zoom since it has a limit for amount of such created images. Author of this library provides a solution to this problem using a free tool called ImageMagick, which can resize, crop, cut and create images using a command line making it easy to develop a script for all zoom levels required \cite{TileView}.
+Tiles are images that have 265x265 pixels but that is not the requirement. There is one tile with the image displayed for the lowest zoom, level 0, which is usually not used and level 1 is used instead where each zoom increase splits every tile image into 4 more tiles. For practical purposes, maximum zoom level is usually around 21 with almost 4.5 trillion tiles.
+
+Creating tiles by hand can be really time consuming job, even for low zoom levels, but it can also be done automatically using script or a program. For example, it is possible to create them by slice tool in PhotoShop, but this solution supports only low level of zoom since it has a limit for amount of such created images. Author of this library provides a solution to this problem using a free tool called ImageMagick, which can resize, crop, cut and create images using a command line making it easy to develop a script for all zoom levels required \cite{TileView}.
 
 \begin{lstlisting}[caption=Creating tiles using ImageMagick]
 C:\*path to imagemagick*\convert C:\*path to big image*.png 
@@ -179,26 +180,24 @@ C:\*path to imagemagick*\convert C:\*path to big image*.png
 This code will split image.png into 256x256 tiles, and name them \enquote{tile-i-j.png}, where \enquote{i} is the column index and \enquote{j} is the row index. More information can be found in the TileView wiki \cite{TileViewWiki}.
 
 \section{Application implementation}\label{sec:ApplicationImplementation}
-Implementation of this application is split into two core parts, for mobile and wear. Both of them have to implement two tasks in order to be able to create fingerprint maps. First, scanner for radio signals which will record Bluetooth Low Energy beacons, WiFi access-points and Cellular towers. Second, communication between both implementations, mobile and wear, to allow sending fingerprint data between them. Those are two core functions for both applications but since the synchronization server is used, mobile part also has to communicate with the server.
+Implementation of this application is split into two core parts, mobile and wear. Both of them have to implement two tasks in order to be able to create fingerprint maps. First, a scanner for radio signals which will record Bluetooth Low Energy beacons, WiFi access-points and Cellular towers. Second, communication between both implementations, mobile and wear, to allow sending fingerprint data between them. Those are two core functions for both applications but since the synchronization server is used, mobile part also has to communicate with the server.
 
 Both of these applications are programmed in Java language using Android Studio, each of them has a separate configuration and is aimed to different system versions.
 
 \subsection{Scanner}\label{subsec:Scanner}
-Scans for radio signal and creates a fingerprint with specific position, device, radio signals and selected sensor information. This additional data, especially about the device, will help with analysis by splitting data into specific groups.
-
-There are multiple parts to this task and most of them are very computational heavy so it is better to implement it in a separate \verb|Thread| to prevent application from freezing. Android provides multiple solutions for running tasks in separate Threads.
+Scans for radio signal and creates a fingerprint with specific position, device, radio signals and selected sensor information. This additional data, especially about the device, will help with analysis by splitting data into specific groups. There are multiple parts to this task and most of them are very computational heavy so it is better to implement it in a separate \textbf{Thread} to prevent application from freezing. Android provides multiple solutions for running tasks in separate threads.
 
 \begin{itemize}
-	\item AsyncTask - Simple solution mainly focused on short running tasks (in seconds). This implementation is easily created since it handles basic functions like running task, run code before and after task, publish progress to main application thread and many more.
-	\item Service - Mainly focused on long running tasks which is run immediately after it is started not checking device resources. Android wants to deprecate this approach and develop their new JobScheduler.
-	\item Custom Thread - One of the hardest solutions because developer has to handle all the tasks related to threads life-cycle and be careful to prevent creation of multiple unwanted threads that might freeze the application or even system.
-	\item JobScheduler - One of the newest implementations, it is focused to schedule task and run them when the device has required resources ready and not immediately.
+	\item AsyncTask - simple solution, mainly focused on short running tasks (in seconds). This implementation is easily created since it handles all basic functions like running task, run code before and after task, publish progress to main application thread and many more.
+	\item Service - mainly focused on long running tasks which are run immediately after it is started without checking device resources. Android wants to deprecate this approach and develop their new solution, JobScheduler.
+	\item Custom thread - one of the hardest solutions to implement because developer has to handle all the tasks related to threads life-cycle and be careful to prevent creation of multiple unwanted threads that might freeze the application or even operating system.
+	\item JobScheduler - One of the newest implementations, it is focused to intelligently schedule tasks and run them when the device has required resources ready.
 \end{itemize}
 
-Scanner is run using JobScheduler, which is a new technology and Android wants to continue developing this feature. Handling scanned data is implemented using publish-subscribe design pattern handled by \verb|BroadcastReceiver|. There are two separate receivers, one for Bluetooth Low Energy and second for WiFi data, cellular scanner is connected to WiFi receiver and sensor scanning uses different implementations.
+Scanner is run using JobScheduler, which is a new technology and Android wants to continue developing this feature. Handling scanned data is implemented using publish-subscribe design pattern handled by \textbf{BroadcastReceiver}. There are two separate receivers, one for Bluetooth Low Energy and second for WiFi data, cellular scanner is connected to WiFi receiver and sensor scanning uses different implementations.
 
 \subsubsection{JobScheduler}\label{subsubsec:JobScheduler}
-This feature was introduced in Android 5.0 and it remains under active development with major changes in Android 7.0 version. This platform collects information about jobs that need to run across all the applications. Some of the collected information about specific jobs are: required network access, is the job periodic, should the job be scheduled after device restart and many more. This information is used to schedule and run jobs at, or around, the time they were scheduled. JobScheduler is intelligent about running jobs and it uses so called batching, which combines multiple jobs to reduce battery consumption \cite{AD, SOTAJS}.
+This feature was introduced in Android 5.0 and it remains under active development with major changes in Android 7.0 version. This platform collects information about jobs that need to run across all the applications. Some of the collected information about specific jobs are: required network access, is the job periodic, should the job be re-scheduled after device restart and many more. This information is used to schedule and run jobs at, or around, the time they were scheduled. JobScheduler is intelligent about running jobs and it uses so called batching, which combines multiple jobs to reduce battery consumption \cite{AD, SOTAJS}.
 
 \begin{lstlisting}[caption=Schedule Firngerprint scanner job.]
 // Building job to run
@@ -211,10 +210,10 @@ JobScheduler jobScheduler = (JobScheduler) getSystemService( Context.JOB_SCHEDUL
 jobScheduler.schedule(jobBuilder.build());
 \end{lstlisting}
 
-This code is used to schedule fingerprint scanner. Firstly, a job has to be created with specific identification and class to contain job code. Secondly, job information are provided for scheduler, this task should start around a second after scheduling, it is not run after device restart and there are custom data send to it via \verb|setExtras()| function. Finally, job scheduler is loaded, job constructed and scheduled for run. One thing to remember is to not create a new instance of JobScheduler class because it is a system service.
+This code is used to schedule fingerprint scanner. Firstly, a job has to be created with specific identification and class to contain job code. Secondly, job information are provided for the scheduler: this task should start around a second after scheduling, it is not run after device restart and there are custom data send to it via \verb|setExtras()| function. Finally, job scheduler is loaded, job constructed and scheduled to run. One thing to remember is to not create a new instance of JobScheduler class because it is a system service.
 
 \subsubsection{BroadcastReceiver}\label{subsubsec:BroadcastReceiver}
-Broadcast messages are send from Android system and other Android applications, similar to the publish-subscribe design pattern. This messages are send when an event occurs, such as system boot up, start of device charging cycle or network connectivity change. In addition to system events, custom ones can be created in the application to inform other applications, including itself. When a broadcast is sent, the system automatically routes it to application that have subscribed to receive that particular type of broadcast \cite{AD}. Following code illustrates how easy is to send a custom broadcast identified by specific action, which can be system or custom. It sends BLE beacon data to be received and parse into fingerprint in the scanner. Last line of the code sends broadcast to be received by other applications.
+Broadcast messages are send from Android system and other Android applications, similar to the publish-subscribe design pattern. This messages are send when an event occurs, such as system boot up, start of device charging cycle or network connectivity change. In addition to system events, custom ones can be created in the application to inform other applications, including itself. When a broadcast is sent, the system automatically routes it to application that have subscribed to receive that particular type of broadcast \cite{AD}. Following code illustrates how easy is to send a custom broadcast identified by specific action, which can be either system or custom. It sends BLE beacon data to be received and parsed into custom beacon entry in the scanner. Last line of the code sends broadcast to be received by other applications.
 
 \begin{lstlisting}[caption=Send broadcast with BLE beacons found.]
 Intent intent = new Intent();
@@ -223,40 +222,40 @@ intent.putParcelableArrayListExtra(ACTION_BEACONS_DATA, foundBeacons);
 sendBroadcast(intent);
 \end{lstlisting}
 
-Receiving broadcasts in application has two main steps. First, register the receiver implementation and specific broadcast message it should receive, this can be done via manifest or dynamically in code. If receiver is registered using manifest, application is launched, only if it is not running already, when the broadcast is sent. Second, create an implementation of BroadcastReceiver class that will handle information and data using \verb|onReceive()| function.
+Receiving broadcasts in application has two main steps. First, register the receiver implementation and specific broadcast message it should receive, this can be done via android manifest file or dynamically in the code. If receiver is registered using manifest, application is also launched, only if it is not running already, when the broadcast is sent. Second, create an implementation of BroadcastReceiver class that will handle broadcast information and data using \verb|onReceive()| function.
 
-There are two receivers used in the scanner. First, used for WiFi scanning since it is a default Android solution. Second, BLE scanner was modified to use this approach because there are multiple parts of this application that can scan for surrounding beacons. Other two scanners use \verb|Listeners| which are interfaces handling communication between system and application.
+There are two receivers used in the scanner. First, used for WiFi scanning since it is a default Android solution. Second, BLE scanner was modified to use this approach because there are multiple parts of this application that can scan for surrounding beacons. Other two scanners use \textbf{Listeners} which are interfaces handling communication between system and application.
 
 \subsection{Device communication}\label{subsec:DeviceCommunication}
-In this application device communication is used to send fingerprint data between devices using Bluetooth. Mobile application sends information about newly created fingerprint such as location and scan duration, these values are same for both devices. Wear application will in return send result data after scan was finished to save it into the mobile database.
+In this application device communication is used to send fingerprint data between devices using bluetooth. Mobile application sends information about newly created fingerprint such as location and scan duration, these values are the same for both devices. Wear application will, in return, send result data after scan was finished to save it into the mobile database.
 
-First implementation of this feature was build upon Bluetooth chat example application from Google. This implementation was using three separate threads to make connection, authorize it and then to send the data when devices were connected. Both of the devices had to accept the connection to send the data, which is normal, but there were some connection loss issues where one devices was considered connected and sending data while the second device was disconnected and not receiving anything. That is why this solution was removed at early development stage and substituted by Google's Data Layer API.
+First implementation of this feature was build upon bluetooth chat example application from Google. This implementation was using three separate threads to make connection, authorize it and then to send the data when devices were connected. Both of the devices had to accept the connection to send the data, which is normal, but there were some connection loss issues where one of the devices was considered connected and sending data while the second device was disconnected and not receiving anything. That is the main reason why this solution was removed at early stage of the development and substituted with Google's Data Layer API.
 
-To limit power consumption of this application on wear it does not run constantly. Before each scan is started mobile informs wear to start the application, after startup it informs mobile to send fingerprint data, these data are then send and received on wear part of the application and returned after the scan is done with acquired data.
+To limit power consumption of this application on wear it does not run constantly. Before each scan is started, mobile informs wear to start the application, after startup, confirmation is send back to mobile to initiate sending of fingerprint data. After wear receives the data it starts a new scan for radio signals and later returns the fingerprint back to mobile right after scanning finishes.
 
 \subsubsection{Data Layer API}\label{subsec:DataLayerAPI}
-Data Layer is commonly used by Google to send data between their applications. There is an implementation built completely on this feature called Google Tag manager which sends data from websites to other Google tools like Analytics or Adwords. In this case it is a JavaScript object or variable creating virtual \enquote{layer} of website application which contains various data points, making its name, Data Layer \cite{GTMDL}.
+Data Layer is commonly used by Google to send data between their applications. There is an implementation built completely on this feature called Google Tag Manager which sends data from websites to other Google-based tools like Analytics or Adwords. In this case it is a JavaScript object or variable creating virtual \enquote{layer} of the website application which contains various data points, making its name, Data Layer \cite{GTMDL}.
 
-Since it proved as a useful solution it was also implemented for Android and is currently a part of Google Play services. The Data Layer API allows to store and retrieve data from different kinds of devices, it this case between mobile phone and wear. There are multiple ways to send data depending on what type of data should be sent \cite{AD}.
+Since it proved as a useful solution it was also implemented for Android and is currently a part of Google Play services. The Data Layer API allows to store and retrieve data between different devices and also kinds of devices, it this case between mobile phone and wear. There are multiple ways to send data depending on what type of data should be sent \cite{AD}.
 
 \begin{itemize}
-	\item Data Item - It provides a data storage that is synchronized between mobile and wearable device. Whenever data changes, all devices using this item are then informed about the change. All data are identified by its own specific Uri containing creator and path.
-	\item Asset - Used to send binary blobs of data, such as images. It takes care of the data transfer automatically using caching to avoid sending the same data multiple times.
-	\item Message - Good for sending small amounts of data or remote procedure calls, such as controlling mobile media player from wear. If the device receiving data is connected, sender receives a result code confirming successful data send. Although if the device is disconnected right after receiving the result code this information might not be 100\% precise.
-	\item Channel - Transfers large data entities, such as music and movie files. It saves the disk space over Data Item or Asset because it does not create copy of the message on local device before synchronization. It can also be used to transfer streamed data, such as music pulled directly from the network.
+	\item Data Item - provides a data storage that is synchronized between devices. Whenever data changes, all of the devices using this item are then informed about the change. All data are identified by its own specific Uri containing creator device and path.
+	\item Asset - used to send binary blobs of data, such as images. It takes care of the data transfer automatically using caching to avoid sending the same data multiple times.
+	\item Message - Good for sending small amounts of data or remote procedure calls, such as controlling mobile media player from wear. If the device receiving data is connected, sender receives a result code confirming successful data send. Although the result code does not guarantee delivery of the message and if the application requires data reliability it should use Data Items. 
+	\item Channel - Transfers large data entities, such as music and movie files. It saves the disk space over Data Item or Asset because it does not create a copy of the message on local device before synchronization. It can also be used to transfer streamed data, such as music pulled directly from the network.
 \end{itemize}
 
-This application uses message system and data items, where messages are used to send information for wear application startup and confirm if it was started. Fingerprint data are then send via data items. Since application may be either in foreground or background there is a need for two solutions to receive the data. First, service that runs when the application is not started or in the background. Second, any activity can implement an interface that will get received data in the foreground.
+This application uses message system and data items, where messages are used to send information for wear application to startup and confirm if it was started. Fingerprint data are then send via data items. Since application may be either in the foreground or background there is a need for two solutions to receive the data. First, service that runs when the application is not started or in the background. Second, any activity can implement an interface that will get received data in the foreground.
 
 One important thing to mention is, to send the data successfully between the devices they must have the same APK signatures, meaning they must be signed by the same key. For example, debug versions of two applications developed on two different computers will not be able to send data due to this restriction.
 
 \subsection{Server communication}\label{subsec:ServerCommunication}
-Main task of communicating with the server is to synchronize data on the mobile, downloading previous fingerprints and upload newly scanned ones. This feature uses server API to transfer data and since it is a very data and computational heavy task it is implemented in a separate thread, same as a scanner using JobScheduler. It was already mentioned that server API is documented in Swagger, this tool can also generate Android code to communicate with the server, based on defined functions in the documentation. This will generate working code without the requirement of using secondary library but the code is unnecessary complex and so this application uses external library called Retrofit.
+Main task of communicating with the server is to synchronize data on the mobile, downloading previous fingerprints and upload newly scanned ones. This feature uses server API to transfer data and since it is a very data and computational heavy, it is implemented in a separate thread, same as a scanner using JobScheduler. It was already mentioned that server API is documented in Swagger, this tool can also generate Android code to communicate with the server, based on defined functions in the documentation. This will generate working code without the requirement of using secondary library but the code is unnecessary complex and so this application uses external library called Retrofit.
 
 Even though the new version of Google's WearOS makes this feature easier to implement on the wear device, it is still used only in the mobile application for one simple reason: to lower power consumption. 
 
 \subsubsection{Retrofit}\label{subsec:Retrofit}
-Retrofit is a library turning HTTP API into a Java interface making the implementation easy and simple. This interface contains calls with parameters based on the API documentation, it can return either raw response or automatically convert the data into Java classes based on configuration. Creating the interface is only one of two parts to make this library working. Second is create an instance of this library's main class with a configuration specific to the API.
+Retrofit is a library turning HTTP API into a Java interface making the implementation easy and simple. This interface contains calls with parameters based on the API documentation, it can return either raw response or automatically convert the data into Java classes based on the configuration. Creating the interface is only one of two parts to make this library working. Second is to create an instance of this library's main class with a configuration specific to the API and use it to initiate calls.
 
 \begin{lstlisting}[caption=Retrofit interface example]
 public interface ApiConnection {
@@ -268,7 +267,7 @@ public interface ApiConnection {
 }
 \end{lstlisting}
 
-Code contains a small example of Retrofit's interface class with a function for getting fingerprints. First, Retrofit must be informed which type of HTTP call it should use, such as GET, POST, PUT or DELETE. Part of this information can also be URL path added to the call, \verb|fingerprints| in this case. Secondly, all of the parameters with information where they should be posted, in header, body or query.
+Previous code contains a small example of Retrofit's interface class with a function for getting fingerprints. First, Retrofit must be informed which type of HTTP call it should use, such as GET, POST, PUT or DELETE. Part of this information can also be URL path added to the call, \textbf{fingerprints} in this case. Secondly, all of the parameters with information where they should be posted, in header, body or query.
 
 \begin{lstlisting}[caption=Retrofit configuration example]
 Retrofit retrofit = new Retrofit.Builder()
@@ -278,17 +277,18 @@ Retrofit retrofit = new Retrofit.Builder()
 	.build();
 \end{lstlisting}
 
-There is only one required configuration to make Retrofit work and that is defining base URL so the library knows where to send the calls. Some other configurations might be adding data converter which converts the data from Json to Java classes, run calls in different threads or create custom HTTP client.
+There is only one required configuration to make Retrofit working and that is defining the base URL so the library knows where to send the calls. Some other configurations might be adding data converter which converts the data from Json to Java classes, run calls in different threads or create custom HTTP client.
 
 \subsection{Application screens}\label{subsec:ApplicationScreens}
 Mobile application has three screens, map and scanner, surrounding devices, synchronization screen and wear application has only one containing information about current scan. All of these screens are made to as simple for use as possible.
 
 \subsubsection{Map and scanner}\label{subsec:MapAndScanner}
-This screen is the core of application and it shows the map of a building floor with fingerprint positions as markers. Map is implemented using TileView library previously described in this chapter. It is used to display locations of fingerprints and enable to create new ones, provide data about existing ones and enable to delete them. Deleting was not supposed to be part of this implementation but it proved useful when one or both devices collected \enquote{broken} fingerprints, which are usually created by failure in WiFi scanning or failing of sending data from mobile to wear device. Deleting removes last created fingerprint group at specific spot, meaning it deletes one fingerprint per device type, this is possible because fingerprints have their specific scan id connecting them together.
+This screen is the core of mobile application and it shows the map of a building floor with fingerprint positions as markers. Map is implemented using TileView library previously described in this chapter. It is used to display locations of fingerprints and enable to create new ones, provide data about existing ones and enable to delete them. Deleting was not supposed to be part of this implementation but it proved useful when one or both devices collected \enquote{broken} fingerprints, which are usually created by failure in WiFi scanning or failing of sending data from mobile to wear device. Deleting removes last created fingerprint group at specific spot, meaning it deletes one fingerprint per device type. This is possible because fingerprints have their specific scan id connecting them together.
 
 \begin{figure}[h!]
 	\begin{centering}
 		\includegraphics[width=0.30\textwidth]{img/map_markers}
+		\hspace{0.2cm}
 		\includegraphics[width=0.30\textwidth]{img/map_markers_own}
 		\par\end{centering}
 	\caption{Map screen with markers\label{fig:map_with_markers}}
@@ -299,7 +299,7 @@ This screen is the core of application and it shows the map of a building floor 
 
 Each spot on the map can be clicked, including the markers, to display overlay with fingerprint actions. There are two different displays for this overlay. First, when user clicks on existing marker there are options to display information about that specific spot, containing list of the fingerprints, enable user to create new fingerprint on that spot, delete last group or hide this window. Second, displayed when clicked spot does not have previously created fingerprints. This overlay displays only option to add new fingerprint or hide the window. Both of these options are displayed in \fref{fig04c05}.
 
-Adding new fingerprints will create all necessary data for the scan and runs it via already mentioned JobScheduler. This scan has always priority, meaning if there is a non-priority scan running it is canceled and this one is run instead. It can happen when devices screen initiated a scan which did not finish before scheduling a scan using this screen. When scan is running all application screens (Activities) display scan information as shown in the \fref{fig05c05}, thus informing about scan status in all parts of the application.
+Adding new fingerprints will create all necessary data for the scan and run it via already mentioned JobScheduler. This scan has always priority, meaning if there is a non-priority scan running it is canceled and this one is run instead. It can happen when devices screen initiated a scan which did not finish before scheduling a scan using this screen. When scan is running all application screens (Activities) display scan information as shown in the \fref{fig05c05}, thus informing about scan status in all parts of the application.
 
 \begin{figure}[H]
 	\begin{centering}
@@ -309,43 +309,45 @@ Adding new fingerprints will create all necessary data for the scan and runs it 
 	\label{fig05c05}
 \end{figure}
 
-This information window overlays the screen just above the application menu. It informs user about scan status, progress and how many device records were saved until now. Information displayed are BLE (B), WiFi (W) and Cellular (C) data collected but it does not show Sensor (S) information to save screen space.
+This information window overlays the screen just above the application menu. It informs user about scan status, progress and how many device records were saved until now. Informations displayed are BLE (B), WiFi (W) and Cellular (C) data collected but it does not show Sensor (S) information to save screen space.
 
-Original map image has 3000x2200 pixels but with a low data size around 230 kB so it could be displayed as a single image but for already mentioned reasons it is not. The image is cut into four zoom levels with first having 4 images and the final one with 144. Left side of \fref{fig06c05} shows maximum zoom on the mobile screen and right side displays information about fingerprints in a specific spot.
+Original map image has 3000x2200 pixels but with a low data size around 230 KB, so it could be displayed as a single image but for already mentioned reasons it is not. The image is cut into four zoom levels (1 to 4) with first having 4 images and the final one with 144. Left side of \fref{fig06c05} shows maximum zoom on the mobile screen and right side displays information about fingerprints in a specific spot.
 
 \begin{figure}[h!]
 	\begin{centering}
 		\includegraphics[width=0.30\textwidth]{img/map_zoom}
+		\hspace{0.2cm}
 		\includegraphics[width=0.30\textwidth]{img/map_list_fingerprints}
 		\par\end{centering}
 	\caption{Maximum map zoom (left), List of fingerprints (right)\label{fig:map_zoom_and_list}}
 	\label{fig06c05}
 \end{figure}
 
-List of fingerprints for specific spot displays information about origin device by icon, time it was created and enables to delete specific ones from the mobile. It is planned to extend this feature to display all important information about fingerprint, such as ids, device, counts of measurements and even RSSI averages. This would enable to assess fingerprint viability before uploading it on the server.
+List of fingerprints for a specific spot displays information about origin device by icon, time it was created and enables to delete specific ones from the mobile. It is planned to extend this feature to display all important information about fingerprint, such as ids, device, counts of measurements and even RSSI averages. This would enable to assess fingerprint viability before uploading it on the server.
 
-Important thing to note is deleting fingerprints will not be reported to the server, therefore deletion of fingerprints is advised before uploading to the server. Deleting of already uploaded fingerprint on the phone will remove it only from that device and to delete it from the server is only enabled on the server itself. 
+Important thing to note is that deleting fingerprints will not be reported to the server, therefore deletion of fingerprints is advised before uploading to the server. Deleting of already uploaded fingerprint on the phone will remove it only from that device and to delete it from the server is only enabled on the server itself. 
 
 \subsubsection{Devices}\label{subsec:Devices}
-It was supposed to be used for establishing connection between mobile and wearable device but this is done via WearOS application and not necessarily required since Data Layer API can now also send data between devices via WiFi. Even though it has no real use it was kept to display surrounding devices and mainly BLE beacons.
+This screen was supposed to be used for establishing connection between mobile and wearable device but this is done via WearOS application and not necessarily required since Data Layer API can now also send data between devices via WiFi. Even though it has no real use it was kept to display surrounding devices and mainly BLE beacons.
 
 \begin{figure}[h!]
 	\begin{centering}
 		\includegraphics[width=0.30\textwidth]{img/devices_bl}
+		\hspace{0.2cm}
 		\includegraphics[width=0.30\textwidth]{img/devices_ble}
 		\par\end{centering}
 	\caption{Bluetooth devices (left), Beacons (right)\label{fig:bl_ble_list}}
 	\label{fig07c05}
 \end{figure}
 
-Left screen of \fref{fig06c05} displays all the Bluetooth devices recorded during last scan, which is 15 seconds long. This scanning feature is not continuous and to display new devices it is needed to start the scan by pressing \enquote{Search} button, which will also clear the available devices list. There is no need to scan for bonded Bluetooth devices since Android keeps them in a separate list, which is good but it does not check if the devices are in range or not, this means it can also display the device that is not available.
+Left screen of \fref{fig06c05} displays all the Bluetooth devices recorded during the last scan, which is 15 seconds long. This scanning feature is not continuous and to display new devices it is needed to start a new scan by pressing \enquote{Search} button, which will also clear the available devices list. There is no need to scan for bonded Bluetooth devices since Android keeps them in a separate list, which is good but it does not check if the devices are in range or not, this means it can also display the device that is not available.
 
-Right screen displays only devices broadcasting using Bluetooth Low Energy, those are mainly beacons but it can also be some TVs or wristbands. It displays basic information like name, mac address and last signal strength received. Same as Bluetooth list scanning is not continuous and is initiated by pressing \enquote{Search} button where length of such scan is set for 30 seconds in this case.
+Right screen displays only devices broadcasting using Bluetooth Low Energy, those are mainly beacons but it can also be wristbands, some TVs and few more devices. It displays basic information like name, mac address and last signal strength received. Same as Bluetooth scanning it is not continuous and initiated by pressing \enquote{Search} button where length of such scan is set to 30 seconds in this case.
 
-There is a possibility, for both screens, of device not having the name set, if that is the case mac address is displayed instead of missing name. To make this screen more viable it could display more information about devices, plus it could be extended to show WiFi access-points and Cellular towers in range.
+There is a possibility, for both screens, of device not having the name set and if that is the case, mac address is displayed instead of a missing name. To make this screen more viable it could display more information about devices, plus it could be extended to show WiFi access-points and Cellular towers in range.
 
 \subsubsection{Synchronization}\label{subsec:Synchronization}
-As the name suggests this screen is used to synchronize data between mobile and the server. It shows current fingerprint differences and enables data synchronization based on used input. It does not download or upload the data on its own since it is very data consuming, that is why it needs to be triggered by the user. Contrary to scanning, it does not display information using an overlay with the status but it updates counts on the screen after every successful upload or download is done. It also shows an animation of synchronization button on top of the screen and displays a message if synchronization finished successfully or failed.
+As the name suggests this screen is used to synchronize data between mobile and the server. It shows current fingerprint differences and enables data synchronization based on used input. It does not download or upload the data on its own since it is very data consuming, that is why it needs to be triggered by the user. Contrary to scanning, it does not display information using an overlay with the status but it updates counts on the screen after every successful upload or download call is done. It also shows an animation of synchronization button on top of the screen and displays a message if synchronization finished successfully or failed to inform user about the status of this task.
 
 \begin{figure}[H]
 	\begin{centering}
@@ -358,20 +360,20 @@ As the name suggests this screen is used to synchronize data between mobile and 
 It is planned to expand this screen for the use of application configuration to make it more flexible and able to be used in different environments than the current one. There are many changes considered which could influence the scanning results and application use.
 
 \begin{itemize}
-	\item Change scanning properties like maximum length, time periods for each scan or make scanning periodic. There could also be different settings for wearable device.
+	\item Be able to change scanning properties like maximum length, time periods for each scan or make scanning periodic. There could also be separate settings for wearable device.
 	\item Enable to change server API address and download/upload limits. The API would have to implement same endpoints as current one in this case.
 	\item Implement map tiles uploading for different floors or buildings with the possibility to change between them and download fingerprints based on such selected location.
 	\item User verification for the application and API with the possibility to change them on this screen.
 \end{itemize}
 
 \subsubsection{Wear scanner}\label{subsec:WearableScanner}
-Wearable application is meant to be as simple as possible. It has only single screen since all the other settings are done on mobile application. This screen has two display states and holds device wake lock preventing screen dimming or turning off when there is a scan running. Only reason to keep this wake lock is to display scan information without the need to click on wear screen, this feature could be also implemented as optional with the possibility to change in the phone application settings (currently synchronization) screen. 
+Wearable application is meant to be as simple as possible. It has only single screen since all the other settings are done on mobile application. This screen has two display states and holds the device wake lock preventing screen dimming or turning off when there is a scan running. Only reason to keep this wake lock is to display scan information without the need to click on wear screen. This feature could be also implemented as optional with the possibility to change in the phone application settings (currently synchronization) screen. 
 
 \begin{figure}[H]
 	\begin{centering}
-		\includegraphics[width=0.3\textwidth]{img/wear_waiting_edited}
+		\includegraphics[width=0.25\textwidth]{img/wear_waiting_edited}
 		\hspace{0.5cm}
-		\includegraphics[width=0.3\textwidth]{img/wear_scanning_edited}
+		\includegraphics[width=0.25\textwidth]{img/wear_scanning_edited}
 		\par\end{centering}
 	\caption{Wear scanning screens}
 	\label{fig09c05}
@@ -380,7 +382,7 @@ Wearable application is meant to be as simple as possible. It has only single sc
 First screen shows information message about receiving fingerprint data from mobile, when no data is received for 10 seconds it is closed to reduce battery drain. Second screen displays scan status with the progress bar and count of scanned records. When scan completes this informations stays displayed for tree seconds, after this time the screen is reset to the first one and application is closed. Since the scan can be run with wear at a position where user is not able to check the data, it informs about scan start and end with a short device vibration.
 
 \subsection{Interesting code examples}\label{subsec:Interesting code examples}
-This application is collection of complex code and functions where some interesting parts were selected and described in more detail.
+This application is a collection of complex code and functions where some interesting parts were selected and described in more detail.
 
 \subsubsection{Sending Fingerprint to Wear}\label{subsubsec:SendingFingerprintToWear}
 Core functionality of communication between both devices. This code can be found in a WearDataSender class of mobile application and it sends fingerprint data to the wear using Data Layer API right after wear application is started.
@@ -401,12 +403,12 @@ if(mFingerprint != null) {
 }
 \end{lstlisting}
 
-This class handles starting wear application and also sending the data, that is why it has fingerprint saved as a global variable and to send it to wear device it must not be empty. Only one change is done to the fingerprint before it is send, it removes origin device information to be filled in by the wear. When fingerprint is prepared it must be converted into Parcelable DataMap which is an object that is send via Data Layer. This data is identified by a string key so application can save multiple objects into this map. Next part of the code creates a request using this data and sets its mode to urgent to ensure fast delivery to all devices that listen for it. Request is completed at this point and can be send via DataClient which is loaded from the class Wearable with final line of code clearing the global variable containing fingerprint to prevent sending the same data multiple times.
+This class handles starting of wear application and also sending fingerprint data, that is why it has a global variable for fingerprint data. Fist line of the code checks if this variable is not empty so it could be send to wear device. This code does only one change to the fingerprint before it is send, it removes origin device information to be filled in by the wear. When fingerprint is prepared it must be converted into Parcelable DataMap which is an object that is shared via Data Layer. This data is identified by a string key so application can save multiple objects into this map. Next part of the code creates a request using this data and sets its mode to urgent to ensure fast delivery to all devices that listen for it. Request is completed at this point and can be send via DataClient which is loaded from the class Wearable. Final line of code takes care of clearing the global variable containing fingerprint to prevent sending the same data multiple times.
 
-Data Layer identifies all the data by a specific Uri and when the data is changed it sends an information to all devices, meaning each fingerprint must be different for sending notification about data change to the devices. Luckily every fingerprint has its own specific id and scan id which is always different so this feature does not pose any problem to the data sending.
+Data Layer identifies all the data by a specific Uri and when the data is changed it sends an information to all devices, meaning each fingerprint must be different for sending notification about the data change to other devices. Luckily every fingerprint has its own specific id and scan id which is always different so this feature does not pose any problem to the data sending.
 
 \subsubsection{Parsing beacon information}\label{subsubsec:ParsingBeaconInformation}
-None of the scanner parts uses default classes to contain scanned information. With each class custom data must be parsed from default ones during the scanning and following code, taken from FingerprintScanner class, shows an example how to parse beacon data.
+None of the scanner parts uses default classes to contain scanned information. With each custom class data must be parsed from the default ones during the scanning. Following code, taken from FingerprintScanner class, shows an example how to parse beacon data.
 
 \begin{lstlisting}[caption=Parsing beacon information]
 String bssid = beacon.getBluetoothAddress();
@@ -428,9 +430,7 @@ newBeacon.setScanDifference(scanDifference);
 return newBeacon;
 \end{lstlisting}
 
-First loaded information is device mac address because it is used to calculate time differences between last time device was recorded and current time which is done in following part. After all time values are calculated BeaconEntry can be created containing all required data and immediately returned.
-
-Setting scanTime to 0 works as a protection against having it the same as currentMillis because start time of the scan might not have been set just yet. This is needed mainly for WiFi scanning because these parsing classes have to be set just before running scanner code which leaves few milliseconds where data can be recorded before scan is actually stared, considering WiFi scan cannot be controlled. It could be also solved by not recording this data but since it is only few milliseconds space it was decided that environment will not change enough to make the data irrelevant and so they are recorded too.
+First loaded information is device mac address because it is used to calculate time differences between last time this device was recorded and current time which is done in following part. After all time values are calculated BeaconEntry can be created containing all required data and immediately returned. Setting scanTime to 0 works as a protection against having it the same as currentMillis because start time of the scan might not have been set just yet. This is needed mainly for WiFi scanning because these parsing classes have to be set just before running the scanner code which leaves few milliseconds where data can be recorded before scan is actually stared, considering WiFi scan cannot be controlled. It could be also solved by not recording this data but since it is only few milliseconds difference it was decided that environment will not change enough to make the data irrelevant and so they are recorded too.
 
 \subsubsection{Map configuration}\label{subsubsec:MapConfiguration}
 Map is the main part of mobile application and it handles multiple functions thus requiring a lot of settings to work as intended. It also supports many functions which can be configured or disabled based on the implementation required. This map and the code is implemented in MapFragment class and displayed using MapActivity.
@@ -453,7 +453,7 @@ mMap.setShouldRenderWhilePanning(true);
 mMap.setShouldLoopScale(false);
 \end{lstlisting}
 
-First part contains setting map size which is 3000x3000 pixels and configure zoom levels with their specific tile images based on given path, setting zoom levels one by one makes it highly modifiable with the possibility to have different designs for each zoom level. Next part sets zoom values, such as allowed zoom levels and initial zoom of the map. Next part is setting up markers and hotspots which will be described later. Calling function \verb|frameTo()| centers the map with a delay because if it is done immediately it will not work. Final part of this code enables loading when map is panning and disables returning to maximum zoom level after double clicking while being zoomed in, being on zoom level 2 in this case.
+First part contains setting map size which is 3000x3000 pixels and configure zoom levels with their specific tile images based on given path. Setting zoom levels one by one makes it highly modifiable with the possibility to have different designs for each zoom level. Next part sets zoom values, such as allowed zoom levels and initial zoom of the map. Following part is setting up markers and hotspots which will be described later. Calling function \verb|frameTo()| centers the map with a delay because if it is done immediately it does not work. Final part of this code enables loading when map is panning and disables returning to maximum zoom level after double clicking while being zoomed in, on zoom level 2 in this case.
 
 \begin{lstlisting}[caption=Setup markers and hotspots]
 mMap.setMarkerTapListener(mMarkerTapListener);
@@ -466,6 +466,6 @@ mMap.addHotSpot(hotSpot);
 mMap.setHotSpotTapListener(mHotspotTapListener);
 \end{lstlisting}
 
-This code example sets variables for map markers, such as displaying control window after clicking, define bounds and anchor point for marker centering in horizontally and vertically. Defining bounds to the markers is very important information because it enables to calculate real pixel location from map absolute position because location of map markers changes based on how much the map is zoomed. Scanner needs the real marker location to create fingerprint on the right spot and thus enabling the location evaluation. This code does not actually display any markers on the map that is done later in the code.
+This code example sets variables for map markers, such as displaying control window after clicking, define bounds and anchor point for marker centering it horizontally and vertically. Defining bounds to the markers is very important information because it enables to calculate real pixel location from map's absolute position because location of map markers changes based on how much the map is zoomed in. Scanner needs the real marker location to create fingerprint on the right spot and thus enabling the localization evaluation. This code does not actually display any markers on the map, that is done later in the code.
 
 Second part of this example works similarly to previous one but it does not set the click function only to markers but creates an invisible overlay over the whole map, thus effectively enabling to click on any part of the map to display control window for fingerprints.

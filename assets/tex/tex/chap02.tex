@@ -21,7 +21,7 @@ Lateration refers to the technique of determining position based on distance mea
 
 \medskip
 
-\textbf{Multilateration}, also known as hyperbolic positioning is using Time Difference of Arrival (TDoA) instead of Time Of Arrival (ToA) used in previous case. This approach uses intersections of hyperbolas rather than circles as shown in \fref{fig02c02}. Main advantage of this method is that only receiving devices must have synchronized clock instead of all \cite{PLTaA}. Multilateration was developed for tracking aircraft position and it is widely used not only for this case.
+\textbf{Multilateration}, also known as hyperbolic positioning is using Time Difference of Arrival (TDOA) instead of Time Of Arrival (TOA) used in previous case. This approach uses intersections of hyperbolas rather than circles as shown in \fref{fig02c02}. Main advantage of this method is that only receiving devices must have synchronized clock instead of all \cite{PLTaA}. Multilateration was developed for tracking aircraft position and it is widely used not only for this case.
 
 \begin{figure}[h!]
 	\begin{centering}
@@ -34,7 +34,7 @@ Lateration refers to the technique of determining position based on distance mea
 Note: At this time term Multilateration is not as strict as it used to be. It can now refer to Lateration with more than three devices.
 
 \subsection{Angulation}\label{sec:Angulation}
-This technique uses Angle of Arrival (AoA) of radio signals to determine location and it requires highly directional antennas or antenna arrays. Same as Lateration these antennas are placed in known location and basic AoA requires at least two of them to determine position on 2D plane or more of them to improve accuracy \cite{RAinWILTaS}. Requiring only two antennas is an advantage over Trilateration which requires at least one more. Second advantage of this approach is no need for clock synchronization between devices.
+This technique uses Angle of Arrival (AOA) of radio signals to determine location and it requires highly directional antennas or antenna arrays. Same as Lateration these antennas are placed in known location and basic AOA requires at least two of them to determine position on 2D plane or more of them to improve accuracy \cite{RAinWILTaS}. Requiring only two antennas is an advantage over Trilateration which requires at least one more. Second advantage of this approach is no need for clock synchronization between devices.
 
 There are also few disadvantages of this approach since it needs complex hardware setup due to the use of directional antennas. Other problem is with multipath locations since it can cause signal reflection and thus making it not useful for indoor localization. And final one to mention is the decrease of accuracy when mobile target moves further from the antennas \cite{AoA, RofAoA}.
 
@@ -42,7 +42,7 @@ There are also few disadvantages of this approach since it needs complex hardwar
 	\begin{centering}
 		\includegraphics[width=0.6\textwidth]{img/angulation}
 		\par\end{centering}
-	\caption{3D location using AoA from Quuppa Intelligent Locating System (source: \cite{QAoA})\label{fig:AoAQuuppa}}
+	\caption{3D location using AOA from Quuppa Intelligent Locating System (source: \cite{QAoA})\label{fig:AoAQuuppa}}
 	\label{fig03c02}
 \end{figure}
 
@@ -62,7 +62,7 @@ Fingerprinting is implemented in two main phases. First, fingerprint maps constr
 There are multiple advantages of this approach and the most important is that it does not need any additional or specialized hardware. Next one is no need for time synchronization between the devices. Both of these advantages make it simple and cost effective method for localization. On the other hand building of maps is very time consuming and it needs heavy calibration. It is also susceptible to changes in the environment, such as people presence, object movement or relative humidity \cite{IILUBLEB, RSSFofIFD}.
 
 \section{Proximity}\label{sec:Proximity}
-Proximity detection, also known as connectivity based positioning, calculates only approximate location. Position is determined by cell of origin (CoO) method with known position and limited range \cite{RAinWILTaS}. Device location is based on the cell of connected transmitting device (\enquote{associated access} point in Wi-Fi 802.11 systems) as shown in \fref{fig04c02} \cite{WiFiLBS}.
+Proximity detection, also known as connectivity based positioning, calculates only approximate location. Position is determined by cell of origin (COO) method with known position and limited range \cite{RAinWILTaS}. Device location is based on the cell of connected transmitting device (\enquote{associated access} point in Wi-Fi 802.11 systems) as shown in \fref{fig04c02} \cite{WiFiLBS}.
 
 \begin{figure}[h!]
 	\begin{centering}
