@@ -14,8 +14,9 @@ It proposes calculating medians from 800 millisecond tests where user can move o
 	\item P5: one device is in the breast pocket, and two other devices, each on one wrist.
 \end{itemize} 
 
-At first, four of these scenarios were tested in a 15x8 meters entrance hall with four deployed beacons in the corners and ten measurement positions. Using multiple devices in this location improved position precision and reduced error by 57\%. \tref{tab1} shows mean errors for previously mentioned cases in this location where using more devices improves localization. However there is one position where case P4 will result with higher error than P3 due to building structure and signal obstruction for nearest beacons.
+At first, four of these scenarios were tested in a 15x8 meters entrance hall with four deployed beacons in the corners and ten measurement positions. Using multiple devices in this location improved position precision and reduced error by 57\%. \tref{tab01c03} shows mean errors for previously mentioned cases in this location where using more devices improves localization. However there is one position where case P4 will result with higher error than P3 due to building structure and signal obstruction for nearest beacons.
 
+\vspace*{6pt}
 \begin{table}[h]
 	\begin{center}
 			\begin{tabular}{ l | C{3cm} }
@@ -27,9 +28,11 @@ At first, four of these scenarios were tested in a 15x8 meters entrance hall wit
 				P4 & 0.41 \\ \hline
 		\end{tabular}
 		\caption{Mean errors at first location (sources: \cite{IPBLEIUMWD})}
-		\label{tab1}
+		\label{tab01c03}
 	\end{center}
 \end{table} 
+\vspace*{-\baselineskip}
+\vspace*{6pt}
 
 Second case, all of previously mentioned scenarios were tested in a conference room with unified ceiling and desks near the walls. This location is used to investigate the impact of beacon density to position precision. Three following combinations of beacons are used
 
@@ -39,6 +42,7 @@ Second case, all of previously mentioned scenarios were tested in a conference r
 	\item C: combination B with four more beacons at the sides of the room.
 \end{itemize}
 
+\vspace*{6pt}
 \begin{table}[h]
 	\begin{center}
 		\begin{tabular}{ l | C{1.25cm} C{1.25cm} C{1.25cm} }
@@ -52,9 +56,11 @@ Second case, all of previously mentioned scenarios were tested in a conference r
 			P5 & 0.80 & 0.39 & 0.07 \\ \hline
 		\end{tabular}
 		\caption{Mean errors at second location (sources: \cite{IPBLEIUMWD})}
-		\label{tab2}
+		\label{tab02c03}
 	\end{center}
 \end{table} 
+\vspace*{-\baselineskip}
+\vspace*{6pt}
 
 Using directional maps at this location resulted in increase of maximum localization error, which was not expected. This error can increase even more when using higher count of beacons and occurs mostly when testing at the edges of the room. Mean error on the other hand shows an improvement, higher with more beacons used. 
 

@@ -130,6 +130,7 @@ Since SQL language is used for decades and it became the standard for working wi
 \subsubsection{Comparison}\label{subsubsec:Comparison}
 Both of previously mentioned database solutions were tested in Android mobile application to figure out which one is faster and takes less data storage space. As a test, 315 fingerprint documents were loaded and displayed, all of them have more than 500 sub-documents which makes about 150 000 documents in total. As shown in the \tref{tab3}, SQLite takes less storage space and is almost three times faster in loading all the documents, that is why it was selected for this project. If Couchbase Lite would have faster query time or supported the use of N1QL it would be a preferable solution but it is not at this time.
 
+\vspace*{6pt}
 \begin{table}[h]
 	\begin{center}
 		\scriptsize
@@ -144,6 +145,8 @@ Both of previously mentioned database solutions were tested in Android mobile ap
 		\label{tab3}
 	\end{center}
 \end{table}
+\vspace*{-\baselineskip}
+\vspace*{6pt}
 
 Selecting SQL comes with a disadvantage since it does not provide any data synchronization, due to that, a custom solution must have been created which was already described in the \hyperref[sec:Server]{Server} section.
 
