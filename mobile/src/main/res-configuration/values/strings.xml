@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Meta information -->
+    <string name="as_synchronization_title">Data synchronization</string>
+    <string name="as_new_dummy">0</string>
+    <string name="as_new_download_title">New Fingerprints</string>
+    <string name="as_new_download_description">New fingerprints on the server since last update.</string>
+    <string name="as_new_upload_title">Not uploaded Fingerprints</string>
+    <string name="as_new_upload_description">Fingerprints on this device that were not uploaded to the server.</string>
+
+    <string name="as_synch_img_description">Run synchronization</string>
+
+</resources>

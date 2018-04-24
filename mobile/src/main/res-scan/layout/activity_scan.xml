@@ -7,8 +7,8 @@
     android:layout_height="match_parent"
     tools:context="cz.uhk.fim.kikm.wearnavigation.activities.scan.ScanActivity">
 
-    <com.qozix.tileview.TileView
-        android:id="@+id/as_view_map"
+    <FrameLayout
+        android:id="@+id/as_frame"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toTopOf="@+id/bottom_menu"

@@ -1,83 +1,101 @@
-\chapter{Android}\label{sec:Android}
-This chapter will provide information about Android and Wear 2.0 technology. Why it was developed and what are the differences between previous version and other wear technologies.
+\chapter{Related Work}\label{sec:RelatedWork}
+This is not a novel idea and there are already some completed solutions and papers written about RSS fingerprint collection using multiple devices. This chapter will describe few selected solutions close to this one as a comparison.
 
-\medskip
+\section{Improving Precision by Using Multiple Wearable Devices}\label{sec:IPUMWD}
+This paper focuses on improving indoor localization using BLE-based fingerprinting with multiple devices \cite{IPBLEIUMWD}. Using combination of smartphone and wear should in this case prevent signal obstruction from human body and at least one of the devices should receive beacon signal. Unfortunately due to low BLE sensibility of wear devices, authors decided to supplement them with a second mobile device, in this case with Nexus 5 running Android version 4.4.
 
-Android is a Linux based operating system for mobile and wear devices developed by Google. The main selling point of this system is that it's open-source project, meaning everyone can access the code and modify it as they wish. Android was mainly developed for mobile phones but in time moved beyond and at this time is implemented into all kinds of wear devices, tablets, televisions and even refrigerators or cameras \cite{WIGA}.
+It proposes calculating medians from 800 millisecond tests where user can move only one meter from starting position at most. Average and variance is calculated for all medians with the same position, based on these values a normal distribution is used to model the potential variation of RSSI. Important thing to note is that fingerprint maps are also built based on facing direction. These maps are then tested using five main scenarios.
 
-\section{Android system structure}\label{sec:AndroidSystemStructure}
-Android is created as a stack, meaning there are functional modules stack on top of each other from Linux core over native libraries to applications as shown in \fref{fig6}. Android maintains complete software stacks to enable device creators to run and modify Android for their specific hardware. To support these modifications and testing every release has multiple "code lines" to separate stable versions from experimental work \cite{AOSP}.
+\begin{itemize}
+	\item P1: single device held in hand where body does not obstruct its line of sight (LOS) path to all beacons.
+	\item P2: one device is placed in breast pocket where LOS may be obstructed to some beacons.
+	\item P3: user holds smartphone in hand and wears a smartwatch on one wrist.
+	\item P4: single device is placed in the breast pocket and the other is on one wrist.
+	\item P5: one device is in the breast pocket, and two other devices, each on one wrist.
+\end{itemize} 
+
+At first, four of these scenarios were tested in a 15x8 meters entrance hall with four deployed beacons in the corners and ten measurement positions. Using multiple devices in this location improved position precision and reduced error by 57\%. \tref{tab01c03} shows mean errors for previously mentioned cases in this location where using more devices improves localization. However there is one position where case P4 will result with higher error than P3 due to building's structure and signal obstruction for nearest beacons.
+
+\vspace*{6pt}
+\begin{table}[h]
+	\begin{center}
+			\begin{tabular}{ l | C{3cm} }
+				\hline
+				Scenario & Mean error (m) \\ \hline
+				P1 & 2.36 \\
+				P2 & 1.71 \\
+				P3 & 0.96 \\
+				P4 & 0.41 \\ \hline
+		\end{tabular}
+		\caption{Mean errors at first location (sources: \cite{IPBLEIUMWD})}
+		\label{tab01c03}
+	\end{center}
+\end{table} 
+\vspace*{-\baselineskip}
+\vspace*{6pt}
+
+Second case, all of previously mentioned scenarios were tested in a conference room with unified ceiling and desks near the walls. This location is used to investigate the impact of beacon density to position precision. Three following combinations of beacons are used
+
+\begin{itemize}
+	\item A: four beacons at the corners,
+	\item B: combination A with one beacon at the center,
+	\item C: combination B with four more beacons at the sides of the room.
+\end{itemize}
+
+\vspace*{6pt}
+\begin{table}[h]
+	\begin{center}
+		\begin{tabular}{ l | C{1.25cm} C{1.25cm} C{1.25cm} }
+			\hline
+			& \multicolumn{3}{ c }{Mean error (m)} \\ \hline
+			Scenario & A & B & C \\ \hline
+			P1 & 2.05 & 2.05 & 1.76 \\ 
+			P2 & 1.84 & 1.49 & 0.90 \\ 
+			P3 & 1.36 & 1.09 & 0.63 \\ 
+			P4 & 1.24 & 0.78 & 0.23 \\ 
+			P5 & 0.80 & 0.39 & 0.07 \\ \hline
+		\end{tabular}
+		\caption{Mean errors at second location (sources: \cite{IPBLEIUMWD})}
+		\label{tab02c03}
+	\end{center}
+\end{table} 
+\vspace*{-\baselineskip}
+\vspace*{6pt}
+
+Using directional maps at this location resulted in increase of maximum localization error, which was not expected. This error can increase even more when using higher count of beacons and occurs mostly when testing at the edges of the room. Mean error on the other hand shows an improvement, higher with more beacons used. 
+
+In summary, position error can be improved by three aspects: using more devices, using directional map or increasing the number of beacons. There are two main conclusions of this paper. First, confirmed precision degradation when testing near the edges of the room with obstructed signal to nearest beacons. Second, human body does not greatly change radio signal and device can receive reflected signals with sufficient strength. 
+
+\section{SmartFix}\label{sec:SmartFix}
+Complete name of this paper is \enquote{An Indoor Locating Optimization Algorithm for Energy-Constrained Wearable Devices called SmartFix} \cite{SmartFix}. The main goal was set to improve energy consumption efficiency for wearable-based indoor localization systems using WiFi fingerprinting. In the begging, single real-time experiment of energy consumption was run and split into two main parts: computation of location and collection of fingerprint. According to this experiment, energy consumption for data collection is 99\% of localization algorithm.
+
+This paper proposes novel indoor localization strategy, SmartFix, that can cooperate with an existing indoor localization technologies based on WiFi to decrease power consumption. It enhances accuracy of such algorithm with a little extra energy cost of calculation but large decrease of power consumption for signal collection. Aided with machine-learning algorithm, it obtains the relative features given by the trajectories of users in certain areas and modify the positioning results. SmartFix can save up to 70\% of energy while achieving the same localization accuracy when compared to the original fingerprinting method.
+
+To test this new system it was implemented with prototypes of TinyLoc \cite{TinyLoc}, MoLoc \cite{MoLoc} and basic WiFi fingerprinting method using K-Nearest Neighbors algorithm. TinyLoc is more focused on energy efficiency than location accuracy. In contrast, SmartFix analyses the history of people trajectory in given area to improve localization results by referring to user motion features. SmartFix then modifies positional results to achieve satisfying accuracy. MoLoc, same as SmartFix, also leverages user motion by collecting trajectory patterns using device built-in sensors to improve localization.
+
+All previously mentioned, prototypes were deployed with and without SmartFix to test their power consumptions. This algorithm only needs a single real-time RSS signal in the locating phase to guarantee an excellent energy saving performance. \fref{fig01c03} shows power consumption of on-time locating on two specific devices: HTC one and Moto 360. 
 
 \begin{figure}[H]
 	\begin{centering}
-		\includegraphics[width=0.6\textwidth]{img/android_stack}
+		\includegraphics[width=0.6\textwidth]{img/smart_fix}
 		\par\end{centering}
-	\caption{Android stack (source: \cite{AOSP})\label{fig:AndroidStack}}
-	\label{fig6}
+	\caption{Energy consumption based on prototypes (source: \cite{SmartFix})\label{fig:SmartFix}}
+	\label{fig01c03}
 \end{figure}
 
-There are multiple versions of Android system at this time and every single one has it's own version, code name and API level. Version codes are number identifications of a specific system version. Highest levels of these numbers are grouped into code names that are ordered alphabetically. As an example versions 8.0.0 and 8.1.0 have the same code name called Oreo. Finally API level is number identification for compatibility of specific application and it will be compared to API level of device Android system \cite{AOSP, AD}.
+This paper proposed an tested new localization technology, SmartFix, which main focus is to improve energy efficiency on wearable devices. According to the experiment, probability of error within 2 meters can be reached in 80\% of cases. Meanwhile, energy consumption is 35\% lower than that of MoLoc with the same accuracy. Results show that implementing SmartFix obtains the best accuracy with minimal energy cost.
 
-The highest part of the Android system stack are applications which extend device functionality and are written primarily in Java programming language \cite{SoASTaD}. These application are packaged into \verb|.apk| file, which is a zip archive, containing all application files like Java classes, layouts, images and more. Most important file is \verb|AndroidManifest.xml| that contains all meta-data about the application, such as permissions, package name, used components, versions and so forth. These application can be shared, for a nominal fee, via official market called Google Play. At the end of 2017 there were over three and a half million applications available in Google Play Store \cite{SoASTaD, NoAAiGPS, NoAA}.
+\section{Smartwatch vs. Smartphone}\label{sec:SWvsSP}
+It is a comparative study about localization using smartwatch vs. smartphone \cite{SWvsSP} which presents that positioning accuracy using WiFi-based fingerprints implemented on smartwatch is sufficient for at least room-size locations. Average minimum room size is 10$m^2$ or at least 3$x$3 meters with maximum of five WiFi APs broadcasting using different channels.
 
-Android is platform designed to be open source and free which makes it easy to create malicious applications. These application can bypass existing security and steal sensitive data, use telephony services or even gain control over the device \cite{ASIMPD}. Android has multiple ways to protect against such applications one of the most notable ones are Android Permission Framework and Google Play Protect \cite{SoASTaD}.
-
-%T_ODO: describe Permissions and google play protect
-
-\section{Wear technologies}\label{sec:WearTechnologies}
-Interactive wearable, as an example smartwatches, is a new part of mobile computers. Wear devices are categorically different from phones or tables in term of usage, design and user interfaces (UI). According to the app design guidelines by major vendors, users interact with wearable devices frequently throughout daily use. Each interaction is short, often less than 10 seconds, and is dedicated to simple tasks \cite{UtCoAWO}. 
-
-Important thing to note is that there are multiple kinds of wear devices from smart watches, wristbands, cameras or even glasses \cite{MIWD}. Based on report from Gartner technology research, conducted in 2017, most used wear devices were Bluetooth headset, wristbands and smartwatch \cite{GSWWDS}. Thanks to their small size wear devices are ideal to use for hands-free communication and health monitoring.
-
-One problem with this diversity is hardware and software compatibility. Every device creator can create their own operating system for specific wear device and it can be difficult to develop custom applications for it. To avoid such problems this thesis is focused only on smartwatch with Android Wear operating system. 
-
-There are three main point to note with watch devices. First of all is small battery capacity that can be almost ten times smaller then in typical smartphone. The second point is display with around forty-times less pixels which completely changes properties. And final part is scaled down CPU with high efficiency \cite{UtCoAWO}. Last two points are main parts of lowering power consumption of smartwatches but even with these cuts high-end watch devices can have really small battery life only in matter of few days or just hours.
-
-\subsection{Android Wear}\label{sec:AndroidWear}
-Android Wear is a version of Android OS tailored to small-screen wearable devices. There are not too many changes from system for smartphone but one of the main differences can be seen in UI since system had to be adjusted for watch size \cite{CSUITW}. Due to scaled down processing power of watches Android Wear wirelessly offloads data to the smartphone for heavy computing tasks, e.g., voice recognition \cite{UCAW}.
+Field study was conducted in six specific locations, such as farm, large room, house, two types of medium rooms and one small room. This study collected data using two Android-based devices, smartwatch MotoACTV was used and smartphone Samsung Galaxy S3 mini. To make fingerprint data more reliable the study also collects device orientation (horizontal, vertical) and data were taken in all four cardinal directions (north, east, south, west).
 
 \begin{figure}[H]
 	\begin{centering}
-		\includegraphics[width=0.6\textwidth]{img/wear_market_share}
+		\includegraphics[width=0.9\textwidth]{img/smartwatch_vs_smartphone}
 		\par\end{centering}
-	\caption{Smartwatch OS market share (source: \cite{TOAW})\label{fig:SmartwatchOSMarketShare}}
-	\label{fig7}
+	\caption{Summary table of results (source: \cite{SWvsSP})\label{fig:SWvsSP}}
+	\label{fig02c03}
 \end{figure}
 
-Android Wear is one of the most popular smartwatch systems but comes with it is own set of problems. Most notable and annoying one is being unable to pair wear with specific mobile device. It can be caused by combination of things like system compatibility, custom hardware or phone type but it is more common then it should be \cite{AWPaS}. Having phone connected to Android Wear can also cause phone to drain battery way faster. One thing to note is that smartwatch can be connected to only single device and connecting to another requires factory reset. Few other problems can be update issues, notifications not coming through to the watch, not being able to connect to Wi-Fi and system crashes \cite{WAWP}.
-
-Even with all these problems it is popular system and in early 2017 it got it's biggest update yet. New version 2.0 brought numerous improvements and features and few of the most notable ones will be described in this section \cite{AW2UG, AW2WN, AW2N}.
-
-\subsubsection{Standalone applications}\label{sec:StandaloneApplications}
-This feature is crucial change and it means that watch applications do not need mobile phone to function. Before this version it was needed to have connected phone with Android Wear support to use applications. Being forced to have Android phone proved as an obstacle for users without one since they could not use any applications on the watch \cite{AW2UG, AW2WN}.
-
-Since application can now work without phone there should be a way to install them directly. Thankfully part of this update is also standalone Google Play Store where users can browse apps that are designed specifically for the watch \cite{AW2WN}. Part of this feature is also enabling watch to use wireless and cellular networks on their own since most standalone applications require this feature. And final part of this update was improving and securing communication with phone. This is now done via Wearable Data Layer API that is used in almost all Google applications and it is also pretty easy to use as a developer \cite{AW2UG}. 
-
-\subsubsection{UI improvements}\label{sec:UIImprovements}
-Part of new Android Wear version is implementation of Android's Material design guidelines \cite{DoAW}. It has much more "mature" look and darker design for reducing battery drain \cite{AW2WN}. It is completely focused on Wear devices and supports both round and square screens with new re-design of application launcher \cite{AW2UG}.
-
-\begin{figure}[H]
-	\begin{centering}
-		\includegraphics[width=0.3\textwidth]{img/wear_design_notification}
-		\includegraphics[width=0.3\textwidth]{img/wear_design_agenda}
-		\includegraphics[width=0.3\textwidth]{img/wear_design_menu}
-		\par\end{centering}
-	\caption{Wear design examples (source: \cite{DoAW})\label{fig:WearDesignExamples}}
-	\label{fig8}
-\end{figure}
-
-Android is also trying to catch up with Apple's watchOS and make default watch display, also called watch faces, much more useful. Users can add different widgets of any containing data of any application to the watch faces \cite{AW2UG}. This ensures quick access to the data user deems important \cite{AW2N}. All this data displays also match design of currently selected watch face and after clicking it will direct right into the application \cite{AW2WN}.
-
-\begin{figure}[H]
-	\begin{centering}
-		\includegraphics[width=0.5\textwidth]{img/wear_watch_faces}
-		\par\end{centering}
-	\caption{Wear watch faces (source: \cite{AW2UG})\label{fig:WearWatchFaces}}
-	\label{fig9}
-\end{figure}
-
-\subsubsection{Google Assistant}\label{sec:GoogleAssistant}
-Google Assistant is basically voice controlled smart assistant same as for example Amazon's Alexa, Apple's Siri or Microsoft's Cortana. There are multiple tech sites that run benchmarks of these systems \cite{ASGA, VACCGASAB, CAGACS, GASBAC} and they do not seem to be that different so there is no need to buy one over the other. These systems can pull information that you need or want and they track where you work, sports you like, your schedule, stuff that might interest you and much more \cite{WIGA}. With the update of Wear 2.0 this feature is now available on smartwatches \cite{AW2UG, AW2WN}.
-
-\section{Other wear technologies}\label{sec:OtherWearTechnologies}
-Tizen, Pebble, Apple, ...
+\fref{fig02c03} shows the results of these experiments. Most important part of this summary is comparison of positioning accuracy between smartwatch and smartphone. In all tests the difference in classification error between the smartphone and smartwatch was at most 5\% if all five APs were used. On the other hand it can be up to 25\% worse when using small amount of APs in large environments. This study confirms that localization using smartwatch can  be comparable to smartphone and sometimes even better for home environments. The usage of smartwatches is also preferable since it is tightly connected to a person.

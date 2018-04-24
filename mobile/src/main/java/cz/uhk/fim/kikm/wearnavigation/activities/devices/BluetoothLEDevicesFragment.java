@@ -23,7 +23,7 @@ import org.altbeacon.beacon.Beacon;
 import java.util.ArrayList;
 
 import cz.uhk.fim.kikm.wearnavigation.R;
-import cz.uhk.fim.kikm.wearnavigation.model.adapters.BleBeaconsAdapter;
+import cz.uhk.fim.kikm.wearnavigation.model.adapters.devices.BleBeaconsAdapter;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.BLEScannerManager;
 import cz.uhk.fim.kikm.wearnavigation.utils.SimpleDividerItemDecoration;
 

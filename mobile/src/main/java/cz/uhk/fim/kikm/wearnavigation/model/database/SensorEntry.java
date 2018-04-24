@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.Expose;
 
 import java.util.HashMap;
@@ -31,8 +32,11 @@ public class SensorEntry implements Parcelable {
     public final static String DB_SCAN_DIFFERENCE = "scanDifference";
 
     // Variables of this class
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Expose(serialize = false)
     private int id;             // Database id (its inner id and it is not exported)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Expose(serialize = false)
     private int fingerprintId; // If of fingerprint that this entry belongs to
     private int type;           // Identification of sensor type
     /**
@@ -212,8 +216,9 @@ public class SensorEntry implements Parcelable {
 
     @Override
     public String toString() {
-        return "class CellularEntry {\n" +
+        return "class SensorEntry {\n" +
                 "    dbId: " + toIndentedString(id) + "\n" +
+                "    fingerprintId: " + toIndentedString(fingerprintId) + "\n" +
                 "    type: " + toIndentedString(type) + "\n" +
                 "    x: " + toIndentedString(x) + "\n" +
                 "    y: " + toIndentedString(y) + "\n" +

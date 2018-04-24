@@ -34,7 +34,7 @@ import cz.uhk.fim.kikm.wearnavigation.R;
 import cz.uhk.fim.kikm.wearnavigation.utils.bluetoothConnection.BluetoothConnectionHandler;
 import cz.uhk.fim.kikm.wearnavigation.utils.bluetoothConnection.BluetoothConnectionInterface;
 import cz.uhk.fim.kikm.wearnavigation.utils.bluetoothConnection.BluetoothConnectionService;
-import cz.uhk.fim.kikm.wearnavigation.model.adapters.BlDevicesAdapter;
+import cz.uhk.fim.kikm.wearnavigation.model.adapters.devices.BlDevicesAdapter;
 import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
 import cz.uhk.fim.kikm.wearnavigation.utils.SimpleDividerItemDecoration;
 
@@ -52,7 +52,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
     private Handler cancelSearchHandler = new Handler();    // Handler that cancels search
 
     private BlDevicesAdapter mBlDeviceAdapterBonded, mBlDeviceAdapter;      // Adapters to show devices
-    private List<BluetoothDevice> bondedDevices = new ArrayList<>();        // Global list of bounded devices
+    private List<BluetoothDevice> mBondedDevices = new ArrayList<>();        // Global list of bounded devices
 
     /**
      * Create instance of BluetoothDevicesFragment and pass variable to it to change functions
@@ -79,7 +79,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         // Load bluetooth bound devices
-        bondedDevices.addAll(mBluetoothAdapter.getBondedDevices());
+        mBondedDevices.addAll(mBluetoothAdapter.getBondedDevices());
 
         registerReceiver();
     }
@@ -102,7 +102,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         mBlDeviceAdapterBonded = new BlDevicesAdapter(getActivity(),
                 this,
                 true,
-                bondedDevices);
+                mBondedDevices);
 
         // Recycler view for bonded devices
         RecyclerView recyclerViewBonded = rootView.findViewById(R.id.fdb_bluetooth_list_bonded);
@@ -260,7 +260,7 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
 
         // Check if the device is bonded (paired) already
         boolean bonded = false;
-        for(BluetoothDevice bondedDevice : bondedDevices) {
+        for(BluetoothDevice bondedDevice : mBondedDevices) {
             if( bondedDevice.getAddress().equals(device.getAddress()) ) {
                 bonded = true;
                 break;
@@ -380,7 +380,10 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
         // Register for broadcasts for device discovery and binding
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        getActivity().registerReceiver(mReceiver, filter);
+        FragmentActivity activity = getActivity();
+        if(activity != null) {
+            getActivity().registerReceiver(mReceiver, filter);
+        }
     }
 
     /**
@@ -437,11 +440,11 @@ public class BluetoothDevicesFragment extends Fragment implements BlDevicesAdapt
     public interface ActivityConnection {
 
         /**
-         * Returns an instance of app wide Configuration class.
+         * Returns an instance of app wide ApiConfiguration class.
          * It is used to keep track of the single Bluetooth connected device.
          * To this device BLE search results will be posted to save.
          *
-         * @return Configuration instance
+         * @return ApiConfiguration instance
          */
         Configuration getConfiguration();
     }

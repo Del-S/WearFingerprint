@@ -10,10 +10,11 @@ import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.WearableListenerService;
 
+import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
+import cz.uhk.fim.kikm.wearnavigation.model.database.DeviceEntry;
 import cz.uhk.fim.kikm.wearnavigation.model.database.Fingerprint;
 import cz.uhk.fim.kikm.wearnavigation.model.database.helpers.DatabaseCRUD;
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
-
 
 /**
  * Listens to DataItems and Messages from the local node.
@@ -29,7 +30,8 @@ public class DataLayerListenerService extends WearableListenerService {
     public static final String SCAN_STATUS_KEY = "scanStatus";                      // Data key to check the status of wear scan
     public static final String SCAN_DATA = "scanData";                              // Data key to send/get fingerprint data
 
-    private DatabaseCRUD mDatabase;     // Database to save fingerprint to
+    private DatabaseCRUD mDatabase;  // Database to save fingerprint to
+    private DeviceEntry mDevice;     // DeviceEntry instance to get telephone
 
     @Override
     public void onCreate() {
@@ -37,6 +39,7 @@ public class DataLayerListenerService extends WearableListenerService {
 
         // Initiate database connection
         mDatabase = new DatabaseCRUD(this);
+        mDevice = Configuration.getConfiguration(this).getDevice(this);
     }
 
     @Override
@@ -62,11 +65,16 @@ public class DataLayerListenerService extends WearableListenerService {
 
                         // If fingerprint is loaded it is saved into the database
                         if(fingerprint != null) {
-                            mDatabase.saveFingerprint(fingerprint, null);
-                            // TODO: REMOVE
-                            // create a handler to post messages to the main thread
+                            // Set deviceId to this fingerprint to enable querying and save
+                            if(mDevice != null) {
+                                fingerprint.getDeviceEntry().setTelephone(mDevice.getTelephone());
+                            }
+                            mDatabase.saveFingerprint(fingerprint, null, true);
+                            // TODO: Modify
+                            // Create a handler to post messages to the main thread
+                            int wirelessCount = fingerprint.getWirelessEntries().size();
                             Handler mHandler = new Handler(getMainLooper());
-                            mHandler.post(() -> Toast.makeText(getApplicationContext(), "WearFingerprint was saved.", Toast.LENGTH_SHORT).show());
+                            mHandler.post(() -> Toast.makeText(getApplicationContext(), "WearFingerprint was saved. W:"+wirelessCount, Toast.LENGTH_SHORT).show());
                         }
                     }
                 }

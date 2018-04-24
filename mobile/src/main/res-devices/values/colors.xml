@@ -3,5 +3,4 @@
     <color name="colorTabProgress">#8bc34a</color>
     <color name="colorTabText">#81ffffff</color>
     <color name="colorTabTextActive">@color/colorTextAccent</color>
-    <color name="colorTextPrimaryDark">@color/colorPrimaryDark</color>
 </resources>

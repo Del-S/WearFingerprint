@@ -1,146 +1,118 @@
-\chapter{Application design and implementation}\label{sec:ApplicationDesingAndImplementation}
-This chapter describes all important information about created application. One of the main parts are hardware and software used for developing and testing of the application. Other part is structure and description of core parts used in the application. 
+\chapter{Android}\label{sec:Android}
+This chapter will provide information about Android and WearOS technology from the same company. Why it was developed and what are the differences between previous versions and other wear technologies.
 
-\section{Hardware}\label{sec:Hardware}
-There are three main Hardware components used and those are smartphone, smartwatch and BLE beacons. Main requirements for both hardwares is support for scanning Bluetooth Low Energy beacons that is supported from Bluetooth 4.0. As a secondary requirements are Wi-Fi, GSM and LTE modules to be able to scan more types of devices than just BLE beacons.  
+Android is a Linux-based operating system for mobile and wear devices developed by Google. The main selling point of this system is being an open-source project, meaning everyone can access the code and modify it as they wish. Android was mainly developed for mobile platform but in time moved beyond and can be implemented into all kinds devices, such as wear, tablets, televisions and even refrigerators or cameras \cite{WIGA}.
 
-% Maybe add beacons server information?
-
-\subsection{Smartphone}\label{subsec:Smartphone}
-Main part of the application will be developed and tested on Redmi Note 4 from Chinese company Xiaomi. It is running customized version of Android 6.0 called MIUI. Even thought system was customized in core it is still Android so there are no problems in that regard  \cite{XRN4LTE}. This phone has Bluetooth 4.1 with LE support so main requirement for the hardware is met. This device also met all the secondary requirements with Wi-Fi 802.11 a/b/g/n, GSM, and LTE support like most modern smartphones would \cite{XRN4FPS}.
-
-\subsection{Smartwatch}\label{subsec:Smartwatch}
-As already mentioned this thesis is using smartwatch with support of Android Wear 2.0 which makes it harder to select proper wear device since there not so many options at this time. There was around twenty of watches with 2.0 system and only five of them were selected to closer inspection based on few articles \cite{BAWW, BAWW18, BAWW17}.
-
-\begin{table}[h]
-	\begin{center}
-		\resizebox{\textwidth}{!}{
-		\begin{tabular}{| m{3.5cm} | m{2.2cm} | m{2.5cm} | l |}
-			\hline
-			\rowcolor[HTML]{EFEFEF}
-			Watch & BLE / Wi-fi support & Sold in Czech Republic & Problems \\ \hline
-			LG W280 Sport & Yes / Yes & No & \begin{tabular}[c]{@{}l@{}} Battery life is one day or less. \\ Too big in size. \end{tabular} \\ \hline
-			LG W270 Titanium Style & Yes / Yes & Yes & Battery life is one day or less. \\ \hline
-			Huawei Watch 2 & Yes / Yes & Yes & \begin{tabular}[c]{@{}l@{}} First update can take a long time. \\ Slight Bluetooth pairing issues. \end{tabular} \\ \hline
-			Polar M600 & Yes / Yes & Yes & \begin{tabular}[c]{@{}l@{}} Polar support complains. \\ Phone synchronization issues. \\ GPS location malfunctions. \end{tabular} \\ \hline
-			ASUS ZenWatch 3 & Yes / Yes & No &  \begin{tabular}[c]{@{}l@{}} Strap breaks fast. \\ AW 2.0 update can break the watch. \\ ASUS support complains. \end{tabular} \\ \hline
-		\end{tabular}}
-		\caption{Smartwatch comparison (sources: \cite{LGWSP, LGWST, HW2, PM600, AZW3})}
-		\label{tab1}
-	\end{center}
-\end{table}
-
-There were funds only for one watch device out of five which is displayed in \tref{tab1} with selection parameters. First requirement for the wear device is support of BLE and Wi-Fi which all have. Second information considered was being able to buy it in Czech Republic (CR) since it is easier for prices, shipping and reclamations. Only three of five devices were sold in CR at that time so others are out of the question. Final decision was made based on extensive research of customer reviews in shopping sites (Amazon, CZC, Heureka, Alza), wear official websites \cite{LGWSP, LGWST, HW2, PM600, AZW3} and other tech sites \cite{BAWW, BAWW18, BAWW17}. And selected device is Huawei Watch 2 since there were not too many problems in reviews and other requirements were met. 
-
-Initial setup of the wear device was composed of two main parts. First one was update wear system that took about one to two hours. Second task was copy Google account into the wear device where problem was discovered. Copying of accounts from Redmi Note 4 ti the watch hanged nd never completed. To fix this problem another smartphone was used to copy the account but as it was already mentioned only single device can be connected to smartwatch and connecting a new one requires factory reset that would remove all the data. So there was the need to pair wear with phone without factory reset which was handled via debugging following this \cite{HtPAWW} article.
-
-\subsection{BLE beacons}\label{subsec:BLEBeacons}
-Beacons are small devices that can be easily placed in almost any environment. The only thing they do is send their information packets using bluetooth and are used in museums, airports and as of late in indoor localization \cite{10TABB}. Beacons have their own battery that can last around a year without charging because of the new Bluetooth Low Energy (BLE) standard that consumes little to no energy \cite{IPSBOBLE}. 
-
-There are multiple beacon manufacturers with their own quality, signal strength, battery life and other hardware differences. There are also multiple software (packet) specifications for beacons meaning that data they send have different format but they does not mean other systems cannot see them. Beacons are usually platform independent and work with multiple platforms \cite{IPSBOBLE, 10TABB}.
+\section{Android system structure}\label{sec:AndroidSystemStructure}
+Android is created as a stack, meaning there are functional modules \enquote{stacked} on top of each other from Linux core over native libraries to applications as shown in \fref{fig01c04}.
 
 \begin{figure}[H]
 	\begin{centering}
-		\includegraphics[width=0.6\textwidth]{img/estimote_beacon}
+		\includegraphics[width=0.6\textwidth]{img/android_stack}
 		\par\end{centering}
-	\caption{Parts of Estimote beacon (source: \cite{RMPFEB})\label{fig:PartsOfEstimoteBeacon}}
-	\label{fig10}
+	\caption{Android stack (source: \cite{AOSP})\label{fig:AndroidStack}}
+	\label{fig01c04}
 \end{figure}
 
-Another important thing to note it that Beacons are not connected to the Internet and do not collect any data from devices around. Meaning all the data have to be processed in another device like smartphone and it also makes Beacon safe to use because there is no need to worry about sensitive data theft \cite{10TABB}.
+Android maintains all implementations with complete software stacks to enable device creators to run and modify Android for their specific hardware. To support these modifications and testing every release has multiple \enquote{code lines} to separate stable versions from experimental work \cite{AOSP}. There are multiple versions of Android system at this time and every single one has its own version information, code name and API level. Version codes are number identifications of a specific system build. Highest levels of these numbers are grouped into code names that are ordered alphabetically. For example, versions 8.0.0 and 8.1.0 have both the same code name called Oreo. Finally, API level is number identification for compatibility of specific application and is always compared to API level of device Android system \cite{AOSP, AD}. Devices with API levels lower than minimum level supported by the application are not able to run it.
 
-\section{Software}\label{sec:Software}
-Smart phone and wear use Android system which was already described in \hyperref[sec:Android]{Chapter 3}. This section will provide basic information about libraries, technologies and systems used in the application or supporting it.
+The highest part of the Android system stack are applications which extend device functionality and are written primarily in Java or newly supported Kotlin programming language \cite{SoASTaD}. These application files are packaged into \textbf{.apk} file, which is a zip archive, containing all application files, such as Java classes, layouts, images and more. One of the very important files is \textbf{AndroidManifest.xml}, it contains all meta-data about the application, such as permissions, package name, used components, versions and so on. These application packages can be shared, for a nominal fee, via official Android market called Google Play. At the end of 2017 there were over three and a half million applications available in Google Play Store \cite{SoASTaD, NoAAiGPS, NoAA}.
 
-\subsection{AltBeacon Library}\label{subsec:AltBeaconLibrary}
-There are multiple solutions that can be used to scan for BLE beacons as for example Estimote SDK \cite{ESDKfA} which was already used in previous thesis \cite{PMRIL}. To change things up BLE beacons are found via AltBeacon Library \cite{ABL}.
+Application permissions maintain security for the system and users. Android requires that application declares the permissions it needs before it can use certain system data and features. Depending on how sensitive the area is, the system may grant the permission automatically, or it may ask the user to approve the request. Following example shows how to set required application permissions in AndroidManifest, Internet is granted automatically but location must be manually approved by device user.
 
-Since there is no open and interoperable specification for proximity beacons, Radius Networks has authored the AltBeacon specification as a proposal for how to solve this problem. It is a open and free specification for Bluetooth Low Energy beacons with focus to create an open, competitive market for proximity beacon implementations \cite{AltB}.
+\begin{lstlisting}[caption=Application permission settings]
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+\end{lstlisting}
 
-This library enables Android devices to scan for iBeacons based on previously mentioned AltBreacon standard but it can be customized to support different kinds of beacons. It also supports Eddystone which is Google's open source beacon format and calculation of range between the devices which will help with localization \cite{ABL, EDDF}.
+Android is a platform designed to be open-source and free which also makes it easy to create malicious applications. These application can bypass existing security and steal sensitive data, use telephone services or even gain control over the device \cite{ASIMPD}. Android has multiple ways to protect against such applications, two of the most notable ones are Android Permission Framework and Google Play Protect \cite{SoASTaD}.
 
-\subsection{Database}\label{subsec:Database}
-Database is needed to keep all the Fingerprint data for calculations and there are two types of databases used for this application. First one is SQLite database that is used in Android application to save Fingerprints. This database is default and most used solution in Android applications and there is no need to use other ones. Another type of database used is Couchbase which is implemented on \verb|beacons.uhk.cz| server to keep all Fingerprint data on one place for multiple applications.
+\section{Wear technologies}\label{sec:WearTechnologies}
+Interactive wearable, as an example smartwatches, is a new part of mobile computers. Wear devices are categorically different from mobiles or tables in terms of usage, look and user interfaces (UI). According to the application design guidelines from major vendors users interact with wearable devices frequently throughout daily use. Each interaction is short, often less than 10 seconds, and dedicated to complete simple tasks \cite{UtCoAWO}. 
 
-\subsubsection{Couchbase database}\label{subsec:CouchbaseDatabase}
-Since SQL based databases can be complex to implement, scale and consuming more data storage space there was a drive to create so called NoSQL databases. Their most important feature is not having a scheme, that makes them easy to scale, and easy to replicate between multiple devices. There are around 225 NoSQL databases at this time and Couchbase is one of them \cite{NOSQLDB}.
+Important thing to note is that there are multiple kinds of wear devices from watches, wristbands, cameras or even glasses \cite{MIWD}. Based on a report from Gartner technology research, conducted in 2017, most used wear devices were Bluetooth headsets, wristbands and smartwatches, in this order \cite{GSWWDS}. Thanks to their small size, wear devices are ideal to use for hands-free communication and health monitoring.
 
-Couchbase is distributed, document-based database with its own querying language called N1QL. It is a database focused on simple server configuration and easy use for clients and with built in caching layer and distribution system it does not require any changes in the application. There can be either one server instance of Couchbase or multiple of them can be connected and create a database cluster that holds all the data in multiple location (nodes) \cite{GSWCBS}.
+Two problems of these devices is their diversity in hardware and more importantly in software compatibility. Every device manufacturer can create their own operating system for specific wear device and it can be difficult to develop custom applications for them. To avoid such problems this thesis is focused only on smartwatch with WearOS operating system which is based on Android. 
 
-Since SQL is used for decades and it became standard for working with data in databases this approach was extended for usage with JSON and called N1QL. It has all features of the SQL with only difference of being focused on JSON files that has no structure and it is used in Couchebase \cite{WINQL}.
+There are three main points to mention considering wear devices. First, small battery capacity that can be almost ten times smaller than of typical smartphone. Second, small display size with around forty-times less pixels which completely changes its properties. Finally, scaled down CPU with high efficiency \cite{UtCoAWO}. Last two points are main parts of lowering power consumption of smartwatches but even with these cuts high-end watch devices can have really small battery life only in matter of few days or even hours.
 
-There is a version of Couchbase for mobile called Lite that provides APIs to work with the documents and synchronize with the server instance. Problem of this solution is that Lite version does not implement N1QL and maps data as document views that have to instanced and usually use more data, at least on Android. 
+\subsection{WearOS by Google}\label{sec:WearOS}
+WearOS by Google, formally known and Android Wear 2.0, is a version of Android operational system tailored to small-screen wearable devices. There are not too many in-system changes from smartphone but one of the main differences can be seen in UI since system had to be adjusted for watch size \cite{CSUITW}. Due to scaled down processing power of watches can offload data wirelessly to mobile for heavy computing tasks, e.g. voice recognition \cite{UCAW}.
 
-\subsubsection{SQLite database}\label{subsec:SQLiteDatabase}
-SQL (Structured Query Language) is a standard language for storing, manipulating and retrieving data in databases. It is a type of Relational Database that means all data is saved into tables with rows and columns \cite{ItSQL}. These tables usually have set amount of rows with specific names that protect from adding wrong data as en example you cannot add data \verb|Person(name, surname, eye color)| into table \verb|Person(name, surname)| because there is no column named \verb|eye color| in the table.
+\begin{figure}[H]
+	\begin{centering}
+		\includegraphics[width=0.6\textwidth]{img/wear_market_share}
+		\par\end{centering}
+	\caption{Smartwatch OS market share (source: \cite{TOAW})\label{fig:SmartwatchOSMarketShare}}
+	\label{fig02c04}
+\end{figure}
 
-Advantages of these databases are structured data which makes calculation faster but uses more storage space. Data can be only saved once since they can be connected to each other. It supports complex queries for creating, reading, updating and removing data (CRUD) and better security with user and table management. Some disadvantages of this system can be with complexity and inflexibility of database scheme because it can be hard to setup and it does not allow other data then is defined in the tables \cite{ERDMS}.
+WearOS is one of the three most popular smartwatch systems but it comes with its own set of problems. Most notable and annoying one is being unable to pair wear with specific mobile device. It can be caused by multiple reasons, such as system compatibility, custom hardware or mobile type and it is more common than it should be \cite{AWPaS}. Having smartphone connected to WearOS can also cause faster battery drain on mobile device. Important thing to mention is that smartwatch can be connected to only single device and connecting to another mobile requires watch factory reset. Some other problems can be: software update issues, notifications not coming through to the watch, not being able to connect to WiFi, system crashes and few more \cite{WAWP}.
 
-Since SQL with all the features can consume a lot of hardware resources for a smartphone that is not as fast as a server Android decided to implement SQLite. SQLite has the following noticeable features: self-contained, serverless, zero-configuration, transactional \cite{WISQLITE}.
+Even with all these problems it is popular system and in early 2017 it got its biggest update yet. New version 2.0, later renamed to WearOS, which brought numerous improvements and features where few of the most notable ones will be described in this section \cite{AW2UG, AW2WN, AW2N}.
 
-\begin{itemize}
-	\item Serverless = does not need second process for the server.
-	\item Self-Contained = requires minimal support from operating system.
-	\item Zero-configuration = no need for installation or any configuration.
-	\item Transactional = data are protected against failed changes (application crashes, power failure, ...).
-\end{itemize}
+\subsubsection{Standalone applications}\label{sec:StandaloneApplications}
+This feature is a crucial change and it enables smartwatch applications to run without the need for mobile device to be constantly connected. Before this version it was needed to have smartphone connected to Android Wear when application was supposed to be used. It also supported only connection to Android device and that proved as an obstacle for users without one since they could not use any applications on the watch \cite{AW2UG, AW2WN}.
 
-\subsubsection{Comparison}\label{subsec:Comparison}
-Both of these database solutions were tested on Android and SQL proved as a better solution. Not only it takes less storage space it is also able to load data faster. As \tref{tab2} shows SQL lite takes less data space and is almost three times faster in loading all the documents.
+This change made applications work without mobile but that also created the need for them to be installed directly on wear without the need for controlling device. Thankfully part of this update is also standalone Google Play Store where users can browse applications that are designed specifically for the smartwatch \cite{AW2WN}. Part of this feature is also enabling watch to use wireless and cellular networks on their own since most standalone applications require at least WiFi connection. Finally, as of this update, security for communicating between wear and mobile was reworked and improved. This communication is now done via Wearable Data Layer API that is used in almost all Google applications and it is also easy to use for a developer \cite{AW2UG}. 
 
-\begin{table}[h]
-	\begin{center}
-		\resizebox{\textwidth}{!}{
-		\begin{tabular}{| l | l | m{3.5cm} |}
-			\hline
-			\rowcolor[HTML]{EFEFEF}
-			Database type & Data size & Loading speed (315 documents) \\ \hline
-			SQLite & 15MB & 23 second \\ \hline
-			Couchbase without views & 31MB & 65 seconds \\ \hline
-			Couchbase with views & 91MB & 65 seconds \\ \hline
-		\end{tabular}}
-		\caption{Couchbase vs SQLite (sources: \cite{LGWSP, LGWST, HW2, PM600, AZW3})}
-		\label{tab2}
-	\end{center}
-\end{table}
+\subsubsection{UI improvements}\label{sec:UIImprovements}
+Part of new Android Wear version is implementation of Android's Material design guidelines \cite{DoAW}. It has much more \enquote{mature} look and darker design for reducing battery drain \cite{AW2WN}. It is completely focused on wear devices and supports both round and square screens with new re-design of application launcher \cite{AW2UG}.
 
-As shown SQL comes up better but it does not support any data synchronization so there must be custom solution created. If Couchbase Lite would have faster query time it would be preferable solution but it is not at this time.
+\begin{figure}[H]
+	\begin{centering}
+		\includegraphics[width=0.3\textwidth]{img/wear_design_notification}
+		\includegraphics[width=0.3\textwidth]{img/wear_design_agenda}
+		\includegraphics[width=0.3\textwidth]{img/wear_design_menu}
+		\par\end{centering}
+	\caption{Wear design examples (source: \cite{DoAW})\label{fig:WearDesignExamples}}
+	\label{fig03c04}
+\end{figure}
 
-\subsection{TileView}\label{subsec:TileView}
-There are multiple ways to display map image in Android but the main ones have problems while displaying a big image because they will run out of memory. So it is usually better to try custom library or widget created specifically for displaying big image. There is multiple 2D and 3D libraries to display such an image but most of them display image as a whole meaning one big image file. 
+Android is also trying to catch up with Apple's watchOS and that is why they remade default watch display, also called watch faces, and made it much more useful. Users can now add different widgets with data from any application to the watch faces \cite{AW2UG}. This ensures quick access to the information user deems important \cite{AW2N}. All this data displays also match design of currently selected watch face and after clicking it user is directed right into the application \cite{AW2WN}.
 
-There is another way introduced by Google Maps where map is displayed using small images so called \verb|tiles|. Image is cut into small pieces which is better for device memory management than one big image. Depending on how big the cuts are it can also display multiple zoom levels keeping the map quality high with high and low levels.
+\begin{figure}[H]
+	\begin{centering}
+		\includegraphics[width=0.5\textwidth]{img/wear_watch_faces}
+		\par\end{centering}
+	\caption{Wear watch faces (source: \cite{AW2UG})\label{fig:WearWatchFaces}}
+	\label{fig04c04}
+\end{figure}
 
-% Example of this and how to do it
+\subsubsection{Google Assistant}\label{sec:GoogleAssistant}
+Google Assistant is basically voice controlled smart assistant, such as Amazon's Alexa, Apple's Siri or Microsoft's Cortana. There are multiple tech sites that run benchmarks of these systems \cite{ASGA, VACCGASAB, CAGACS, GASBAC} and they do not seem too much different, so there is no actual need to buy one over the other. These systems can pull information that user needs or wants and they can also track important information, such as place of work, sport interests, daily schedule, data related to health and much more \cite{WIGA}. With the update of WearOS this assistant is now also available on smartwatches \cite{AW2UG, AW2WN}.
 
-\section{Application structure}\label{sec:ApplicationStructure}
-This section describes structure of the applications and since there are two parts of this application (mobile and wear) both of them will be described.
+\section{Other wear technologies}\label{sec:OtherWearTechnologies}
+During the first years of smartmatches big amount of manufacturers created their own operating systems and flooded the market with them but that was a long time ago and situation has changed since then. Now there are only three main competitors as shown in the \fref{fig02c04} and those are Android (WearOS), Samsung (Tizen) and Apple (WatchOS). System from Android was already introduced so it is time for Tizen and WatchOS.
 
-\subsection{Mobile application}\label{subsec:MobileApplication}
-Mobile application is the bigger and more complex part that handles scanning, map display and synchronization with the server.
+\subsection{Tizen}\label{sec:Tizen}
+Between year 2010 and 2012 there were multiple companies developing different wear systems, for instance: MeeGo by Nokia and Intel, Samsung Linux Platform (SLP) or Bada created by Samsung. Intel later decided to join forces with Samsung and they created Tizen organization and project which was based on SLP. This project either canceled support of previous systems or merged with them \cite{TOSBHR}. Some of the current members of Tizen organization are: Samsung, Intel, Huawei, Vodafone or SK Telecom \cite{TizenM}.
 
-\subsubsection{Activities}\label{subsec:Activities}
-Activities are visible screens of the application. They serve as the entry point for a user's interaction with an application, and are also central to how a user navigates within an application (as with the Back button) or between apps (as with the Recents button) \cite{AD}.
+Tizen system is built from the ground up on Linux platform and is a part of Linux Foundation. It is focused on the needs of all stakeholders of the mobile and connected device ecosystem based on the hardware on which it should run, such as mobile, tv and wearable. One of this systems main focuses is easy support for different manufacturers with changeable profiles to suit the needs of a specific manufacturer. Tizen also offers the power of native code development with the flexibility of unparalleled HTML5 support \cite{TizenAbout}.
 
-Main activity for this application is called \verb|ScanActivity|. It displays map with proper building, floor and found Fingerprint in that specific location. It enables users to scan for new beacons and thus create new Fingerprints. Map and controls are implemented using TileView widget that was described in previous section. 
+\begin{figure}[H]
+	\begin{centering}
+		\includegraphics[width=0.6\textwidth]{img/tizen}
+		\par\end{centering}
+	\caption{Tizen showcase (source: \cite{NFFAWSW})\label{fig:Tizen}}
+	\label{fig05c04}
+\end{figure}
 
-\subsubsection{Model}\label{subsec:Model}
-Model package contains most important classes of the application and it's split into four parts called: adapters, configuration, database and tasks.
+Application development for this system can be done in a custom made program Tizen Studio which supports developing native or Web applications where native apps are developed using the C programming language, but since Tizen's version 4.0 application can also be developed using .NET or Xamarin UI. This studio contains all required parts for developing an application from project management, writing and editing code to debugging and running the application. Newest version of Tizen Studio is 2.3 with the support of Windows, Ubuntu and macOS where the next version will remove support for 32-bit Windows and Ubuntu. Created applications can be deployed to Tizen store which is very similar to Google Play for Android system \cite{TizenDev}.
 
-\paragraph{Adapters}\label{subsec:Adapters}\mbox{} \\
-Adapters information. 
+Even though wear version of Tizen OS is deployed only on Samsung products it overtook Android Wear in market shares in the beginning of 2017 but that might change with the release of Android Wear 2.0 (WearOS). 
 
-\paragraph{Configuration}\label{subsec:Configuration}\mbox{} \\
-Configuration classes contain settings of the application. It uses Android's shared preferences that are key-value (xml) files to save small amount of application data. Each SharedPreferences file is managed by the framework and can be private or shared. One thing to note is that these files are not encrypted so it is not good to save user sensitive data in them.
+\subsection{WatchOS}\label{sec:WatchOS}
+Apple started working on smartwatches around year 2002 inspired by sportswatches from Nike, with the actual results few years later (2014), when Apple Watch was revealed to be released in 2015. The release of this smartwatches introduced a new version of iOS system focused solely on wear devices called watchOS. Compared to previously mentioned systems this one is the youngest but most popular of them \cite{ATOHAWWC}. WatchOS is currently developed and deployed only for Apple Watches, same as Tizen for Samsung devices, making Google's WearOS only one of them to be implemented by multiple wear manufacturers. First version of watchOS was based on the same principle as Android Wear because it required mobile device to use its applications but luckily for Apple, they quickly moved from this interaction in version 2.0. Next versions brought many improvements, such as running application in the background, improved design and support of completely mobile independent applications in the newest major version 4.0 \cite{WOS9To5MAC}.
 
-\paragraph{Database}\label{subsec:Database}\mbox{} \\
-Database package contains all classes needed for communication between application and SQL database. First part of this package are Fingerprints classes that correspond with tables and columns of the database. Second part are so called database helpers that handle communication between the application and SQLite database such as tables creation, selects, inserts, updates and deletions.
+Applications of this system consist of two related bundles: Watch app and WatchKit extension. The Watch app bundle contains the storyboards and resource files associated with application's user interfaces. The WatchKit extension bundle lives inside the Watch app and contains the code for managing those interfaces and for responding to user interactions \cite{AppleDev}.
 
-\paragraph{Tasks}\label{subsec:Tasks}\mbox{} \\
-Tasks contain the most complex classes of this application and that is the Fingerprint scanner that has multiple sub-classes to parse all the necessary data from the scan. Tasks also contain connection with the server for data synchronization and Fingerprint transfers.
+\begin{figure}[H]
+	\begin{centering}
+		\includegraphics[width=0.6\textwidth]{img/apple_watchOs}
+		\par\end{centering}
+	\caption{WatchOS showcase (source: \cite{HTFAIAAW})\label{fig:WatchOS}}
+	\label{fig06c04}
+\end{figure}
 
-\subsubsection{Utilities}\label{subsec:Utilities}
-Utilities contain classes not fit to any other category or classified as support ones which usually means classes for animations or warning messages but since this application communicates with the wear device this package also contains classes that handle such communication.
-
-\subsection{Wear application}\label{subsec:WearApplication}
-Wear application is simplified version of its smartphone counterpart. It handles only scanning, display of scanning progress and sending the data to the phone. 
+Application development for WatchOS can be done using Xcode which is a free program to develop applications for iOS platform created by Apple. Main programming language used in this program is Swift, also created by Apple and based on C and Object-C language. Swift is an open-source language focused on being easy to understand but still powerful and fast. Same as previous wear systems, created applications can be deployed using an App Store similar to Google Play or Tizen store.

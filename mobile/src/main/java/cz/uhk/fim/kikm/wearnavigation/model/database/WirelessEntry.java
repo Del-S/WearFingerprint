@@ -6,6 +6,7 @@ import android.os.Parcelable;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,8 +30,11 @@ public class WirelessEntry implements Parcelable {
     public final static String DB_SCAN_DIFFERENCE = "scanDifference";
 
     // Variables of this class
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Expose(serialize = false)
     private int id;             // Database id (its inner id and it is not exported)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Expose(serialize = false)
     private int fingerprintId;  // If of fingerprint that this entry belongs to
     private String ssid;        // Wifi network public ssid
     private String bssid;       // The address of the access point
@@ -39,12 +43,14 @@ public class WirelessEntry implements Parcelable {
     private int channel;        // Channel on which access point broadcasts
     private float distance;     // Distance between access point and device
     private long timestamp;     // Device was found at this timestamp
+    @SerializedName("time")
     @JsonProperty("time")
     private long scanTime;      // Device was found at this time during the scan (seconds)
     /**
      * Difference between scanTime and last scanDifference (device based by bssid).
      * Informs about the time difference between this entry and previous one.
      */
+    @SerializedName("difference")
     @JsonProperty("difference")
     private long scanDifference;
 
@@ -155,6 +161,26 @@ public class WirelessEntry implements Parcelable {
         this.channel = channel;
     }
 
+    /**
+     * Parse frequency into channel number.
+     * Found here: https://stackoverflow.com/questions/5485759/how-to-determine-a-wifi-channel-number-used-by-wifi-ap-network
+     *
+     * @param frequency to parse
+     */
+    public void setChannelByFrequency(int frequency) {
+        if (frequency == 2484) {
+            this.channel = 14;
+            return;
+        }
+
+        if (frequency < 2484) {
+            this.channel = (frequency - 2407) / 5;
+            return;
+        }
+
+        this.channel = (frequency / 5) - 1000;
+    }
+
     public float getDistance() {
         return distance;
     }
@@ -213,6 +239,7 @@ public class WirelessEntry implements Parcelable {
     public String toString() {
         return "class WirelessEntry {\n" +
                 "    dbId: " + toIndentedString(id) + "\n" +
+                "    fingerprintId: " + toIndentedString(fingerprintId) + "\n" +
                 "    ssid: " + toIndentedString(ssid) + "\n" +
                 "    bssid: " + toIndentedString(bssid) + "\n" +
                 "    rssi: " + toIndentedString(rssi) + "\n" +

@@ -40,32 +40,110 @@
                 android:layout_height="match_parent"
                 android:progressDrawable="@drawable/progress_circle"/>
 
-            <LinearLayout
+            <RelativeLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:layout_centerInParent="true">
 
                 <TextView
                     android:id="@+id/am_progress_status"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
                     android:textAppearance="@style/TextAppearance.Wearable.Medium"
                     android:textColor="@color/colorTextWhite"
-                    android:layout_marginBottom="6dp"
-                    android:text="@string/am_status_creating"/>
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/am_status_creating"
+                    android:textAlignment="center"
+                    android:layout_centerHorizontal="true"/>
 
-                <TextView
-                    android:id="@+id/am_progress_percent"
-                    android:layout_width="match_parent"
+                <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:textSize="16sp"
-                    android:textColor="@color/colorTextWhite"
-                    android:text="@string/am_progress_percent_default"/>
+                    android:layout_centerInParent="true"
+                    android:paddingStart="3dp"
+                    android:layout_below="@+id/am_progress_status">
 
-            </LinearLayout>
+                    <TableRow>
+
+                        <TextView
+                            android:id="@+id/am_bluetooth_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/am_data_bluetooth_title"
+                            android:textAlignment="center" />
+
+                        <TextView
+                            android:id="@+id/am_wireless_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/am_data_wireless_title"
+                            android:textAlignment="center" />
+
+                        <TextView
+                            android:id="@+id/am_cellular_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/am_data_cellular_title"
+                            android:textAlignment="center" />
+
+                        <TextView
+                            android:id="@+id/am_sensor_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/am_data_sensor_title"
+                            android:textAlignment="center" />
+                    </TableRow>
+
+                    <TableRow android:paddingTop="2dp">
+
+                        <TextView
+                            android:id="@+id/am_bluetooth_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingEnd="7dp"
+                            android:paddingLeft="7dp"
+                            android:paddingRight="7dp"
+                            android:paddingStart="7dp"
+                            android:text="@string/am_data_count_default"
+                            android:textAlignment="center" />
+
+                        <TextView
+                            android:id="@+id/am_wireless_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingEnd="8dp"
+                            android:paddingLeft="8dp"
+                            android:paddingRight="8dp"
+                            android:paddingStart="8dp"
+                            android:text="@string/am_data_count_default"
+                            android:textAlignment="center" />
+
+                        <TextView
+                            android:id="@+id/am_cellular_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingEnd="8dp"
+                            android:paddingLeft="8dp"
+                            android:paddingRight="8dp"
+                            android:paddingStart="8dp"
+                            android:text="@string/am_data_count_default"
+                            android:textAlignment="center" />
+
+                        <TextView
+                            android:id="@+id/am_sensor_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingEnd="8dp"
+                            android:paddingLeft="8dp"
+                            android:paddingRight="8dp"
+                            android:paddingStart="8dp"
+                            android:text="@string/am_data_count_default"
+                            android:textAlignment="center" />
+                    </TableRow>
+
+                </TableLayout>
+
+            </RelativeLayout>
 
         </RelativeLayout>
 

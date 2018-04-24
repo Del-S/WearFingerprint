@@ -55,6 +55,9 @@ public class WearDataSender {
     public void sendScanStart() {
         // If there is fingerprint to send
         if(mFingerprint != null) {
+            // Reset device entry for Wear device
+            mFingerprint.setDeviceEntry(null);
+
             // Load DataMap to save data into
             PutDataMapRequest dataMapRequest = PutDataMapRequest.create(DataLayerListenerService.SCAN_PATH);    // Request data Path
             DataMap dataMap = dataMapRequest.getDataMap();  // Get DataMap from request

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Item background colors -->
+    <color name="colorGrayBorder">#d0d0d0</color>
+    <color name="colorGrayBorderDark">#aaaaaa</color>
+
+</resources>

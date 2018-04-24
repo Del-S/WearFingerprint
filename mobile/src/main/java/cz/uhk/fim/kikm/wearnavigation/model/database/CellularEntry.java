@@ -17,6 +17,7 @@ import android.telephony.gsm.GsmCellLocation;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,8 +40,11 @@ public class CellularEntry implements Parcelable {
     public final static String DB_SCAN_DIFFERENCE = "scanDifference";
 
     // Variables of this class
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Expose(serialize = false)
     private int id;             // Database id (its inner id and it is not exported)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Expose(serialize = false)
     private int fingerprintId;  // If of fingerprint that this entry belongs to
     private int bsic;           // Base Station Identity Code
     private int cid;            // GSM Cell Identity (CID Either 16-bit described in TS 27.007)
@@ -48,12 +52,14 @@ public class CellularEntry implements Parcelable {
     private int rssi;           // Signal strength of the access point
     private float distance;     // Distance between access point and device
     private long timestamp;      // Device was found at this timestamp
+    @SerializedName("time")
     @JsonProperty("time")
     private long scanTime;       // Device was found at this time during the scan (seconds)
     /**
      * Difference between scanTime and last scanDifference (device based by bssid).
      * Informs about the time difference between this entry and previous one.
      */
+    @SerializedName("difference")
     @JsonProperty("difference")
     private long scanDifference;
 
@@ -292,6 +298,7 @@ public class CellularEntry implements Parcelable {
     public String toString() {
         return "class CellularEntry {\n" +
                 "    dbId: " + toIndentedString(id) + "\n" +
+                "    fingerprintId: " + toIndentedString(fingerprintId) + "\n" +
                 "    bsic: " + toIndentedString(bsic) + "\n" +
                 "    cid: " + toIndentedString(cid) + "\n" +
                 "    lac: " + toIndentedString(lac) + "\n" +

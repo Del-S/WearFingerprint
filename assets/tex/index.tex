@@ -7,7 +7,7 @@
 \usepackage[table]{xcolor} 
 \usepackage{array}
 \usepackage{float}
-\usepackage{longtable}
+%\usepackage{longtable}
 \usepackage{varioref}
 \usepackage{wrapfig}
 \usepackage{fancybox}
@@ -27,7 +27,8 @@
 \usepackage{refcount}
 \usepackage{xstring} 
 \usepackage{enumerate}
-
+\usepackage{csquotes}
+\usepackage{tabularx}
 
 % Cut words in half
 %\hyphenation{Word-cut}
@@ -39,6 +40,8 @@
 % Enable break url with "_" (underscore)
 \expandafter\def\expandafter\UrlBreaks\expandafter{\UrlBreaks%  save the current one
 	\do\_}
+
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
 \providecommand{\LyX}{L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
@@ -91,7 +94,7 @@
 pdftitle={Radio Fingerprint Acquisition Using Smartwatch},%
 pdfauthor={Bc. David Sucharda},%
 pdfsubject={},%
-pdfkeywords={Fingerprint, Android, Wear, RSS}%
+pdfkeywords={Fingerprint, Android, Wear, RSS, WearOS, Mobile, Smartphone, RSS Fingerptins}%
 }
 \usepackage{multicol}
 
@@ -139,7 +142,7 @@ pdfkeywords={Fingerprint, Android, Wear, RSS}%
   xleftmargin=0.2mm,
   showstringspaces=false,
   columns=flexible,
-  basicstyle={\small\ttfamily},
+  basicstyle={\scriptsize\ttfamily},
   numbers=none,
   numberstyle=\tiny\color{gray},
   keywordstyle=\color{blue},
@@ -293,9 +296,9 @@ pdfkeywords={Fingerprint, Android, Wear, RSS}%
 \noindent {\small \\Rád bych zde poděkoval Ing. Pavlu Kříži, Ph.D. za odborné vedení práce, podnětné rady a čas, který mi věnoval.}{\small \par}
 \vspace{5mm}
 
-\paragraph{Thanks}
+\paragraph{Acknowledgement}
 
-\noindent {\small \\I would like to thank to Ing. Pavel Křiž, Ph.D. for professional guidance, incentive advices, and the time he gave me.\newpage{}}{\small \par}
+\noindent {\small \\I would like to thank to Ing. Pavel Křiž, Ph.D. for professional guidance, incentive advices, and the time he provided me.\newpage{}}{\small \par}
 
 \clearpage{}
 
@@ -310,10 +313,10 @@ pdfkeywords={Fingerprint, Android, Wear, RSS}%
 
 \paragraph{Anotace}
 \noindent\textbf{\small \\Název práce: Sběr rádiových fingerprintů pomocí chytrých hodinek}{\small \par}
-\noindent \\Diplomová práce se zabývá možnostmi sběru rádiových otisků (fingerprintů) za pomoci chytrých hodinek. Tyto otisky se používají k lokalizaci uvnitř budovy. Hlavním cílem této práce je prozkoumat možnosti sběru otisků a návrh aplikace která bude tento sběr umožňovat. V první části práce je potřeba zjistit, jestli je tento sběr na hodinkách vůbec možný. V další části je zpracování aplikace na mobil a hodinky. A jako poslední část této práce je sběr otisků a jejich analýza. Jeden z osobních cílů je zpracovat tuto aplikaci aby byla co nejvíce uživatelky přívětivá.
+\noindent \\Diplomová práce se zabývá možnostmi sběru rádiových otisků (fingerprintů) za pomoci chytrých hodinek. Tyto otisky se používají k lokalizaci uvnitř budovy. Hlavním cílem této práce je prozkoumat možnosti sběru otisků a návrh aplikace která bude tento sběr umožňovat. V první části práce je potřeba zjistit, jestli je tento sběr na hodinkách vůbec možný. V další části je zpracování aplikace pro mobil a hodinky. Poslední část této práce je zaměřena na sběr otisků a jejich analýza. Jeden z osobních cílů je zpracovat tuto aplikaci aby byla co nejvíce uživatelky přívětivá a jednoduchá na použití.
 
 \paragraph{Annotation}
-\noindent \\The Master's thesis deals with possibilities of collecting radio fingerprints with the help of smart watches. These prints are used in indoor localization. Main aim of this thesis is to explore possibilities of fingerprint collection and creation of application that will allow it. First part is to figure out if this collection is even possible using smart watch. Next part deals with creation of such application not only for watch but also for the phone. And at the end part there is testing of fingerprint collection and data analysis. One of the personal goal is to make this application as user friendly as possible.
+\noindent \\The Master's thesis deals with possibilities of collecting radio fingerprints with the help of smartwatches. These fingerprints are used in indoor localization. Main aim of this thesis is to explore possibilities of fingerprint collection and creation of application that will collect them. First part is to figure out if this collection is even possible using smartwatches. Next part deals with creation of such application, not only for watch but also for the phone. And finally there is testing of fingerprint collection and data analysis of collected data. One of the personal goals is to make this application as user friendly and easy to use as possible.
 
 \cleardoublepage{}
 
@@ -333,6 +336,7 @@ pdfkeywords={Fingerprint, Android, Wear, RSS}%
 \include{tex/chap04}
 \include{tex/chap05}
 \include{tex/chap06}
+\include{tex/chap07}
 
 \include{tex/_bib}
 

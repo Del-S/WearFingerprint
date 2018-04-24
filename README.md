@@ -16,14 +16,14 @@ Smart parts
 - Scanning for new fingerprints.
 - Fingerprint scanner for Wear part.
 - Passing scanner data between Mobile and Wear part.
+- Save fingerprints on the server.
+- Display list of fingerprints in a specific location.
+- Final thesis text.
 
 ### Next features
 
-- Save fingerprints on the server.
 - Display fingerprint in specific location.
-- Text for the thesis.
 - Floor, building and scan time changes.
-
 
 ### Postponed features
 

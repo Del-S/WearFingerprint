@@ -5,6 +5,7 @@ import android.os.Parcelable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,19 +25,24 @@ public class BeaconEntry implements Parcelable {
     public final static String DB_SCAN_DIFFERENCE = "scanDifference";
 
     // Variables of this class
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Expose(serialize = false)
     private long id;             // Database id (its inner id and it is not exported)
-    private int fingerprintId; // If of fingerprint that this entry belongs to
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Expose(serialize = false)
+    private int fingerprintId;  // If of fingerprint that this entry belongs to
     private String bssid;       // Bssid (MAC) address of the beacon
     private float distance;     // Distance of the beacon from the device
     private int rssi;           // Signal strength of the beacon
     private long timestamp;      // Device was found at this timestamp
+    @SerializedName("time")
     @JsonProperty("time")
     private long scanTime;       // Device was found at this time during the scan (seconds)
     /**
      * Difference between scanTime and last scanDifference (device based by bssid).
      * Informs about the time difference between this entry and previous one.
      */
+    @SerializedName("difference")
     @JsonProperty("difference")
     private long scanDifference;
 
@@ -84,7 +90,6 @@ public class BeaconEntry implements Parcelable {
         }
     };
 
-    // Default constructor used for Gson
     public BeaconEntry(String bssid) {
         this.bssid = bssid;
     }
@@ -176,6 +181,7 @@ public class BeaconEntry implements Parcelable {
     public String toString() {
         return "class BeaconEntry {\n" +
                 "    dbId: " + toIndentedString(id) + "\n" +
+                "    fingerprintId: " + toIndentedString(fingerprintId) + "\n" +
                 "    bssid: " + toIndentedString(bssid) + "\n" +
                 "    distance: " + toIndentedString(distance) + "\n" +
                 "    rssi: " + toIndentedString(rssi) + "\n" +

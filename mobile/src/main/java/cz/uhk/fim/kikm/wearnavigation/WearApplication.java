@@ -10,27 +10,35 @@ import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import cz.uhk.fim.kikm.wearnavigation.model.tasks.FingerprintScanner;
 import cz.uhk.fim.kikm.wearnavigation.utils.bluetoothConnection.BluetoothConnectionService;
 import cz.uhk.fim.kikm.wearnavigation.model.configuration.Configuration;
+import okhttp3.OkHttpClient;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 public class WearApplication extends Application {
 
-    private Configuration configuration;    // Configuration for the whole app
+    private Configuration configuration;    // ApiConfiguration for the whole app
     private static BluetoothConnectionService sService; // Bluetooth communication service
     private BackgroundPowerSaver backgroundPowerSaver;  // Power saver for BeaconLibrary
     private JobInfo.Builder jobBuilder;                 // Specific job to run via JobScheduler
+    private Retrofit retrofit;
 
     @Override
     public void onCreate() {
         configuration = Configuration.getConfiguration(this);
         super.onCreate();
 
-        BeaconManager.setDebug(true);     // Remove this after completing all scanning features
+        //BeaconManager.setDebug(true);     // Remove this after completing all scanning features
         BeaconManager beaconManager = BeaconManager.getInstanceForApplication(this);    // Load beacon manager instance to enable settings change
         // Enable beacon
         beaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"));
-        backgroundPowerSaver = new BackgroundPowerSaver(this);      // This reduces bluetooth power usage by about 60% when application is not visible
+        //backgroundPowerSaver = new BackgroundPowerSaver(this);      // This reduces bluetooth power usage by about 60% when application is not visible
+        beaconManager.setEnableScheduledScanJobs(false);              // Disable scheduled jobs since scans are not run in the background
 
         JobScheduler jobScheduler = (JobScheduler) getSystemService( Context.JOB_SCHEDULER_SERVICE );
         if(jobScheduler != null) {
@@ -40,15 +48,29 @@ public class WearApplication extends Application {
         // Building job to run
         jobBuilder = new JobInfo.Builder(FingerprintScanner.JOB_ID,
                 new ComponentName(getPackageName(), FingerprintScanner.class.getName()));
-        jobBuilder.setMinimumLatency(0);                // Specify that this job should be delayed by the provided amount of time.
-        jobBuilder.setOverrideDeadline(200);            // Set deadline which is the maximum scheduling latency.
+        jobBuilder.setOverrideDeadline(1000);           // Set deadline which is the maximum scheduling latency.
         jobBuilder.setPersisted(false);                 // Set whether or not to persist this job across device reboots.
+
+        // Retrofit client with specific time limits
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .connectTimeout(90, TimeUnit.MILLISECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .build();
+
+        // Retrofit instance with background thread executor
+        retrofit = new Retrofit.Builder()
+                .baseUrl(Configuration.API_URL)
+                .client(okHttpClient)
+                .addConverterFactory(JacksonConverterFactory.create())
+                .callbackExecutor(Executors.newSingleThreadExecutor())
+                .build();
     }
 
     /**
      * Get instance of current configuration
      *
-     * @return Configuration instance
+     * @return ApiConfiguration instance
      */
     public Configuration getConfiguration() {
         return configuration;
@@ -71,6 +93,15 @@ public class WearApplication extends Application {
      */
     public JobInfo.Builder getFingerprintJob() {
         return jobBuilder;
+    }
+
+    /**
+     * Return application wide retrofit instance.
+     *
+     * @return retrofit instance
+     */
+    public Retrofit getRetrofit() {
+        return retrofit;
     }
 
     /**
