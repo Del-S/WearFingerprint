@@ -51,14 +51,18 @@ public class MainActivity extends WearableActivity implements
     private static final String TAG = "MainActivity";   // Logging tag
 
     // Request permissions parameters
-    private static final int REQUEST_ENABLE_BT = 1000;         // Bluetooth check request code
-    private static final int REQUEST_PERMISSIONS = 1001;   // Request access to coarse location
+    private static final int REQUEST_ENABLE_BT = 1000;      // Bluetooth check request code
+    private static final int REQUEST_PERMISSIONS = 1001;    // Request access to coarse location
+    // Handler parameters
+    private static final int CLOSE_WAIT_TIME = 10000;       // CLoses the app after 10 seconds
+    private static final int SCAN_DONE_CLOSE_WAIT_TIME = 3000;       // CLoses the app after scan is done
 
     private TextView mIntro;                    // Intro before scan is initiated
     private RelativeLayout mProgressContent;    // Content holding all scanning progress data
     private TextView mProgressStatus;           // Status of scanning
     private ProgressBar mProgressBar;           // Progress bar of scanning
     private ProgressBarAnimation mProgressAnimation;    // ProgressBar animation class
+    private Handler mAppCloseHandler;           // Handler that kills the app after 10 seconds of inactivity
 
     // Scan progress numbers
     private TextView mBlCount;                  // Count of bluetooth devices
@@ -126,11 +130,15 @@ public class MainActivity extends WearableActivity implements
         Wearable.getDataClient(this).addListener(this);
         Wearable.getMessageClient(this).addListener(this);
 
-        // Display views based on if there is a scan running
+        // Display views based on if there is a scan running + create application close handler if nothing happened
         if(jobScheduler.getPendingJob(FingerprintScanner.JOB_ID) != null) {
             displayScanView(true);
         } else {
             displayScanView(false);
+
+            // Initiate application close handler
+            mAppCloseHandler = new Handler();
+            mAppCloseHandler.postDelayed(this::closeApplication, CLOSE_WAIT_TIME);;
         }
     }
 
@@ -153,6 +161,22 @@ public class MainActivity extends WearableActivity implements
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch (requestCode) {
+            case REQUEST_ENABLE_BT:
+                if(resultCode != RESULT_OK) {
+                    Toast.makeText(this, R.string.am_bluetooth_not_enabled, Toast.LENGTH_SHORT).show();
+                    finish();
+                } else {
+                    checkBle();
+                }
+                break;
+        }
+    }
+
+    @Override
     public void onMessageReceived(@NonNull MessageEvent event) {
     }
 
@@ -165,6 +189,9 @@ public class MainActivity extends WearableActivity implements
                 // Run scan only if proper dataEvent was changed
                 String path = event.getDataItem().getUri().getPath();   // Get path of the event
                 if (DataLayerListenerService.SCAN_PATH.equals(path)) {  // If the path is scan path
+                    // Disable of closing this application when correct data is received
+                    mAppCloseHandler.removeCallbacksAndMessages(null);
+
                     // Load data from dataMap
                     DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());    // Get data map from event
                     // Load fingerprint data from DataMap via Parcel
@@ -302,10 +329,7 @@ public class MainActivity extends WearableActivity implements
 
                             // Rest view for next scan
                             Handler hideHandler = new Handler();
-                            hideHandler.postDelayed(() -> {
-                                displayScanView(false);      // Reset view
-                                finish();                         // Close the activity
-                            }, 3000);
+                            hideHandler.postDelayed(MainActivity.this::closeApplication, SCAN_DONE_CLOSE_WAIT_TIME);
                         }
                     }
                 }
@@ -360,19 +384,11 @@ public class MainActivity extends WearableActivity implements
     }
 
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        switch (requestCode) {
-            case REQUEST_ENABLE_BT:
-                if(resultCode != RESULT_OK) {
-                    Toast.makeText(this, R.string.am_bluetooth_not_enabled, Toast.LENGTH_SHORT).show();
-                    finish();
-                } else {
-                    checkBle();
-                }
-                break;
-        }
+    /**
+     * Resets the view to default and closes the application.
+     */
+    private void closeApplication() {
+        displayScanView(false);      // Reset view
+        finish();                         // Close the activity
     }
 }
