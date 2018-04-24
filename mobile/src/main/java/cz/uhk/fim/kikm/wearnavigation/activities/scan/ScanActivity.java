@@ -52,7 +52,7 @@ public class ScanActivity extends BaseActivity implements MapClickCallback {
             String fragmentTag = fragment.getClass().getSimpleName();
             FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
             fragmentTransaction.replace(R.id.as_frame, fragment, fragmentTag);
-            // EmployeeListFragment is not added to backStack to ensure app close on back button click
+            // MapFragment is not added to backStack to ensure app close on back button click
             if( !fragmentTag.equals(MapFragment.class.getSimpleName()) )
                 fragmentTransaction.addToBackStack(fragmentTag);
             fragmentTransaction.commitAllowingStateLoss();
@@ -83,8 +83,8 @@ public class ScanActivity extends BaseActivity implements MapClickCallback {
     @Override
     public void onPositionClick(int posX, int posY) {
         // Show Fingerprint list fragment based on which position was clicked
-        Fragment employeeFragment = FingerprintListFragment.newInstance(posX, posY);
-        showFragment(employeeFragment);
+        Fragment fingerprintListFragment = FingerprintListFragment.newInstance(posX, posY);
+        showFragment(fingerprintListFragment);
     }
 
     @Override

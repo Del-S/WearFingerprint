@@ -25,7 +25,7 @@ public class FingerprintAdapter extends RecyclerView.Adapter {
 
     private Context mContext;
     private LayoutInflater mInflater;                             // Inflater to inflate views with
-    private List<Fingerprint> mFingerprints = new ArrayList<>();  // List od Employees to display
+    private List<Fingerprint> mFingerprints = new ArrayList<>();  // List of fingerprints to display
     private SimpleDateFormat mFormatter;
     private DeviceEntry mDevice;
 

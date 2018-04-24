@@ -133,9 +133,10 @@ public class MapFragment extends Fragment implements DatabaseDataInterface {
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onDestroyView() {
+        super.onDestroyView();
         mMap.destroy();
+        mMap = null;
     }
 
     /**

@@ -26,8 +26,8 @@ public class FingerprintListFragment extends Fragment {
     public static final String ARG_POS_X = "posX";
     public static final String ARG_POS_Y = "posY";
 
-    private DatabaseCRUD mDatabase;        // Database to get employee data from
-    private RecyclerView mFingerprintList; // List to display employees
+    private DatabaseCRUD mDatabase;        // Database to get fingerprint data from
+    private RecyclerView mFingerprintList; // List to display fingerprints
     private TextView mEmptyMessage;        // Message with notifying no fingerprints found
     private FingerprintAdapter mAdapter;   // Adapter that displays Fingerprints in the list
     private int posX = 0;
@@ -73,7 +73,7 @@ public class FingerprintListFragment extends Fragment {
         initDatabase();
         mAdapter = new FingerprintAdapter(getActivity());
 
-        // Recycler view for employees
+        // Recycler view for fingerprints
         mFingerprintList = listView.findViewById(R.id.flf_list_fingerprints);
         if(getActivity() != null) {
             Drawable divider = ContextCompat.getDrawable(getActivity(), R.drawable.row_with_divider);    // Divider for row items
@@ -95,8 +95,8 @@ public class FingerprintListFragment extends Fragment {
     public void updateUI() {
         initDatabase();
 
-        // Load employees data and put them into adapter
-        List<Fingerprint> list = mDatabase.getFingerprintsByPosition(posX, posY, true);
+        // Load fingerprint data and put them into adapter
+        List<Fingerprint> list = mDatabase.getFingerprintsByPosition(posX, posY, false);
         mAdapter.addFingerprints(list);
 
         // Change visibility for recyclerView and progressBar

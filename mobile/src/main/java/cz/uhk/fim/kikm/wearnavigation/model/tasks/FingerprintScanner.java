@@ -405,7 +405,7 @@ public class FingerprintScanner extends JobService {
                 String bssid = beacon.getBluetoothAddress();
                 long scanTime = currentMillis - mStartTime;
                 // Fixes bug where time = timestamp
-                if(scanTime == currentMillis || scanTime > mScanLength) {
+                if(scanTime == currentMillis) {
                     scanTime = 0;
                 }
                 long scanDifference = calculateBeaconScanDifference(scanTime, bssid);
@@ -473,7 +473,7 @@ public class FingerprintScanner extends JobService {
                 long currentMillis = System.currentTimeMillis();
                 long scanTime = currentMillis - mStartTime;
                 // Fixes bug where time = timestamp
-                if(scanTime == currentMillis || scanTime > mScanLength) {
+                if(scanTime == currentMillis) {
                     scanTime = 0;
                 }
 
@@ -563,7 +563,7 @@ public class FingerprintScanner extends JobService {
                 long timestamp = System.currentTimeMillis();
                 long currentScanTime = timestamp - mStartTime;
                 // Fixes bug where time = timestamp
-                if(currentScanTime == timestamp || currentScanTime > mScanLength) {
+                if(currentScanTime == timestamp) {
                     currentScanTime = 0;
                 }
                 int addedScanTime = sensorTimer.get(sensorType);
